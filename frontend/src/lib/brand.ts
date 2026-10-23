@@ -1,1 +1,1 @@
-export const PRODUCT_NAME = "Navigo";
+export const PRODUCT_NAME = "[NOM]";

@@ -14,3 +14,11 @@ test("date and 'fois' are not amounts", () => {
   assert.deepEqual(scan("le 12 février"), []);
   assert.deepEqual(scan("5 fois"), []);
 });
+
+test("U+27F0 is an arrow", () => assert.equal(scan("⟰")[0].rule, "arrow"));
+test("(c), (R), TM are not emojis", () => {
+  assert.deepEqual(scan("© 2026"), []);
+  assert.deepEqual(scan("Wave™"), []);
+  assert.deepEqual(scan("Pro®"), []);
+  assert.equal(scan("\u{1F680}")[0].rule, "emoji");
+});

@@ -10,8 +10,8 @@ const RULES = [
     rule: "amount",
     re: new RegExp(String.raw`(?<![\p{L}\p{N}])(?:${NUM})[   ]?${CURRENCY}(?!\p{L})|[€$][   ]?(?:${NUM})`, "giu"),
   },
-  { rule: "emoji", re: /\p{Extended_Pictographic}/gu },
-  { rule: "arrow", re: /[←-⇿⟵-⟿⤀-⥿]/gu },
+  { rule: "emoji", re: /(?![\u00a9\u00ae\u2122])\p{Extended_Pictographic}/gu },
+  { rule: "arrow", re: /[\u2190-\u21ff\u27f0-\u27ff\u2900-\u297f]/gu },
   { rule: "premier", re: /(?<!\p{L})premi(?:er|ère|ers|ères)(?!\p{L})/giu },
 ];
 
