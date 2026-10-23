@@ -1,0 +1,11 @@
+.venv/
+node_modules/
+.next/
+media/
+.env
+.superpowers/
+__pycache__/
+*.pyc
+.pytest_cache/
+test-results/
+playwright-report/
