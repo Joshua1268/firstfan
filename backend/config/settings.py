@@ -141,4 +141,4 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEMO_MODE = os.environ.get("DEMO_MODE", "True").lower() in ("1", "true", "yes")
-PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "CADEV")
+PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "[NOM]")

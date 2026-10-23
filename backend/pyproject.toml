@@ -1,7 +1,7 @@
 [project]
 name = "cadev-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backend Django/DRF de la plateforme de test de applications web par des professionnels verifies"
 requires-python = ">=3.13"
 dependencies = [
     "django==6.1.2",
