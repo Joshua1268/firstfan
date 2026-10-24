@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend [NOM]
 
-## Getting Started
+Page d'accueil de [NOM] : Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 et Motion 14. La page est rendue côté serveur ; les compteurs viennent de l'API Django (`GET /api/public/stats/`).
 
-First, run the development server:
+La spécification de référence est `../docs/superpowers/specs/2026-10-23-landing-spec.md`. Les sections y sont citées dans le code par leur numéro (`§3.4`, `§6`...).
+
+## Démarrer en développement
+
+Prérequis : Node 22, pnpm, et le backend Django lancé sur `127.0.0.1:8010` (voir le `README.md` à la racine).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next réécrit `/api/*` vers Django. Pour pointer ailleurs, définir `API_INTERNAL_URL` (par défaut `http://127.0.0.1:8010`). Si l'API ne répond pas, la page se rend quand même et masque les compteurs.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Build de production :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm build && pnpm start -p 3100
+```
 
-## Learn More
+`NEXT_DIST_DIR` permet de produire un second build dans un autre dossier (Playwright s'en sert pour le scénario « API arrêtée »).
 
-To learn more about Next.js, take a look at the following resources:
+## Organisation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/app/                        layout (polices, MotionConfig), page (composition serveur),
+                                globals.css (tokens §5, grain, keyframes)
+src/app/api/public/stats/       relais des compteurs publics
+src/components/landing/         Nav, Hero, Stickers, LiveBadge, JobsMarquee, ProSection, LiveSection,
+                                WhatIs, Trust, DevExchange, FinalCta, Footer, MobileCtaBar
+src/components/landing/stage/   stage « Boucle et histoire » : un seul useScroll lissé, scènes, repli statique
+src/lib/                        brand.ts (PRODUCT_NAME), motion-tokens.ts (durées, easings, springs §6), stats.ts
+e2e/                            tests Playwright de la landing
+scripts/                        garde-fou de contenu et ses tests
+stubs/sharp/                    paquet vide qui remplace sharp (licence LGPL refusée)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Règles de motion appliquées partout : on n'anime que `transform`, `opacity`, `pathLength` / `stroke-dashoffset` et `offset-distance` ; chaque animation a un état final en `prefers-reduced-motion: reduce` ; tout le texte est dans le HTML serveur.
 
-## Deploy on Vercel
+## Tests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+node --test scripts/        # garde-fou de contenu
+pnpm vitest run             # tests unitaires (géométrie du stage, seuils, stats, URL d'API)
+pnpm playwright test        # tests de bout en bout
+pnpm build                  # build de production
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Playwright
+
+Avant de lancer Playwright, la base Postgres doit tourner et être migrée :
+
+```bash
+docker compose -f ../docker-compose.yml up -d db
+(cd ../backend && uv run python manage.py migrate)
+```
+
+`playwright.config.ts` démarre (ou réutilise) trois serveurs : Django sur 8010, un build de production sur 3100, et un second build sur 3101 dont l'API pointe vers un port fermé (projet `api-down`). Les projets couvrent desktop 1440x900, mobile 375x812, tablette 820x1180, grand écran 1920x1080, laptop 1280x800 et petit laptop 1024x768.
+
+Attention : avec `reuseExistingServer`, un serveur Next resté ouvert sur 3100 ou 3101 depuis un ancien build est réutilisé tel quel. Vérifier avec `lsof -nP -iTCP:3100,3101 -sTCP:LISTEN` et l'arrêter avant de tester du code modifié.
+
+### Garde-fou de contenu
+
+`scripts/check-content.mjs` refuse dans la landing :
+
+- les montants (chiffres suivis d'une devise : FCFA, CFA, XOF, F, k, euros...) ;
+- les emojis (les repères visuels sont des icônes SVG) ;
+- les flèches en caractère Unicode (U+2190 à U+21FF, U+27F0 à U+27FF, U+2900 à U+297F) ;
+- les mots « premier », « première », « premiers », « premières ».
+
+```bash
+pnpm check:content                   # analyse src/components/landing
+node scripts/check-content.mjs <dir> # analyse un autre dossier ou un fichier HTML rendu
+```
+
+Le même contrôle tourne dans Playwright sur le texte rendu de la page (`rendered page has no forbidden content`).
