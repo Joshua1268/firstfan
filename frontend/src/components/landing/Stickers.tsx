@@ -135,7 +135,8 @@ export function Stickers({
   const defs = STICKERS.filter((s) => (isLayer ? s.desktop.layer === placement : s.mobile?.zone === placement));
 
   return (
-    <div ref={root} className="absolute inset-0" style={{ ["--sheen" as string]: "50%" }}>
+    // Décoratifs pour les technologies d'assistance : ces preuves sont reprises en texte dans les sections suivantes.
+    <div ref={root} aria-hidden="true" className="absolute inset-0" style={{ ["--sheen" as string]: "50%" }}>
       {defs.map((def) => (
         <Sticker
           key={def.n}
@@ -205,7 +206,7 @@ function Sticker({
 
   return (
     <div className="absolute" style={{ left: slot.left, top: slot.top }}>
-      <motion.div style={reduce ? undefined : { x, y, rotate }}>
+      <motion.div style={{ x: reduce ? 0 : x, y: reduce ? 0 : y, rotate: reduce ? 0 : rotate }}>
         <motion.div
           initial={false}
           animate={hoverState}

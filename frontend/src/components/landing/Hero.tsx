@@ -30,7 +30,11 @@ function Word({ i, children }: { i: number; children: ReactNode }) {
   );
 }
 
-/** Coche tracée à la main au-dessus de « CLIENTS » : la seule tache d'accent du titre. */
+/**
+ * Coche tracée à la main au-dessus de « CLIENTS » : la seule tache d'accent du titre.
+ * Elle tient dans l'interligne (0.16em entre la ligne de base de FUTURS et le haut des capitales
+ * de CLIENTS) et se pose sur le haut du mot, sans jamais toucher FUTURS (vérifié en e2e).
+ */
 function ClientsCheck() {
   const reduce = useReducedMotion();
   // 700 ms comptées depuis le début de la navigation (§2), pas depuis l'hydratation.
@@ -40,7 +44,7 @@ function ClientsCheck() {
       aria-hidden="true"
       viewBox="0 0 64 48"
       fill="none"
-      className="pointer-events-none absolute -right-[0.62em] -top-[0.2em] w-[0.55em] overflow-visible text-accent md:-right-[0.22em] md:-top-[0.34em] md:w-[0.5em]"
+      className="pointer-events-none absolute -top-[0.07em] left-[58%] z-10 w-[0.44em] overflow-visible text-accent md:left-[60%] md:w-[0.36em]"
     >
       <motion.path
         d="M6 26c5 3 10 8 14 15C27 25 40 11 58 4"
@@ -49,12 +53,18 @@ function ClientsCheck() {
         strokeLinecap="round"
         strokeLinejoin="round"
         // Opacité coupée tant que pathLength vaut 0 : sinon les embouts ronds dessinent deux points.
-        initial={reduce ? false : { pathLength: 0, opacity: 0 }}
+        // Même état initial au serveur et au client (pas d'écart d'hydratation) ;
+        // en reduced-motion, la coche est posée tracée tout de suite.
+        initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{
-          pathLength: { delay, duration: 0.38, ease: ease.outExpo },
-          opacity: { delay, duration: 0.01 },
-        }}
+        transition={
+          reduce
+            ? { duration: 0 }
+            : {
+                pathLength: { delay, duration: 0.38, ease: ease.outExpo },
+                opacity: { delay, duration: 0.01 },
+              }
+        }
       />
     </svg>
   );
@@ -98,7 +108,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
     >
       <div className="relative mx-auto flex w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] flex-1 flex-col px-[var(--grid-margin)] pb-6 md:justify-center md:pb-24">
         {/* Zone réservée haute (mobile). */}
-        <div className="relative h-[76px] shrink-0 lg:hidden">
+        <div aria-hidden="true" className="relative h-[76px] shrink-0 lg:hidden">
           <Stickers placement="top" camp={camp} progress={scrollYProgress} />
         </div>
 
@@ -109,10 +119,10 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
         {/* Bloc titre : le H1 est dimensionné en unités de conteneur (jamais au-delà des colonnes 1 à 10),
             et les autocollants « titre » sont placés en % de ce bloc, donc ils suivent toutes les largeurs. */}
         <div className="relative mt-3 [container-type:inline-size] md:mt-6">
-          <div className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
             <Stickers placement="title" camp={camp} progress={scrollYProgress} />
           </div>
-          <motion.div style={reduce ? undefined : { y: h1Y, opacity: h1Opacity }}>
+          <motion.div style={{ y: reduce ? 0 : h1Y, opacity: reduce ? 1 : h1Opacity }}>
             <h1
               id="hero-title"
               className="text-center font-display text-[clamp(56px,15vw,96px)] font-extrabold uppercase leading-[var(--leading-h1)] tracking-[var(--tracking-h1)] text-ink [font-variation-settings:'wdth'_62] md:text-left md:text-[length:min(var(--text-h1),13.4cqw)]"
@@ -139,7 +149,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
         </div>
 
         {/* Zone réservée basse (mobile). */}
-        <div className="relative my-2 h-[88px] shrink-0 lg:hidden">
+        <div aria-hidden="true" className="relative my-2 h-[88px] shrink-0 lg:hidden">
           <Stickers placement="bottom" camp={camp} progress={scrollYProgress} />
         </div>
 
@@ -151,7 +161,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
 
           <div className="relative mt-6 flex flex-col gap-4 md:col-span-6 md:mt-0 md:self-end lg:col-span-7 lg:col-start-6 xl:col-span-6 xl:col-start-7">
             {/* Autocollants ancrés sur la colonne des CTA (au-dessus, à droite, en dessous ; jamais dessus). */}
-            <div className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
               <Stickers placement="cta" camp={camp} progress={scrollYProgress} />
             </div>
             <div className="hero-lift-16 flex flex-col gap-3 md:flex-row md:flex-wrap">

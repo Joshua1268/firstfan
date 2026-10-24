@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, ease } from "@/lib/motion-tokens";
 
@@ -21,17 +21,47 @@ export function Nav() {
   const bgOpacity = reduce ? bgStep : bgSmooth;
   const [open, setOpen] = useState(false);
   const menuId = useId();
-  const close = useCallback(() => setOpen(false), []);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // Après fermeture par Échap ou par le bouton, le focus revient sur le bouton ;
+  // après un clic sur un lien, on laisse la navigation gérer le focus.
+  const returnFocus = useRef(false);
+  const close = useCallback((restoreFocus = true) => {
+    returnFocus.current = restoreFocus;
+    setOpen(false);
+  }, []);
 
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    if (!open) {
+      if (returnFocus.current) buttonRef.current?.focus();
+      returnFocus.current = false;
+      return;
+    }
+    // À l'ouverture : focus sur le lien de tête du menu.
+    menuRef.current?.querySelector<HTMLElement>("a[href]")?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      // Piège du focus : le bouton (pour refermer) puis les liens du menu, en boucle.
+      const items = [buttonRef.current, ...(menuRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? [])].filter(
+        (el): el is HTMLElement => el !== null,
+      );
+      if (items.length === 0) return;
+      const i = items.indexOf(document.activeElement as HTMLElement);
+      const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : i === -1 || i === items.length - 1 ? 0 : i + 1;
+      e.preventDefault();
+      items[next].focus();
+    };
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
     return () => {
       document.documentElement.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKey);
     };
   }, [open, close]);
 
@@ -74,12 +104,13 @@ export function Nav() {
         </div>
 
         <button
+          ref={buttonRef}
           type="button"
           className="relative -mr-2 flex size-11 items-center justify-center text-ink md:hidden"
           aria-expanded={open}
           aria-controls={menuId}
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => (open ? close() : setOpen(true))}
         >
           {/* Icône menu à deux traits, qui se croisent à l'ouverture. */}
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
@@ -104,7 +135,9 @@ export function Nav() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={menuRef}
             id={menuId}
+            data-mobile-menu
             key="menu"
             className="fixed inset-0 z-0 flex flex-col bg-bg px-[var(--grid-margin)] pb-[max(24px,env(safe-area-inset-bottom))] pt-24 md:hidden"
             initial={{ opacity: 0 }}
@@ -130,7 +163,7 @@ export function Nav() {
                   <Link
                     href={l.href}
                     prefetch={false}
-                    onClick={close}
+                    onClick={() => close(false)}
                     className="flex min-h-16 items-center font-display text-[32px] font-extrabold uppercase leading-none [font-variation-settings:'wdth'_75]"
                   >
                     {l.label}
@@ -142,7 +175,7 @@ export function Nav() {
               <Link
                 href="/inscription?role=tester"
                 prefetch={false}
-                onClick={close}
+                onClick={() => close(false)}
                 className="flex h-14 items-center justify-center rounded-pill bg-accent text-[16px] font-semibold text-accent-ink"
               >
                 Je teste et je suis rémunéré
@@ -150,7 +183,7 @@ export function Nav() {
               <Link
                 href="/inscription?role=dev"
                 prefetch={false}
-                onClick={close}
+                onClick={() => close(false)}
                 className="flex h-14 items-center justify-center rounded-pill border border-ink/60 text-[16px] font-semibold text-ink"
               >
                 Je suis développeur

@@ -58,13 +58,3 @@ export function StarIcon(props: IconProps) {
     </Svg>
   );
 }
-
-/** Menu à deux traits (§3.1). */
-export function MenuIcon(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <path d="M4 9h16" />
-      <path d="M4 15h16" />
-    </Svg>
-  );
-}

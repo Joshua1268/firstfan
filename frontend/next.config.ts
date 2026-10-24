@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
+import { apiBaseUrl } from "./src/lib/api-url";
 
-const apiUrl = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000";
+const apiUrl = apiBaseUrl();
 
 const nextConfig: NextConfig = {
   images: { unoptimized: true },

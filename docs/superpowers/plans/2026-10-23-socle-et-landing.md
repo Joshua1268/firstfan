@@ -8,7 +8,7 @@
 - `backend/` : Django 6.1 + DRF, PostgreSQL via `django-pg8000`, utilisateur personnalisé à rôles.
 - `frontend/` : Next.js 16 App Router + TypeScript + Tailwind 4 + Motion 14.
 
-En dev, Next réécrit `/api/*` vers Django (`http://127.0.0.1:8000`). La landing est rendue côté serveur. Les animations sont des composants client isolés.
+En dev, Next réécrit `/api/*` vers Django (`http://127.0.0.1:8010` ; le port 8000 est souvent déjà pris par un autre projet). La landing est rendue côté serveur. Les animations sont des composants client isolés.
 
 **Tech Stack:**
 - Backend : Python 3.13, uv, Django 6.1.2, djangorestframework 3.18.3, django-pg8000 0.0.5, pg8000 1.31.5, pytest-django 4.14.
@@ -194,7 +194,7 @@ def test_stats_never_exposes_amounts(client, db):
 - [ ] **Step 2 : Neutraliser sharp**
   - `stubs/sharp/package.json` contient `{"name":"sharp","version":"0.0.0-stub","license":"MIT","main":"index.js"}`, et `index.js` lève `throw new Error("sharp désactivé (licence LGPL)")`.
   - Dans `package.json` : `"pnpm": {"overrides": {"sharp": "file:./stubs/sharp"}}`.
-  - Dans `next.config.ts` : `images: { unoptimized: true }`, et `rewrites` de `/api/:path*` vers `${process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000"}/api/:path*`.
+  - Dans `next.config.ts` : `images: { unoptimized: true }`, et `rewrites` de `/api/:path*` vers `${process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8010"}/api/:path*` (constante partagée `DEFAULT_API_URL` dans `src/lib/api-url.ts`).
 - [ ] **Step 3 : Écrire les tests en échec**
 
 ```js
