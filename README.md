@@ -23,7 +23,7 @@ Ce dépôt contient pour l'instant le socle technique et la page d'accueil anim�
 | Base de données | PostgreSQL 16 en Docker (`docker-compose.yml`, port 55432 en local) |
 | Tests | pytest et pytest-django ; Vitest, `node --test` et Playwright côté frontend |
 
-En développement, Next réécrit `/api/*` vers Django sur `http://127.0.0.1:8010` (le port 8000 est souvent pris par un autre projet). La landing est rendue côté serveur ; les animations sont des composants client isolés.
+Next réécrit `/api/*` vers Django sur `http://127.0.0.1:8010` par défaut (le port 8000 est souvent pris par un autre projet), en gardant la barre finale attendue par Django (`/api/health/` répond 200 à travers Next). Seuls les compteurs publics passent par une route Next dédiée (`/api/public/stats`), qui met la réponse de Django en cache 15 s. La landing est rendue côté serveur ; les animations sont des composants client isolés.
 
 ## Licences
 
@@ -68,7 +68,7 @@ DRF est fermé par défaut : session seule, `IsAuthenticated`, rendu JSON seul h
 
 Tant que `DEMO_MODE` est vrai, l'API publique renvoie `demo: true` et la page affiche « Données de démo CADEV ». La commande `seed_demo` crée douze testeurs de démonstration (dix vérifiés), avec des identifiants fixes `demo-testeur-NN` et sans mot de passe utilisable : la relancer ne crée rien de plus. Elle refuse de tourner hors mode démo sans `--force`.
 
-Aucun chiffre n'est inventé côté frontend. Les compteurs « tests en cours » et « apps testées » restent à 0 tant que les campagnes de test n'existent pas dans le modèle.
+Aucun chiffre n'est inventé côté frontend. Les compteurs « tests en cours » et « apps testées » valent 0 tant que les campagnes de test n'existent pas dans le modèle : comme dans le badge du hero, un compteur à zéro n'est jamais affiché (la section « En direct » ne montre alors que les testeurs vérifiés), et la rangée disparaît si tout vaut zéro.
 
 ## Tests
 
