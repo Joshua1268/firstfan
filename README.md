@@ -57,8 +57,12 @@ pnpm dev                               # http://localhost:3000
 
 Variables d'environnement utiles :
 
-- Backend : `DATABASE_HOST`, `DATABASE_PORT` (55432 par défaut), `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DEMO_MODE` (vrai par défaut), `PRODUCT_NAME`.
-- Frontend : `API_INTERNAL_URL` (adresse de Django vue par le serveur Next, `http://127.0.0.1:8010` par défaut).
+- Backend : `DATABASE_HOST`, `DATABASE_PORT` (55432 par défaut), `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `DEMO_MODE`, `PRODUCT_NAME`.
+- Frontend : `API_INTERNAL_URL` (adresse de Django vue par le serveur Next, `http://127.0.0.1:8010` par défaut), `NEXT_PUBLIC_CONTACT_EMAIL` (adresse de la page Contact, vide tant que le domaine n'est pas choisi).
+
+La liste commentée est dans `.env.example`. Les valeurs par défaut visent le développement local (DEBUG vrai, clé de dev, tous les hôtes, mode démo). Avec `DEBUG=false`, Django refuse de démarrer si `SECRET_KEY` manque ou vaut la clé de dev, si `ALLOWED_HOSTS` est vide ou contient `*`, si `CSRF_TRUSTED_ORIGINS` est vide, ou si `DEMO_MODE` n'est pas défini explicitement. Il active alors les cookies sécurisés, HSTS et `SECURE_PROXY_SSL_HEADER` (Caddy termine le TLS devant Django).
+
+DRF est fermé par défaut : session seule, `IsAuthenticated`, rendu JSON seul hors DEBUG, limites de débit anonyme et utilisateur. Une vue publique doit déclarer `AllowAny` explicitement ; seule la vue des compteurs publics le fait aujourd'hui.
 
 ### Données de démo
 
