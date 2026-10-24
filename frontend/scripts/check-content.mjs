@@ -57,5 +57,6 @@ function main(targets) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  main(args.length > 0 ? args : ["src/components/landing"]);
+  // Par défaut : tout le texte affiché (composants et pages, landing comprise).
+  main(args.length > 0 ? args : ["src/components", "src/app"]);
 }

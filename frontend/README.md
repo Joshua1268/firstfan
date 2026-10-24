@@ -13,7 +13,7 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-Next réécrit `/api/*` vers Django. Pour pointer ailleurs, définir `API_INTERNAL_URL` (par défaut `http://127.0.0.1:8010`). Si l'API ne répond pas, la page se rend quand même et masque les compteurs.
+Next réécrit `/api/*` vers Django en gardant la barre finale (`skipTrailingSlashRedirect`, sinon Next et Django se renvoient la requête en boucle). Les compteurs publics passent par la route `src/app/api/public/stats/` (cache de 15 s, délai de 1500 ms, 503 sans chiffre si l'API est arrêtée). Pour pointer ailleurs, définir `API_INTERNAL_URL` (par défaut `http://127.0.0.1:8010`). Si l'API ne répond pas, la page se rend quand même et masque les compteurs.
 
 Build de production :
 
@@ -28,11 +28,15 @@ pnpm build && pnpm start -p 3100
 ```
 src/app/                        layout (polices, MotionConfig), page (composition serveur),
                                 globals.css (tokens §5, grain, keyframes)
-src/app/api/public/stats/       relais des compteurs publics
+src/app/api/public/stats/       relais des compteurs publics (cache 15 s)
+src/app/{inscription,connexion,confidentialite,contact}/, not-found.tsx
+                                pages d'attente honnêtes et 404 en français
+src/components/site/            PageShell : coque commune de ces pages
 src/components/landing/         Nav, Hero, Stickers, LiveBadge, JobsMarquee, ProSection, LiveSection,
                                 WhatIs, Trust, DevExchange, FinalCta, Footer, MobileCtaBar
 src/components/landing/stage/   stage « Boucle et histoire » : un seul useScroll lissé, scènes, repli statique
-src/lib/                        brand.ts (PRODUCT_NAME), motion-tokens.ts (durées, easings, springs §6), stats.ts
+src/lib/                        brand.ts (PRODUCT_NAME), motion-tokens.ts (durées, easings, springs §6), stats.ts,
+                                hero-badge.ts et live-counters.ts (jamais de compteur à zéro affiché)
 e2e/                            tests Playwright de la landing
 scripts/                        garde-fou de contenu et ses tests
 stubs/sharp/                    paquet vide qui remplace sharp (licence LGPL refusée)
@@ -70,7 +74,7 @@ Attention : avec `reuseExistingServer`, un serveur Next resté ouvert sur 3100 o
 
 ### Garde-fou de contenu
 
-`scripts/check-content.mjs` refuse dans la landing :
+`scripts/check-content.mjs` refuse dans la landing et les pages :
 
 - les montants (chiffres suivis d'une devise : FCFA, CFA, XOF, F, k, euros...) ;
 - les emojis (les repères visuels sont des icônes SVG) ;
@@ -78,7 +82,7 @@ Attention : avec `reuseExistingServer`, un serveur Next resté ouvert sur 3100 o
 - les mots « premier », « première », « premiers », « premières ».
 
 ```bash
-pnpm check:content                   # analyse src/components/landing
+pnpm check:content                   # analyse src/components et src/app (landing et pages)
 node scripts/check-content.mjs <dir> # analyse un autre dossier ou un fichier HTML rendu
 ```
 
