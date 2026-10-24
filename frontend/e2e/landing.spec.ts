@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, pinCores, test } from "./fixtures";
 import { overlaps, scan, scrollStageTo, waitForLiveStage } from "./helpers";
 
 /** Boîtes visibles de tout ce qu'aucun autocollant ne doit recouvrir. */
@@ -320,6 +321,20 @@ test("reduced motion never requests the live stage chunk", async ({ browser }, i
   await context.close();
 });
 
+test("a low-end device (fewer than 4 cores) never requests the live stage chunk", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use });
+  await context.addInitScript(pinCores(2));
+  const page = await context.newPage();
+  const hits = await blockStageChunk(page);
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
+  await page.locator("#boucle").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(2500);
+  expect(hits).toEqual([]);
+  await expect(page.locator("#boucle[data-stage-fallback]")).toHaveCount(1);
+  await expect(page.locator("[data-stage-loaded]")).toHaveCount(0);
+  await context.close();
+});
+
 test("stage jump back", async ({ page }) => {
   await page.goto("/");
   await waitForLiveStage(page);
@@ -541,17 +556,22 @@ test("demo label when demo", async ({ page }) => {
   await expect(page.getByText("Données de démo CADEV").first()).toBeVisible();
 });
 
-test("live section shows server counters and the demo mention", async ({ page }) => {
+test("live section shows only the non-zero server counters and the demo mention", async ({ page, request }) => {
+  const stats = (await (await request.get("http://127.0.0.1:8010/api/public/stats/")).json()) as Record<string, number>;
+  const nonZero = ["tests_in_progress", "verified_testers", "apps_tested"].filter((k) => stats[k] > 0).length;
   await page.goto("/");
   const live = page.locator("#en-direct");
   await live.scrollIntoViewIfNeeded();
-  await expect(live.locator("[data-live-counter]")).toHaveCount(3);
+  await expect(live.locator("[data-live-counter]")).toHaveCount(nonZero);
+  // Jamais de « 0 » affiché (même règle que le badge du hero).
+  for (const v of await live.locator("[data-live-counter] .sr-only").allTextContents()) expect(Number(v)).toBeGreaterThan(0);
+  await expect(live).not.toContainText(/(?<!\d)0 (tests? en cours|apps? testées?)/);
   await expect(live).toContainText("Données de démo CADEV · mises à jour toutes les 15 s");
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
 });
 
-// Le passage de 0 à la valeur est fixé au niveau unitaire (count-up.test.ts) : la base de démo renvoie des 0
-// et l'e2e ne contrôle pas la valeur rendue côté serveur. Ici : valeur finale juste, et rien n'est animé en reduced-motion.
+// Le passage de 0 à la valeur est fixé au niveau unitaire (count-up.test.ts), le choix des compteurs affichés
+// aussi (live-counters.test.ts) : l'e2e ne contrôle pas la valeur rendue côté serveur. Ici : valeur finale juste, et rien n'est animé en reduced-motion.
 for (const reducedMotion of ["reduce", "no-preference"] as const) {
   test(`live counters show the server value (reduced motion: ${reducedMotion})`, async ({ browser }, info) => {
     const context = await browser.newContext({ ...info.project.use, reducedMotion });
