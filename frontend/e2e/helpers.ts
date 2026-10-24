@@ -35,7 +35,7 @@ export async function scrollStageTo(page: import("@playwright/test").Page, p: nu
 /**
  * Le module du stage animé est chargé après l'hydratation (inactivité ou approche du viewport). Avant, le HTML
  * serveur est affiché mais pas interactif : les tests qui pilotent le stage attendent son chargement.
- * Sans effet en reduced-motion ou sans stage animé : le marqueur est posé dans tous les cas.
+ * À n'utiliser qu'avec le stage animé : en reduced-motion (ou repli statique), le chunk n'est jamais chargé.
  */
 export async function waitForLiveStage(page: import("@playwright/test").Page) {
   await page.locator("[data-stage-loaded]").waitFor({ state: "attached", timeout: 15_000 });

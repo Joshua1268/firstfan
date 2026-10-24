@@ -10,7 +10,7 @@ import { useMedia, useStageLayout } from "./hooks";
 import { Loop } from "./Loop";
 import { SCENES, sceneIndexAt, sceneStart, type SceneId } from "./scenes";
 import { SceneTextLive } from "./SceneText";
-import { SkipStory, StageNav } from "./StageNav";
+import { SkipStory, StageAnchors, StageNav } from "./StageNav";
 import { StageTranscript } from "./StageTranscript";
 import { StageStatic } from "./StageStatic";
 import { Ratings, Testers } from "./Steps";
@@ -62,6 +62,7 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
       aria-label="Boucle et histoire"
       className="stage-live relative h-[360vh] lg:h-[480vh]"
     >
+      <StageAnchors />
       <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
         {/*
          * En tête de l'ordre de tabulation : le lien d'évitement, puis la transcription pour les lecteurs d'écran.

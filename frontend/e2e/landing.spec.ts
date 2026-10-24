@@ -271,11 +271,60 @@ test("stage scenes advance with scroll", async ({ page }) => {
   await expect(stage).toHaveAttribute("data-scene", "step4");
 });
 
+/** Bloque le chunk du stage animé (reconnu à son contenu) ; renvoie la liste des chunks du stage demandés. */
+async function blockStageChunk(page: import("@playwright/test").Page) {
+  const hits: string[] = [];
+  await page.route("**/_next/static/chunks/*.js", async (route) => {
+    const res = await route.fetch();
+    const body = await res.text();
+    if (body.includes("data-loop-bubble")) {
+      hits.push(route.request().url());
+      return route.abort();
+    }
+    return route.fulfill({ response: res, body });
+  });
+  return hits;
+}
+
+test("before the live stage loads, step links are real anchors that work", async ({ page }, info) => {
+  test.skip(info.project.name === "api-down");
+  const hits = await blockStageChunk(page);
+  await page.goto("/");
+  await page.locator("#boucle").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(2500);
+  expect(hits.length).toBeGreaterThan(0);
+  await expect(page.locator("[data-stage-loaded]")).toHaveCount(0);
+  // Aucun bouton inerte : les crans sont des liens vers une cible du stage.
+  await expect(page.locator(".stage-live nav button")).toHaveCount(0);
+  const step2 = page.locator(".stage-live nav a[aria-label='Étape 02']").first();
+  const href = (await step2.getAttribute("href"))!;
+  await expect(page.locator(href)).toHaveCount(1);
+  await step2.click();
+  await expect.poll(() => page.evaluate(() => location.hash)).toBe(href);
+  const inStage = await page.evaluate((h) => {
+    const t = document.querySelector(h)!.getBoundingClientRect().top;
+    return Math.abs(t) < 4;
+  }, href);
+  expect(inStage).toBe(true);
+});
+
+test("reduced motion never requests the live stage chunk", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  const hits = await blockStageChunk(page);
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
+  await page.locator("#boucle").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(2500);
+  expect(hits).toEqual([]);
+  await expect(page.locator("[data-static-scene]").first()).toBeVisible();
+  await context.close();
+});
+
 test("stage jump back", async ({ page }) => {
   await page.goto("/");
   await waitForLiveStage(page);
   await scrollStageTo(page, 0.92);
-  await page.getByRole("button", { name: "Boucle" }).click();
+  await page.locator("[data-stage]").getByRole("link", { name: "Boucle", exact: true }).click();
   await page.waitForTimeout(1200);
   await expect(page.locator("[data-stage]")).toHaveAttribute("data-scene", "loop");
   await expect(page.locator("[data-scene-text]")).toHaveCount(1);

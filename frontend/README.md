@@ -40,6 +40,12 @@ stubs/sharp/                    paquet vide qui remplace sharp (licence LGPL ref
 
 Règles de motion appliquées partout : on n'anime que `transform`, `opacity`, `pathLength` / `stroke-dashoffset` et `offset-distance` ; chaque animation a un état final en `prefers-reduced-motion: reduce` ; tout le texte est dans le HTML serveur.
 
+## Performance
+
+Mesures Lighthouse 12 (Chrome headless, build de production servi en local, octobre 2026) : desktop Perf 100, LCP 0,7 s, CLS 0 ; mobile Perf 92 à 93, Accessibilité et Bonnes pratiques 100, CLS 0.
+
+Écart connu et accepté : le LCP mobile en mode simulé (celui de PageSpeed, 4G lente et CPU x4 estimés par Lantern) est de 3,2 à 3,3 s, au-dessus de la cible de 2,5 s. Le LCP réellement observé est d'environ 0,1 s, et de 1,6 s avec le même étranglement appliqué pour de vrai (`--throttling-method=devtools`). L'élément LCP est le sous-titre du hero, peint dès la première image ; l'estimation compte surtout le JavaScript demandé avant lui (React, runtime Next, Motion : environ 215 Ko gzip). Le stage animé est déjà sorti du chargement initial (chunk chargé à l'inactivité ou à l'approche du stage, jamais en reduced-motion).
+
 ## Tests
 
 ```bash
