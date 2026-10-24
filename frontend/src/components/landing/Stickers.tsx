@@ -15,7 +15,7 @@ import type { Camp } from "./Hero";
 import { CheckIcon, StarIcon } from "./icons";
 
 type Shape = "pill-check" | "circle-star" | "folded-check" | "seal" | "pill" | "tag" | "ticket" | "stamp";
-type Placement = "title" | "cta" | "top" | "bottom";
+type Placement = "title" | "cta" | "bottom";
 type Slot = { left: string; top: string };
 
 type StickerDef = {
@@ -32,26 +32,23 @@ type StickerDef = {
    * colonne des CTA. `compact` recalibre la même position entre 1024 et 1279px.
    */
   desktop: { layer: "title" | "cta"; compact: Slot } & Slot;
-  /** Position mobile (5 autocollants « M ») dans une zone réservée au-dessus ou au-dessous du titre. */
-  mobile?: { zone: "top" | "bottom" } & Slot;
+  /** Position mobile (2 autocollants) dans la zone réservée sous le CTA. */
+  mobile?: { zone: "bottom" } & Slot;
 };
 
-// §3.2 : 8 autocollants (5 marqués M). Les positions respectent les zones d'exclusion
-// (aucun ne recouvre le H1, le texte ni les CTA) et sont vérifiées par e2e/landing.spec.ts.
+// Hero allégé : 3 autocollants sur desktop, qui racontent l'histoire dans l'ordre de lecture
+// (qui teste, la preuve, l'adoption) ; un seul en accent. 2 sur mobile, posés sous le CTA pour ne jamais
+// concurrencer le H1. Les positions respectent les zones d'exclusion (aucun ne recouvre le H1, le texte ni le CTA)
+// et sont vérifiées par e2e/landing.spec.ts.
 const STICKERS: StickerDef[] = [
-  { n: 1, text: "Comptable vérifiée", camp: "pro", shape: "pill-check", accent: true, d: 0.9, r: -6, desktop: { layer: "title", left: "77.8%", top: "6%", compact: { left: "77.8%", top: "8.8%" } }, mobile: { zone: "top", left: "50%", top: "2%" } },
-  { n: 2, text: "4,8 / 5", camp: "pro", shape: "circle-star", accent: false, d: 0.5, r: 8, desktop: { layer: "title", left: "89.7%", top: "38.9%", compact: { left: "87.5%", top: "39.4%" } }, mobile: { zone: "bottom", left: "0%", top: "8%" } },
-  { n: 3, text: "Toujours là à J7", camp: "dev", shape: "folded-check", accent: true, d: 0.8, r: 5, desktop: { layer: "cta", left: "20%", top: "-135px", compact: { left: "36.8%", top: "-66px" } }, mobile: { zone: "top", left: "0%", top: "34%" } },
-  { n: 4, text: "Payé après validation", camp: "pro", shape: "seal", accent: false, d: 0.6, r: -10, desktop: { layer: "title", left: "86.5%", top: "71.8%", compact: { left: "85.3%", top: "71.3%" } }, mobile: { zone: "bottom", left: "75%", top: "6%" } },
-  { n: 5, text: "Le dev aussi est noté", camp: "dev", shape: "pill", accent: false, d: 0.35, r: -4, desktop: { layer: "cta", left: "37.4%", top: "calc(100% + 25px)", compact: { left: "0%", top: "calc(100% + 18px)" } }, mobile: { zone: "bottom", left: "22%", top: "44%" } },
-  { n: 6, text: "Restauratrice · Cocody", camp: "pro", shape: "tag", accent: false, d: 0.45, r: 4, desktop: { layer: "cta", left: "54.8%", top: "-81px", compact: { left: "48%", top: "calc(100% + 18px)" } } },
-  { n: 7, text: "14 captures horodatées", camp: "dev", shape: "ticket", accent: false, d: 0.7, r: -7, desktop: { layer: "title", left: "46.8%", top: "75.7%", compact: { left: "45.5%", top: "80.6%" } } },
-  { n: 8, text: "Antériorité prouvée", camp: "dev", shape: "stamp", accent: false, d: 0.3, r: 12, desktop: { layer: "title", left: "58.6%", top: "-1.7%", compact: { left: "59.5%", top: "-13%" } } },
+  { n: 1, text: "Comptable vérifiée", camp: "dev", shape: "pill-check", accent: true, d: 0.9, r: -6, desktop: { layer: "title", left: "77.8%", top: "6%", compact: { left: "77.8%", top: "8.8%" } }, mobile: { zone: "bottom", left: "0%", top: "14%" } },
+  { n: 2, text: "14 captures horodatées", camp: "dev", shape: "ticket", accent: false, d: 0.7, r: -7, desktop: { layer: "title", left: "46.8%", top: "75.7%", compact: { left: "45.5%", top: "80.6%" } } },
+  { n: 3, text: "Toujours là à J7", camp: "dev", shape: "pill-check", accent: false, d: 0.5, r: 5, desktop: { layer: "cta", left: "72%", top: "18%", compact: { left: "70%", top: "22%" } }, mobile: { zone: "bottom", left: "52%", top: "30%" } },
 ];
 
-// Ordre de tamponnage : on alterne côté dev (gauche) et côté pro (droite).
-const ORDER_DESKTOP = [3, 1, 7, 2, 5, 4, 8, 6];
-const ORDER_MOBILE = [3, 1, 5, 2, 4];
+// Ordre de tamponnage : de haut en bas, dans l'ordre de lecture.
+const ORDER_DESKTOP = [1, 2, 3];
+const ORDER_MOBILE = [1, 3];
 
 const STAMP_DELAY = 0.8;
 const STAMP_STAGGER = 0.06;
@@ -91,7 +88,7 @@ export function Stickers({
   camp: Camp | null;
   progress: MotionValue<number>;
 }) {
-  // Tablettes (< 1024px) : disposition mobile à 5 autocollants dans les zones réservées.
+  // Tablettes (< 1024px) : disposition mobile à 2 autocollants dans la zone réservée sous le CTA.
   const desktop = useMedia("(min-width: 1024px)");
   const wide = useMedia("(min-width: 1280px)");
   const fine = useMedia("(pointer: fine)");
@@ -140,7 +137,8 @@ export function Stickers({
       {defs.map((def) => (
         <Sticker
           key={def.n}
-          def={def}
+          // Sur mobile, les autocollants sont sous le CTA lime : tous à l'encre, pour ne pas lui voler l'œil.
+          def={isLayer ? def : { ...def, accent: false }}
           slot={isLayer ? (wide ? def.desktop : def.desktop.compact) : def.mobile!}
           rank={order.indexOf(def.n)}
           baseDelay={baseDelay}
@@ -262,7 +260,7 @@ const textCls = "font-sans text-[length:var(--text-sticker)] font-semibold leadi
 
 function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
   const tone = def.accent ? lime : ink;
-  const common = { "data-sticker": "", "data-camp": def.camp } as const;
+  const common = { "data-sticker": "", "data-camp": def.camp, "data-accent": def.accent ? "true" : "false" } as const;
   const sheen = <span aria-hidden="true" className="sticker-sheen" />;
 
   switch (def.shape) {

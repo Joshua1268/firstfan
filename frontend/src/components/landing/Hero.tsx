@@ -74,24 +74,6 @@ function ClientsCheck() {
 const ctaBase =
   "group h-14 w-full items-center justify-center gap-2.5 rounded-pill px-7 text-[16px] font-semibold leading-none transition-colors duration-150 md:w-auto";
 
-function CtaPro({ onCamp, className = "" }: { onCamp: (c: Camp | null) => void; className?: string }) {
-  return (
-    <Link
-      href="/inscription?role=tester"
-      prefetch={false}
-      data-hero-cta
-      data-camp="pro"
-      onPointerEnter={() => onCamp("pro")}
-      onPointerLeave={() => onCamp(null)}
-      onFocus={() => onCamp("pro")}
-      onBlur={() => onCamp(null)}
-      className={`${ctaBase} border border-ink/70 text-ink hover:border-ink hover:bg-ink/[0.07] ${className}`}
-    >
-      Je teste et je suis rémunéré
-    </Link>
-  );
-}
-
 export function Hero({ stats }: { stats: PublicStats | null }) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
@@ -108,12 +90,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
       className="relative flex min-h-svh flex-col overflow-x-clip pt-16"
     >
       <div className="relative mx-auto flex w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] flex-1 flex-col px-[var(--grid-margin)] pb-6 md:justify-center md:pb-24">
-        {/* Zone réservée haute (mobile). */}
-        <div aria-hidden="true" className="relative h-[76px] shrink-0 lg:hidden">
-          <Stickers placement="top" camp={camp} progress={scrollYProgress} />
-        </div>
-
-        <p data-hero-guard className="hero-lift-12 text-center font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted md:self-start md:text-left">
+        <p data-hero-guard className="hero-lift-12 mt-8 text-balance text-center font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted md:mt-0 md:self-start md:text-left">
           Pour les devs qui ont un MVP et zéro vrai utilisateur
         </p>
 
@@ -149,25 +126,21 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
           </motion.div>
         </div>
 
-        {/* Zone réservée basse (mobile). */}
-        <div aria-hidden="true" className="relative my-2 h-[88px] shrink-0 lg:hidden">
-          <Stickers placement="bottom" camp={camp} progress={scrollYProgress} />
-        </div>
+        {/* Niveau 2 puis 3 : une phrase, un seul bouton. Le côté testeur a sa propre page (/testeurs). */}
+        <div className="relative mt-6 md:mt-10 md:grid md:grid-cols-12 md:gap-x-[var(--grid-gutter)]">
+          {/* Autocollant « adoption » : à droite de ce bloc sur desktop, jamais sur la phrase ni sur le CTA. */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
+            <Stickers placement="cta" camp={camp} progress={scrollYProgress} />
+          </div>
+          <div className="md:col-span-8 lg:col-span-7">
+            <p
+              data-hero-guard
+              className="hero-lift-12 mx-auto max-w-[34ch] text-balance text-center text-[clamp(18px,1.7vw,24px)] leading-[1.4] text-ink md:mx-0 md:max-w-[48ch] md:text-left"
+            >
+              Des pros vérifiés du métier que tu vises testent ton MVP de bout en bout et te disent la vérité.
+            </p>
 
-        <div className="md:mt-10 md:grid md:grid-cols-12 md:gap-x-[var(--grid-gutter)]">
-          <p data-hero-guard className="hero-lift-12 mx-auto max-w-[46ch] text-center text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted md:col-span-6 md:mx-0 md:text-left lg:col-span-5">
-            Des comptables, restauratrices, livreurs et commerçants vérifiés testent ton MVP de bout en bout. Ils te disent le
-            gbê, pas des compliments. Ils sont rémunérés, ils te notent, et tu sais qui l&apos;utilise encore à J30.
-          </p>
-
-          <div className="relative mt-6 flex flex-col gap-4 md:col-span-6 md:mt-0 md:self-end lg:col-span-7 lg:col-start-6 xl:col-span-6 xl:col-start-7">
-            {/* Autocollants ancrés sur la colonne des CTA (au-dessus, à droite, en dessous ; jamais dessus). */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
-              <Stickers placement="cta" camp={camp} progress={scrollYProgress} />
-            </div>
-            <div className="hero-lift-16 flex flex-col gap-3 md:flex-row md:flex-wrap">
-              {/* Sur mobile, le CTA pro passe devant (§3.2) ; le doublon masqué garde l'ordre de tabulation. */}
-              <CtaPro onCamp={setCamp} className="flex md:hidden" />
+            <div className="hero-lift-16 mt-7 flex flex-col items-center gap-3 md:mt-9 md:flex-row md:gap-6">
               <Link
                 href="/inscription?role=dev"
                 prefetch={false}
@@ -182,16 +155,20 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
                 Je suis développeur
                 <ArrowIcon size={20} className="transition-transform duration-150 group-hover:translate-x-0.5" />
               </Link>
-              <CtaPro onCamp={setCamp} className="hidden md:inline-flex" />
+              <p data-hero-guard className="text-[14px] leading-none text-ink-muted">
+                Inscription gratuite.
+              </p>
             </div>
-            <p data-hero-guard className="hero-lift-12 text-center text-[14px] leading-snug text-ink-muted md:self-start md:text-left">
-              Inscription gratuite. Testeurs payés après validation, par Wave, Orange Money ou MTN MoMo.
-            </p>
           </div>
         </div>
 
+        {/* Zone réservée (mobile et tablette) : deux autocollants sous le CTA, loin du H1. */}
+        <div aria-hidden="true" className="relative mt-6 h-[72px] shrink-0 lg:hidden">
+          <Stickers placement="bottom" camp={camp} progress={scrollYProgress} />
+        </div>
+
         {/* Pied du hero : badge en direct et indice de scroll. */}
-        <div className="mt-8 flex flex-col items-center gap-5 md:pointer-events-none md:flex-row md:items-end md:justify-between md:gap-4 md:absolute md:inset-x-[var(--grid-margin)] md:bottom-8 md:mt-0">
+        <div className="mt-6 flex flex-col items-center gap-5 md:pointer-events-none md:flex-row md:items-end md:justify-between md:gap-4 md:absolute md:inset-x-[var(--grid-margin)] md:bottom-8 md:mt-0">
           <LiveBadge badge={heroBadge(stats)} demo={stats?.demo ?? false} className="md:pointer-events-auto" />
           <a
             href="#boucle"
