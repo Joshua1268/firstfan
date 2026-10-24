@@ -29,7 +29,7 @@ test("public stats answer through the same origin, with and without trailing sla
 test("every CTA, nav and footer link of the landing leads to a real page (no 404)", async ({ page, request }) => {
   await page.goto("/");
   const hrefs = await internalHrefs(page);
-  for (const expected of ["/inscription?role=dev", "/inscription?role=tester", "/connexion", "/confidentialite", "/contact"])
+  for (const expected of ["/inscription?role=dev", "/testeurs", "/connexion", "/confidentialite", "/contact"])
     expect(hrefs).toContain(expected);
   for (const href of hrefs) {
     const res = await request.get(href);
