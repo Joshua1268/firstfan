@@ -181,3 +181,27 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
     await context.close();
   });
 }
+
+test("jobs marquee lists verified jobs", async ({ page }) => {
+  await page.goto("/");
+  const band = page.locator("[data-jobs-marquee]");
+  await band.scrollIntoViewIfNeeded();
+  await expect(band.getByText("MÉTIERS VÉRIFIÉS SUR")).toBeVisible();
+  await expect(band.getByText("Comptable").first()).toBeVisible();
+  await expect(band.getByText("Métier vérifié par CV, LinkedIn ou justificatif.")).toBeVisible();
+  // Le contenu doublé est décoratif : les lecteurs d'écran lisent la liste une seule fois.
+  await expect(band.getByRole("listitem")).toHaveCount(14);
+  await expect(page.locator("[data-marquee-track]")).toHaveCSS("animation-name", "marquee");
+});
+
+test("jobs marquee is a static centered list with reduced motion", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
+  const track = page.locator("[data-marquee-track]");
+  await expect(track).toHaveCSS("animation-name", "none");
+  await expect(track).toHaveCSS("flex-wrap", "wrap");
+  await expect(track).toHaveCSS("justify-content", "center");
+  await expect(page.locator("[data-marquee-track] [aria-hidden='true'][data-marquee-copy]")).toBeHidden();
+  await context.close();
+});
