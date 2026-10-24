@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef } from "react";
 import { dur, ease, spring } from "@/lib/motion-tokens";
 import { go, useRingRadius, useStage, useThreshold } from "./context";
@@ -85,8 +85,11 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   const wave = useMotionValue(0);
   const interacted = useRef(false);
 
-  const { scale, sharp, blurred } = useRecess(p);
+  const { scale, sharp, blurred, x: ringX } = useRecess(p);
+  // L'onde part du point de franchissement : repère de l'anneau avant son recul.
   const cx = useTransform(() => layout.get().ring.cx);
+  const reduce = useReducedMotion() ?? false;
+  const { recess } = useStage();
   const cy = useTransform(() => layout.get().ring.cy);
   // Tension : le trait passe de 2 à 3px, par fondu entre deux tracés (aucune animation de stroke-width).
   const thick = useTransform(p, [0.16, 0.185], [0, 1], { clamp: true });
@@ -124,17 +127,21 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
       go(split, 1, SPLIT, now);
       go(pass, 1, { duration: dur.slow / 1000 + 0.01, ease: ease.overshoot }, now);
       go(colorOn, 1, { duration: 0.45, ease: ease.outQuint }, now);
+      // Une fois la carte passée, la boucle recule et glisse en filigrane (l'écran se libère pour la carte).
+      go(recess, 1, { duration: 0.7, delay: 0.35, ease: ease.outQuint }, now);
       if (now) return;
       burst.set(0);
       burstOpacity.set(1);
       go(burst, 1, SHARD, false);
       go(burstOpacity, 0, { duration: 0.5, delay: 0.15, ease: "easeOut" }, false);
-      if (!desktop && interacted.current && "vibrate" in navigator) navigator.vibrate?.(12);
+      // Retour haptique : mobile, après une interaction, jamais en reduced-motion (§4).
+      if (!reduce && !desktop && interacted.current && "vibrate" in navigator) navigator.vibrate?.(12);
     } else {
       go(dash, 0, CLOSE, now);
       go(split, 0, CLOSE, now);
       go(pass, 0, { duration: 0.45, ease: ease.outQuint }, now);
       go(colorOn, 0, { duration: 0.45, ease: ease.outQuint }, now);
+      go(recess, 0, CLOSE, now);
       burst.stop();
       burstOpacity.set(0);
       wave.stop();
@@ -155,7 +162,7 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   const size = 2 * r + 40;
   return (
     <>
-      <motion.div className="absolute left-1/2 top-1/2" style={{ x: cx, y: cy, scale }}>
+      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: ringX, y: cy, scale }}>
         <BlurredRing r={r} opacity={final ? 0 : blurred} />
         <motion.svg
           width={size}
@@ -166,7 +173,7 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
         >
           <g fill="none" stroke="var(--ink)" strokeOpacity={0.4} strokeLinecap="round" strokeDasharray={`${len} ${len}`}>
             <motion.g style={{ x: aX, y: aY }}>
-              <motion.path d={a} strokeWidth={2} style={{ strokeDashoffset: dash, opacity: thin }} />
+              <motion.path data-arc="a" d={a} strokeWidth={2} style={{ strokeDashoffset: dash, opacity: thin }} />
               <motion.path d={a} strokeWidth={3} style={{ strokeDashoffset: dash, opacity: thick }} />
             </motion.g>
             <motion.g style={{ x: bX, y: bY }}>

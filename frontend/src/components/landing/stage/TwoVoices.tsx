@@ -6,7 +6,7 @@ import { dur, ease } from "@/lib/motion-tokens";
 import { CodeAvatar, JobAvatar } from "./avatars";
 import { useStepValue } from "./context";
 import { VOICES } from "./copy";
-import { Kicker, STATIC_BOX, TextBox } from "./SceneText";
+import { Kicker, STATIC_BOX, TextBox, useTextHidden } from "./SceneText";
 
 /**
  * Scène C (§3.4) : deux voix de part et d'autre de la carte (colonnes 1 à 4 et 9 à 12), la chute centrée dessous.
@@ -27,6 +27,7 @@ function Quote({ who, side, p }: { who: "dev" | "pro"; side: "left" | "right"; p
       : "lg:left-[var(--st-qr)] lg:w-[var(--st-qrw)]";
   return (
     <motion.figure
+      aria-hidden={useTextHidden()}
       className={`${who === "pro" ? "order-1" : "order-2"} flex flex-col gap-3 lg:absolute lg:top-[calc(50%+var(--st-vy))] lg:-translate-y-1/2 ${position}`}
       style={{ x, opacity }}
     >
@@ -61,6 +62,7 @@ export function TwoVoices({ p }: { p: MotionValue<number> }) {
       <Quote who="dev" side="left" p={p} />
       <Quote who="pro" side="right" p={p} />
       <motion.p
+        aria-hidden={useTextHidden()}
         className="order-3 text-[15px] font-medium leading-snug text-ink lg:absolute lg:left-1/2 lg:top-[calc(50%+var(--st-vy)+var(--st-vh)+32px)] lg:w-[min(560px,40vw)] lg:-translate-x-1/2 lg:text-center lg:text-[length:var(--text-lead)]"
         style={{ y: closeY, opacity: closeOpacity }}
       >

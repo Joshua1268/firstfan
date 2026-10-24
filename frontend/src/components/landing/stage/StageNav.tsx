@@ -27,19 +27,9 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump: (scene
     if (n !== active) setActive(n);
   });
 
-  const skip = (
-    <a
-      href="#pro"
-      className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-[11px] leading-none text-ink-muted transition-colors duration-150 hover:text-ink lg:text-[12px]"
-    >
-      {NAV.skip}
-      <ChevronIcon size={14} />
-    </a>
-  );
-
   if (!desktop) {
     return (
-      <nav aria-label={NAV.label} className="absolute inset-x-[var(--st-tl)] top-[64px] z-10 flex items-center gap-3">
+      <nav aria-label={NAV.label} className="absolute left-[var(--st-tl)] right-[calc(var(--st-tl)+140px)] top-[64px] z-10 flex items-center">
         <ol className="flex flex-1 items-center gap-1.5">
           {NAV.items.map((item, i) => (
             <li key={item.scene} className="flex-1">
@@ -58,7 +48,6 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump: (scene
             </li>
           ))}
         </ol>
-        {skip}
       </nav>
     );
   }
@@ -86,7 +75,19 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump: (scene
           ))}
         </ol>
       </nav>
-      <div className="absolute bottom-7 left-[var(--st-tl)] z-10">{skip}</div>
     </>
+  );
+}
+
+/** « Passer l'histoire » : en tête du stage dans l'ordre de tabulation ; en haut à droite sur mobile, en bas à gauche sur desktop. */
+export function SkipStory() {
+  return (
+    <a
+      href="#pro"
+      className="absolute right-[var(--st-tl)] top-[64px] z-20 inline-flex h-10 items-center gap-1 whitespace-nowrap font-mono text-[11px] leading-none text-ink-muted transition-colors duration-150 hover:text-ink lg:bottom-7 lg:left-[var(--st-tl)] lg:right-auto lg:top-auto lg:text-[12px]"
+    >
+      {NAV.skip}
+      <ChevronIcon size={14} />
+    </a>
   );
 }

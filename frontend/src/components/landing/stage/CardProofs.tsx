@@ -65,7 +65,7 @@ function VerifiedBadge({ p }: { p: MotionValue<number> }) {
   const s = useStamp(p, 0.43, 0.7);
   return (
     <motion.div className="absolute -left-7 -top-5 origin-top-left" style={{ scale: s.scale, opacity: s.opacity, rotate: -6 }}>
-      <span className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink">
+      <span data-proof-badge="" className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink">
         <CheckIcon size={16} strokeWidth={2.5} />
         {CARD.proof}
         <InkRing scale={s.inkScale} opacity={s.inkOpacity} />

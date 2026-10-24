@@ -3,6 +3,7 @@
 import {
   animate,
   useMotionValue,
+  useTransform,
   useMotionValueEvent,
   type AnimationPlaybackControls,
   type MotionValue,
@@ -17,6 +18,7 @@ import { DEFAULT_LAYOUT, type StageLayout } from "./layout";
  * - `pass` : avancement du passage de la carte par la brèche (0 à 1, joué en temps réel, §4) ;
  * - `colorOn` : couche couleur de la carte allumée par la cassure ;
  * - `shake` : tremblement horizontal de la carte (px) ;
+ * - `recess` : recul de la boucle déclenché par la cassure (0 à 1, temps réel), combiné au scrub 0.19 à 0.22 ;
  * - `instant` : vrai dans le repli statique, les micro-chorégraphies sautent à leur état final.
  */
 export type StageCtx = {
@@ -24,6 +26,7 @@ export type StageCtx = {
   pass: MotionValue<number>;
   colorOn: MotionValue<number>;
   shake: MotionValue<number>;
+  recess: MotionValue<number>;
   instant: boolean;
   desktop: boolean;
 };
@@ -42,7 +45,11 @@ export function useStageValues(desktop: boolean, instant: boolean, initialPass: 
   const pass = useMotionValue(initialPass);
   const colorOn = useMotionValue(initialPass);
   const shake = useMotionValue(0);
-  return useMemo(() => ({ layout, pass, colorOn, shake, instant, desktop }), [layout, pass, colorOn, shake, instant, desktop]);
+  const recess = useMotionValue(initialPass);
+  return useMemo(
+    () => ({ layout, pass, colorOn, shake, recess, instant, desktop }),
+    [layout, pass, colorOn, shake, recess, instant, desktop],
+  );
 }
 
 /** Anime une MotionValue, ou la pose directement en mode instantané. */
@@ -64,22 +71,41 @@ export function go(
  * Évalué aussi au montage avec la valeur courante (`initial` vaut alors vrai).
  */
 export function useThreshold(p: MotionValue<number>, t: number, cb: (above: boolean, initial: boolean) => void) {
-  const state = useRef<boolean | null>(null);
+  const tracker = useRef<ThresholdTracker | null>(null);
   const cbRef = useRef(cb);
   useEffect(() => {
     cbRef.current = cb;
   });
   useEffect(() => {
-    const above = p.get() >= t;
-    state.current = above;
-    cbRef.current(above, true);
+    tracker.current = createThresholdTracker(t);
+    cbRef.current(tracker.current.init(p.get()), true);
   }, [p, t]);
   useMotionValueEvent(p, "change", (v) => {
-    const above = v >= t;
-    if (state.current === null || above === state.current) return;
-    state.current = above;
-    cbRef.current(above, false);
+    const crossed = tracker.current?.update(v);
+    if (crossed !== null && crossed !== undefined) cbRef.current(crossed, false);
   });
+}
+
+export type ThresholdTracker = { init(v: number): boolean; update(v: number): boolean | null };
+
+/**
+ * Suivi pur d'un seuil : `update` renvoie `true` au franchissement en montant, `false` en redescendant,
+ * `null` sinon. Aucun événement avant `init` (le montage décide de l'état de départ).
+ */
+export function createThresholdTracker(t: number): ThresholdTracker {
+  let state: boolean | null = null;
+  return {
+    init(v) {
+      state = v >= t;
+      return state;
+    },
+    update(v) {
+      const above = v >= t;
+      if (state === null || above === state) return null;
+      state = above;
+      return above;
+    },
+  };
 }
 
 /**
@@ -106,11 +132,30 @@ export function useStepValue(
 
 /** Rayon de l'anneau, en état React (il change la géométrie des tracés SVG) : relu à chaque resize. */
 export function useRingRadius(): number {
+  return useLayoutValue((l) => l.ring.r);
+}
+
+/** Valeur dérivée de la géométrie, en état React (elle change la structure, pas une frame) : relue au resize. */
+export function useLayoutValue<T extends number | boolean | string>(pick: (l: StageLayout) => T): T {
   const { layout } = useStage();
   const subscribe = useCallback((cb: () => void) => layout.on("change", cb), [layout]);
   return useSyncExternalStore(
     subscribe,
-    () => layout.get().ring.r,
-    () => layout.get().ring.r,
+    () => pick(layout.get()),
+    () => pick(layout.get()),
   );
+}
+
+/**
+ * Transform recalculé seulement quand `p` est dans [lo, hi] : hors de sa scène, un calque garde sa dernière
+ * valeur (déjà invisible) au lieu de recalculer et d'allouer à chaque frame.
+ */
+export function useGatedTransform<T>(p: MotionValue<number>, lo: number, hi: number, fn: () => T): MotionValue<T> {
+  const cache = useRef<{ v: T } | null>(null);
+  return useTransform(() => {
+    const v = p.get();
+    if (cache.current && (v < lo || v > hi)) return cache.current.v;
+    cache.current = { v: fn() };
+    return cache.current.v;
+  });
 }

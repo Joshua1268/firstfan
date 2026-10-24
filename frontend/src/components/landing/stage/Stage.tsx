@@ -1,7 +1,7 @@
 "use client";
 
-import { useInView, useMotionValueEvent, useScroll, useSpring } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useInView, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "motion/react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { spring } from "@/lib/motion-tokens";
 import { Break } from "./Break";
 import { StageProvider, useStageValues } from "./context";
@@ -10,7 +10,8 @@ import { useMedia, useStageLayout } from "./hooks";
 import { Loop } from "./Loop";
 import { SCENES, sceneIndexAt, sceneStart, type SceneId } from "./scenes";
 import { SceneTextLive } from "./SceneText";
-import { StageNav } from "./StageNav";
+import { SkipStory, StageNav } from "./StageNav";
+import { StageTranscript } from "./StageTranscript";
 import { StageStatic } from "./StageStatic";
 import { Ratings, Testers } from "./Steps";
 import { StoryCard } from "./StoryCard";
@@ -24,7 +25,10 @@ import { StoryCard } from "./StoryCard";
 // Sans JS : le repli statique s'affiche et le stage sticky disparaît.
 const NO_JS = "<style>.stage-live{display:none!important}.stage-static{display:block!important}</style>";
 
-export function Stage() {
+const noop = () => () => {};
+
+/** Stage sticky animé. Monté seulement quand il sert (ses écouteurs de scroll ne tournent pas pour rien). */
+function LiveStage() {
   const ref = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -40,15 +44,6 @@ export function Stage() {
     if (i !== scene) setScene(i);
   });
 
-  // Repli : appareil modeste ou économie de données (la hauteur < 360px est gérée en CSS).
-  const [lowEnd, setLowEnd] = useState(false);
-  useEffect(() => {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    const weak = (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- capacité de l'appareil, connue seulement côté client
-    if (weak) setLowEnd(true);
-  }, []);
-
   const onJump = useCallback((id: SceneId) => {
     const el = ref.current;
     if (!el) return;
@@ -60,31 +55,55 @@ export function Stage() {
   }, []);
 
   return (
+    <section
+      ref={ref}
+      data-stage
+      data-scene={SCENES[scene].id}
+      aria-label="Boucle et histoire"
+      className="stage-live relative h-[360vh] lg:h-[480vh]"
+    >
+      <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
+        {/* En tête de l'ordre de tabulation : le lien d'évitement, puis la transcription pour les lecteurs d'écran. */}
+        <SkipStory />
+        <StageTranscript />
+        <StageProvider value={ctx}>
+          <div aria-hidden="true" className="absolute inset-0 [perspective:1200px]">
+            {/* Les arcs d'abord : les labels de l'anneau passent au-dessus du trait. */}
+            <Break p={p} />
+            <Loop p={p} />
+            <Curves p={p} />
+            <StoryCard p={p} active={inView} />
+            <Testers p={p} />
+            <Ratings p={p} />
+          </div>
+          <SceneTextLive id={SCENES[scene].id} p={p} />
+          <StageNav p={p} onJump={onJump} />
+        </StageProvider>
+      </div>
+    </section>
+  );
+}
+
+export function Stage() {
+  // Le HTML serveur contient les deux versions (le CSS choisit) ; après l'hydratation, on démonte celle qui ne sert pas.
+  const hydrated = useSyncExternalStore(noop, () => true, () => false);
+  const reduce = useReducedMotion() ?? false;
+  const short = useMedia("(max-height: 359px)", false);
+  // Repli : appareil modeste ou économie de données.
+  const [lowEnd, setLowEnd] = useState(false);
+  useEffect(() => {
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    const weak = (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- capacité de l'appareil, connue seulement côté client
+    if (weak) setLowEnd(true);
+  }, []);
+  const fallback = reduce || short || lowEnd;
+
+  return (
     <div id="boucle" className="stage-root" data-stage-fallback={lowEnd ? "" : undefined}>
       <noscript dangerouslySetInnerHTML={{ __html: NO_JS }} />
-      <section
-        ref={ref}
-        data-stage
-        data-scene={SCENES[scene].id}
-        aria-label="Boucle et histoire"
-        className="stage-live relative h-[360vh] lg:h-[480vh]"
-      >
-        <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
-          <StageProvider value={ctx}>
-            <div aria-hidden="true" className="absolute inset-0 [perspective:1200px]">
-              <Loop p={p} />
-              <Break p={p} />
-              <Curves p={p} />
-              <StoryCard p={p} active={inView} />
-              <Testers p={p} />
-              <Ratings p={p} />
-            </div>
-            <SceneTextLive id={SCENES[scene].id} p={p} />
-            <StageNav p={p} onJump={onJump} />
-          </StageProvider>
-        </div>
-      </section>
-      <StageStatic animated={lowEnd} />
+      {(!hydrated || !fallback) && <LiveStage />}
+      {(!hydrated || fallback) && <StageStatic animated={lowEnd} />}
     </div>
   );
 }

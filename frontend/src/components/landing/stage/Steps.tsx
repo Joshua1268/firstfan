@@ -1,11 +1,11 @@
 "use client";
 
-import { interpolate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef } from "react";
 import { dur, ease, spring } from "@/lib/motion-tokens";
 import { ArrowIcon } from "../icons";
 import { InkRing } from "./CardProofs";
-import { go, useStage, useStepValue, useThreshold } from "./context";
+import { go, useGatedTransform, useStage, useStepValue, useThreshold } from "./context";
 import { RATINGS, TESTERS } from "./copy";
 import { CARD_H, CARD_W, type StageLayout } from "./layout";
 import { stepCenter } from "./pose";
@@ -24,17 +24,21 @@ const ANCHOR = { type: "spring", stiffness: 300, damping: 30 } as const;
 const ENTER_T = [0.33, 0.345, 0.36];
 const STAMP_T = [0.37, 0.385, 0.4];
 const FAN_ROT = [-4, 1.5, -2.5];
+const TESTER_SCALE_MOBILE = 0.8;
 
 /** Position (centre) de la carte testeur `slot` dans le repère du stage. */
 function testerSpot(l: StageLayout, v: number, slot: number, count: number) {
   const c = stepCenter(l, v);
   if (l.desktop) {
     const cardLeft = c.x - (CARD_W * l.k) / 2;
-    const gap = 112;
+    // Écart vertical : la carte (96px x scale) plus le tampon qui dépasse en haut, sans toucher la carte voisine.
+    const gap = 126;
     return { x: cardLeft - 86 + (slot === 1 ? -26 : 0), y: c.y + (slot - (count - 1) / 2) * gap };
   }
+  // Espacement d'au moins la hauteur d'une carte testeur (96px x scale) plus le tampon qui dépasse.
   const bottom = c.y + (CARD_H * l.k) / 2;
-  return { x: (slot === 0 ? -1 : 1) * 10, y: bottom + 30 + slot * 74 };
+  const gap = 96 * TESTER_SCALE_MOBILE + 30;
+  return { x: (slot === 0 ? -1 : 1) * 10, y: bottom + 34 + slot * gap };
 }
 
 /** Coin haut gauche de la carte de l'app à l'étape 01, où Awa vient s'ancrer. */
@@ -78,7 +82,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
   const inkScale = useTransform(ink, [0, 1], [0.6, 1.9]);
   const inkOpacity = useTransform(ink, [0, 0.001, 1], [0, 0.9, 0]);
 
-  const x = useTransform(() => {
+  const x = useGatedTransform(p, 0.3, 0.5, () => {
     const l = layout.get();
     const v = p.get();
     const s = testerSpot(l, v, slot, count);
@@ -86,24 +90,26 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
     const base = s.x - 120 * (1 - enter.get()) + knock.get();
     return isAwa ? base + (a.x - s.x) * anchor.get() : base;
   });
-  const y = useTransform(() => {
+  const y = useGatedTransform(p, 0.3, 0.5, () => {
     const l = layout.get();
     const v = p.get();
     const s = testerSpot(l, v, slot, count);
     return isAwa ? s.y + (anchorSpot(l, v).y - s.y) * anchor.get() : s.y;
   });
-  const rotate = useTransform(() => -6 * (1 - enter.get()) + FAN_ROT[slot] * enter.get() * (1 - anchor.get()));
+  const rotate = useTransform(
+    () => -6 * (1 - enter.get()) + FAN_ROT[slot] * (layout.get().desktop ? 1 : 0.4) * enter.get() * (1 - anchor.get()),
+  );
   const leave = useTransform(p, [0.46, 0.49], [1, 0], { clamp: true });
-  const scale = useTransform(() => {
+  const scale = useGatedTransform(p, 0.3, 0.5, () => {
     const l = layout.get();
-    const base = l.desktop ? Math.max(0.82, l.k) : 0.85;
-    return base * (l.desktop ? 1 : 0.94) * (isAwa ? 1 - 0.14 * anchor.get() : 1 - 0.08 * anchor.get());
+    const base = l.desktop ? Math.max(0.82, l.k) : TESTER_SCALE_MOBILE;
+    return base * (isAwa ? 1 - 0.14 * anchor.get() : 1 - 0.08 * anchor.get());
   });
   const opacity = useTransform(() => enter.get() * leave.get() * (isAwa ? 1 : 1 - 0.6 * anchor.get()));
 
   return (
     <motion.div className="absolute left-1/2 top-1/2" style={{ x, y, rotate, scale, opacity, zIndex: isAwa ? 2 : 1 }}>
-      <div className="relative -ml-[110px] -mt-12 flex h-24 w-[220px] items-center gap-3 rounded-card border border-line bg-surface px-3.5 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.6)]">
+      <div data-tester={t.name} className="relative -ml-[110px] -mt-12 flex h-24 w-[220px] items-center gap-3 rounded-card border border-line bg-surface px-3.5 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.6)]">
         <JobAvatar size={40} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-semibold leading-tight text-ink">{t.name}</p>
@@ -115,6 +121,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
         </div>
         {/* Emplacement du tampon MÉTIER VÉRIFIÉ */}
         <motion.span
+          data-tester-stamp=""
           className="absolute -top-3 right-2 rounded-[6px] border-[1.5px] border-accent px-1.5 py-1 font-mono text-[9.5px] font-medium uppercase leading-none tracking-[0.08em] text-accent"
           style={{ scale: stampScale, rotate: stampRot, opacity: stampOpacity }}
         >
@@ -152,10 +159,18 @@ function avatarSpots(l: StageLayout, v: number) {
       awa: { x: Math.min(lim, c.x + halfW + 56), y: c.y + halfH * 0.35 },
     };
   }
-  return { dev: { x: -l.vw * 0.3, y: c.y - halfH - 34 }, awa: { x: l.vw * 0.3, y: c.y - halfH - 34 } };
+  // Mobile : avatars au-dessus de la carte, assez haut pour ne pas toucher le badge du dossier.
+  const y = c.y - halfH - 50;
+  return { dev: { x: -l.vw * 0.3, y }, awa: { x: l.vw * 0.3, y } };
 }
 
 const ARC = { duration: 0.72, ease: ease.arc };
+const PILL_SCALE = [1, 1.15, 1];
+
+/** Keyframes en 3 points (0, 0.5, 1), interpolés sans créer de fonction à chaque frame. */
+function lerp3(k: readonly number[], t: number) {
+  return t <= 0.5 ? k[0] + (k[1] - k[0]) * (t / 0.5) : k[1] + (k[2] - k[1]) * ((t - 0.5) / 0.5);
+}
 const RETURN = { type: "spring", stiffness: 400, damping: 34 } as const;
 
 /** Vol d'une pastille d'un avatar à l'autre : keyframes x/y en 3 points, rotate [-10, 6, 0], scale [1, 1.15, 1]. */
@@ -163,7 +178,7 @@ function useFlight(p: MotionValue<number>, progress: MotionValue<number>, from: 
   const { layout } = useStage();
   const stamp = useMotionValue(1);
   const lift = layout.get().desktop ? 46 : 38;
-  const pos = useTransform(() => {
+  const pos = useGatedTransform(p, 0.68, 0.82, () => {
     const l = layout.get();
     const s = avatarSpots(l, p.get());
     const a = s[from];
@@ -172,22 +187,26 @@ function useFlight(p: MotionValue<number>, progress: MotionValue<number>, from: 
     const clampX = (x: number) => Math.max(-lim, Math.min(lim, x));
     const t = progress.get();
     const xs = [clampX(a.x), (a.x + b.x) / 2, clampX(b.x)];
-    // Mobile : la pastille qui va vers Awa se pose sous son avatar, pour ne pas chevaucher l'autre.
-    const land = !l.desktop && to === "awa" ? b.y + 42 : b.y - lift;
-    const ys = [a.y - lift, Math.min(a.y, b.y) - lift - (l.desktop ? 150 : 24), land];
-    return { x: interpolate([0, 0.5, 1], xs)(t), y: interpolate([0, 0.5, 1], ys)(t) };
+    // Mobile : les deux pastilles ne tiennent pas sur une ligne ; celle qui va vers Awa se pose une rangée plus haut.
+    const land = !l.desktop && to === "awa" ? b.y - lift - 36 : b.y - lift;
+    // Elle en part aussi une rangée plus haut : au départ comme à l'arrivée, les deux pastilles ne se touchent pas.
+    const start = !l.desktop && from === "dev" ? a.y - lift - 36 : a.y - lift;
+    const ys = [start, Math.min(a.y, b.y) - lift - (l.desktop ? 150 : 24), land];
+    return { x: lerp3(xs, t), y: lerp3(ys, t) };
   });
   const x = useTransform(pos, (v) => v.x);
   const y = useTransform(pos, (v) => v.y);
   const rotate = useTransform(progress, [0, 0.5, 1], [-10, 6, 0]);
-  const scale = useTransform(() => interpolate([0, 0.5, 1], [1, 1.15, 1])(progress.get()) * stamp.get());
+  const scale = useTransform(() => lerp3(PILL_SCALE, progress.get()) * stamp.get());
   return { x, y, rotate, scale, stamp };
 }
 
 function Pill({ flight, opacity, children }: { flight: ReturnType<typeof useFlight>; opacity: MotionValue<number>; children: React.ReactNode }) {
   return (
     <motion.div className="absolute left-1/2 top-1/2" style={{ x: flight.x, y: flight.y, rotate: flight.rotate, scale: flight.scale, opacity, zIndex: 3 }}>
-      <div className="-translate-x-1/2 -translate-y-1/2">{children}</div>
+      <div data-rating-pill="" className="-translate-x-1/2 -translate-y-1/2">
+        {children}
+      </div>
     </motion.div>
   );
 }
@@ -265,7 +284,7 @@ export function Ratings({ p }: { p: MotionValue<number> }) {
     }
   });
 
-  const spots = useTransform(() => avatarSpots(layout.get(), p.get()));
+  const spots = useGatedTransform(p, 0.68, 0.82, () => avatarSpots(layout.get(), p.get()));
   const devX = useTransform(spots, (s) => s.dev.x);
   const devY = useTransform(spots, (s) => s.dev.y);
   const awaX = useTransform(spots, (s) => s.awa.x);
@@ -283,7 +302,7 @@ export function Ratings({ p }: { p: MotionValue<number> }) {
         <motion.div key={av.label} className="absolute left-1/2 top-1/2" style={{ x: av.x, y: av.y, opacity: shown, scale: avatarScale }}>
           <div className="flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1">
             {av.avatar}
-            <span className="whitespace-nowrap font-mono text-[11px] leading-none text-ink-muted">
+            <span data-avatar-label="" className="whitespace-nowrap font-mono text-[11px] leading-none text-ink-muted">
               {av.label}
               {av.odo && (
                 <>

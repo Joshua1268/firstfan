@@ -35,7 +35,8 @@ export type StageLayout = {
   /** Scale (avant k) de la carte en scène C, pour qu'elle tienne entre les deux citations. */
   voicesScale: number;
   voicesY: number;
-  ring: { cx: number; cy: number; r: number };
+  /** `drift` : abscisse où l'anneau recule en filigrane après la cassure, pour libérer la place de la carte. */
+  ring: { cx: number; cy: number; r: number; drift: number };
   /** Passage par la brèche, relatif au centre de l'anneau : contrôles de la courbe et arrivée. */
   pass: { c1: Pt; c2: Pt; breach: Pt; c3: Pt; end: Pt };
   /** Graphe de l'étape 04 : centre, largeur, hauteur (viewBox 600x320 mis à l'échelle). */
@@ -87,8 +88,12 @@ function desktopLayout(vw: number, vh: number): StageLayout {
   const zoneL = text.left + text.width + g + 80;
   const zoneR = vw - g - 80;
   const d = clamp(Math.min(480, zoneR - zoneL, vh - 64 - 220), 260, 480);
-  const ring = { cx: (zoneL + zoneR) / 2 - vw / 2, cy: cy - 8, r: d / 2 };
-  const endMaxX = vw / 2 - g - (CARD_W * k) / 2 - ring.cx;
+  const ringCx = (zoneL + zoneR) / 2 - vw / 2;
+  const endMaxX = vw / 2 - g - (CARD_W * k) / 2 - ringCx;
+  // Après la cassure, l'anneau (à 0.7) glisse entre le texte et la carte : il ne reste pas sous la carte.
+  const cardLeft = vw - g - CARD_W * k;
+  const drift = (text.left + text.width + cardLeft) / 2 - vw / 2;
+  const ring = { cx: ringCx, cy: cy - 8, r: d / 2, drift };
 
   const mid = span(5, 8);
   const voicesScale = Math.min(1, (mid.width + 2 * g) / (CARD_W * k));
@@ -123,7 +128,7 @@ function mobileLayout(vw: number, vh: number): StageLayout {
   const cardW = Math.min(0.62 * vw, 400);
   const k = cardW / CARD_W;
   const r = clamp(Math.min(0.32 * vw, 210, (0.42 * vh) / 2), 110, 210);
-  const ring = { cx: 0, cy: cy + 6, r };
+  const ring = { cx: 0, cy: cy + 6, r, drift: 0 };
   const endMaxX = vw / 2 - m - cardW / 2;
   const voicesScale = (0.6 * vw) / cardW;
   const vTop = 64 + 44;

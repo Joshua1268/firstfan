@@ -275,3 +275,106 @@ test("skip story link goes to pro section", async ({ page }) => {
   await page.getByRole("link", { name: "Passer l'histoire" }).click();
   await expect(page.locator("#pro")).toBeInViewport();
 });
+
+test("stage threshold choreographies reverse when scrolling back up", async ({ page }) => {
+  await page.goto("/");
+  const stage = page.locator("[data-stage]");
+  const read = () =>
+    page.evaluate(() => {
+      const arc = document.querySelector<SVGPathElement>("[data-stage] [data-arc]")!;
+      const color = document.querySelector<HTMLElement>("[data-stage] [data-card-color]")!;
+      return { dash: parseFloat(getComputedStyle(arc).strokeDashoffset), color: parseFloat(getComputedStyle(color).opacity) };
+    });
+  await scrollStageTo(page, 0.3);
+  await expect(stage).toHaveAttribute("data-scene", "voices");
+  // Après la cassure : arcs raccourcis, carte en couleur.
+  await expect.poll(async () => (await read()).dash).toBeGreaterThan(5);
+  await expect.poll(async () => (await read()).color).toBeGreaterThan(0.95);
+  await scrollStageTo(page, 0.1);
+  await expect(stage).toHaveAttribute("data-scene", "loop");
+  // Sous 0.185 : les arcs se referment et la carte redevient grise.
+  await expect.poll(async () => (await read()).dash, { timeout: 8000 }).toBeLessThan(0.5);
+  await expect.poll(async () => (await read()).color, { timeout: 8000 }).toBeLessThan(0.05);
+});
+
+test("stage scene text for steps 01 to 04 is in the HTML without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("http://127.0.0.1:3100/");
+  for (const title of [
+    "Des pros de ton métier cible. Vérifiés.",
+    "Un parcours guidé, des preuves horodatées.",
+    "Des avis francs, pas de la politesse.",
+    "Pas des likes. Des gens qui reviennent.",
+  ]) {
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  }
+  await context.close();
+});
+
+test("screen readers get every stage scene in reading order", async ({ page }) => {
+  await page.goto("/");
+  const tree = await page.locator("[data-stage]").ariaSnapshot();
+  const order = [
+    "On te dit",
+    "Et si on cassait la boucle",
+    "Des pros de ton métier cible",
+    "Un parcours guidé",
+    "Des avis francs",
+    "Pas des likes",
+  ].map((t) => tree.indexOf(t));
+  for (const i of order) expect(i).toBeGreaterThan(-1);
+  expect([...order].sort((a, b) => a - b)).toEqual(order);
+});
+
+test("reduced-motion fallback keeps the required text uncovered", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
+  await expect(page.locator("[data-static-scene]")).toHaveCount(7);
+  const boxes = (scene: string, sel: string) =>
+    page.locator(`[data-static-scene="${scene}"] ${sel}`).evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { text: el.textContent ?? "", box: { x: r.x, y: r.y, width: r.width, height: r.height } };
+      }),
+    );
+  const noOverlap = (a: Awaited<ReturnType<typeof boxes>>, b: Awaited<ReturnType<typeof boxes>>) => {
+    expect(a.length).toBeGreaterThan(0);
+    expect(b.length).toBeGreaterThan(0);
+    for (const x of a) for (const y of b) if (x !== y) expect(overlaps(x.box, y.box), `${x.text} / ${y.text}`).toBe(false);
+  };
+  // Boucle : labels lisibles, compteur de tours dégagé.
+  const labels = await boxes("loop", "[data-ring-label]");
+  const bubbles = await boxes("loop", "[data-loop-bubble]");
+  noOverlap(labels, bubbles);
+  noOverlap(await boxes("loop", "[data-tour]"), bubbles);
+  // Étape 01 : aucun tampon n'est sous une carte testeur posée au-dessus (Awa est devant, puis l'ordre du DOM).
+  const testers = await page.locator('[data-static-scene="step1"] [data-tester]').evaluateAll((els) =>
+    els.map((el) => {
+      const box = (e: Element) => {
+        const r = e.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      };
+      return { name: el.getAttribute("data-tester"), card: box(el), stamp: box(el.querySelector("[data-tester-stamp]")!) };
+    }),
+  );
+  expect(testers.length).toBeGreaterThan(1);
+  testers.forEach((t, i) =>
+    testers.forEach((o, j) => {
+      const above = o.name === "Awa K." || (t.name !== "Awa K." && j > i);
+      if (o !== t && above) expect(overlaps(t.stamp, o.card), `${t.name} / ${o.name}`).toBe(false);
+    }),
+  );
+  // Étape 03 : les pastilles ne couvrent ni le badge du dossier, ni la note du dev, ni l'autre pastille.
+  const pills = await boxes("step3", "[data-rating-pill]");
+  noOverlap(pills, await boxes("step3", "[data-proof-badge]"));
+  noOverlap(pills, await boxes("step3", "[data-avatar-label]"));
+  noOverlap(pills, pills);
+  // Étape 04 : les deux autocollants posés, sans se recouvrir.
+  const stickers = await boxes("step4", "[data-curve-sticker]");
+  expect(stickers).toHaveLength(2);
+  noOverlap(stickers, stickers);
+  noOverlap(stickers, await boxes("step4", "[data-curve-label]"));
+  await context.close();
+});

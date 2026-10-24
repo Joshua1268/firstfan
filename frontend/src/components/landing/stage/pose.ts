@@ -25,7 +25,7 @@ export function stepCenter(l: StageLayout, v: number) {
   // Sur mobile, la carte remonte pendant l'étape 01 pour laisser la place aux testeurs empilés dessous.
   if (l.desktop) return { x: l.rightCx, y: l.cy };
   // Étape 03 : elle descend un peu pour laisser les avatars au-dessus.
-  const lift = -0.07 * l.vh * (seg(v, 0.29, 0.32) - seg(v, 0.47, 0.5)) + 0.05 * l.vh * (seg(v, 0.63, 0.66) - seg(v, 0.8, 0.83));
+  const lift = -0.11 * l.vh * (seg(v, 0.29, 0.32) - seg(v, 0.47, 0.5)) + 0.05 * l.vh * (seg(v, 0.63, 0.66) - seg(v, 0.8, 0.83));
   return { x: l.rightCx, y: l.cy + lift };
 }
 

@@ -42,10 +42,19 @@ export function activeLabel(rotate: number) {
 
 /** Recul de la boucle (§4, étape 4) puis effacement quand la carte part vers l'étape 01. */
 export function useRecess(p: MotionValue<number>) {
-  const scale = useTransform(p, [0.19, 0.22], [1, 0.7], { clamp: true });
-  const sharp = useTransform(p, [0.19, 0.22], [1, 0], { clamp: true });
-  const blurred = useTransform(p, [0.19, 0.22, 0.29, 0.32], [0, 0.15, 0.15, 0], { clamp: true });
-  return { scale, sharp, blurred };
+  const { recess, layout } = useStage();
+  const scrub = useTransform(p, [0.19, 0.22], [0, 1], { clamp: true });
+  const out = useTransform(p, [0.29, 0.32], [1, 0], { clamp: true });
+  // Le scrub de la spec, plus un recul joué en temps réel juste après le passage de la carte.
+  const prog = useTransform(() => Math.max(scrub.get(), recess.get()));
+  const scale = useTransform(prog, (v) => 1 - 0.3 * v);
+  const sharp = useTransform(prog, (v) => 1 - v);
+  const blurred = useTransform(() => 0.15 * prog.get() * out.get());
+  const x = useTransform(() => {
+    const r = layout.get().ring;
+    return r.cx + (r.drift - r.cx) * prog.get();
+  });
+  return { scale, sharp, blurred, x };
 }
 
 const LABEL_SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
@@ -82,10 +91,12 @@ function RingLabel({
     <div className="absolute left-0 top-0" style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
       <motion.div style={{ rotate: counter }}>
         <motion.span
+          data-ring-label=""
           className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-bg px-3 py-1 font-display text-[13px] font-semibold md:text-[15px] leading-none text-ink lg:text-[18px]"
-          style={{ scale, opacity }}
+          style={{ scale }}
         >
-          {LOOP.labels[i]}
+          {/* Fond opaque (masque le trait de l'anneau), seul le texte s'éteint. */}
+          <motion.span style={{ opacity }}>{LOOP.labels[i]}</motion.span>
         </motion.span>
       </motion.div>
     </div>
@@ -119,18 +130,30 @@ const BUBBLE_SPOTS = [
   { deg: -14, d: 1.36 },
   { deg: 40, d: 1.3 },
   { deg: 142, d: 1.3 },
-  { deg: 112, d: 1.42 },
+  { deg: 136, d: 1.42 },
+];
+
+/**
+ * Mobile : places fixes (en rayons) entre les quatre labels, au-dessus du label du haut et loin du compteur,
+ * pour que l'état final du repli reste lisible (labels et compteur jamais recouverts).
+ */
+const BUBBLE_SPOTS_MOBILE = [
+  { x: -1.05, y: -0.62 },
+  { x: 1.05, y: -0.62 },
+  { x: 1.05, y: 0.66 },
+  { x: -1.05, y: 0.66 },
+  { x: 0, y: -1.4 },
 ];
 
 function bubblePos(l: StageLayout, i: number) {
+  if (!l.desktop) {
+    const m = BUBBLE_SPOTS_MOBILE[i];
+    const lim = l.vw / 2 - 16 - 85;
+    return { x: Math.max(-lim, Math.min(lim, l.ring.cx + m.x * l.ring.r)), y: l.ring.cy + m.y * l.ring.r };
+  }
   const s = BUBBLE_SPOTS[i];
   const a = (s.deg * Math.PI) / 180;
-  let x = l.ring.cx + Math.cos(a) * l.ring.r * s.d;
-  const y = l.ring.cy + Math.sin(a) * l.ring.r * s.d;
-  // Sur petit écran, la bulle reste dans le viewport (largeur estimée à 170px).
-  const lim = l.vw / 2 - 16 - 85;
-  if (!l.desktop) x = Math.max(-lim, Math.min(lim, x));
-  return { x, y };
+  return { x: l.ring.cx + Math.cos(a) * l.ring.r * s.d, y: l.ring.cy + Math.sin(a) * l.ring.r * s.d };
 }
 
 function Bubble({ i, p, final }: { i: number; p: MotionValue<number>; final: boolean }) {
@@ -154,7 +177,7 @@ function Bubble({ i, p, final }: { i: number; p: MotionValue<number>; final: boo
       style={final ? { x, y } : { x, y, rotate, scaleX, opacity: fade }}
     >
       <motion.div style={final ? undefined : { scale: popScale, opacity: pop }} className="-translate-x-1/2 -translate-y-1/2">
-        <span className="relative block whitespace-nowrap rounded-full bg-watermark px-3.5 py-2 text-[13px] leading-none text-ink-muted lg:text-[14px]">
+        <span data-loop-bubble="" className="relative block whitespace-nowrap rounded-full bg-watermark px-3.5 py-2 text-[13px] leading-none text-ink-muted lg:text-[14px]">
           <span className={final ? "line-through decoration-ghost" : undefined}>{LOOP.bubbles[i]}</span>
           {/* Queue de bulle */}
           <span className="absolute -bottom-1 left-4 size-2.5 rotate-45 bg-watermark" />
@@ -173,7 +196,7 @@ function TourCounter({ p, final }: { p: MotionValue<number>; final: boolean }) {
     if (n !== tour) setTour(n);
   });
   return (
-    <div className="relative h-5 overflow-hidden text-center font-mono text-[12px] leading-5 tabular-nums text-ink-muted lg:text-[13px]">
+    <div data-tour="" className="relative mx-auto h-5 w-fit min-w-[220px] overflow-hidden text-center font-mono text-[12px] leading-5 tabular-nums text-ink-muted lg:text-[13px]">
       <AnimatePresence initial={false}>
         {tour >= 0 && (
           <motion.span
@@ -197,10 +220,9 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
   const rotate = useRingRotate(p);
   const counter = useTransform(rotate, (v) => (final ? 0 : -v));
   const ringRotate = useTransform(rotate, (v) => (final ? 0 : v));
-  const { scale, sharp } = useRecess(p);
-  const cx = useTransform(() => layout.get().ring.cx);
+  const { scale, sharp, x: cx } = useRecess(p);
   const cy = useTransform(() => layout.get().ring.cy);
-  const counterY = useTransform(() => layout.get().ring.cy + layout.get().ring.r + (layout.get().desktop ? 40 : 20));
+  const counterY = useTransform(() => layout.get().ring.cy + layout.get().ring.r + (layout.get().desktop ? 48 : 20));
   const r = useRingRadius();
   // La flèche prise dans la brèche disparaît à la cassure.
   const breachArrow = useMotionValue(final || p.get() >= 0.185 ? 0 : 1);
@@ -209,8 +231,12 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
 
   return (
     <motion.div className="absolute inset-0" style={{ opacity: fade }}>
-      <motion.div className="absolute left-1/2 top-1/2" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
-        <motion.div className="absolute left-0 top-0" style={{ rotate: ringRotate }}>
+      {/* Les bulles sous les labels : un label (fond opaque) reste toujours lisible. */}
+      {LOOP.bubbles.map((_, i) => (
+        <Bubble key={i} i={i} p={p} final={final} />
+      ))}
+      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
+        <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {ARROW_DEG.map((deg, i) => (
             <ArcArrow key={deg} deg={deg} r={r} hidden={i === BREACH_ARROW ? breachArrow : undefined} />
           ))}
@@ -222,9 +248,6 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
       <motion.div className="absolute left-1/2 top-1/2 w-[320px] -ml-[160px]" style={{ x: cx, y: counterY, opacity: sharp }}>
         <TourCounter p={p} final={final} />
       </motion.div>
-      {LOOP.bubbles.map((_, i) => (
-        <Bubble key={i} i={i} p={p} final={final} />
-      ))}
     </motion.div>
   );
 }

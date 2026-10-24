@@ -109,7 +109,7 @@ export function StoryCard({ p, active = true }: { p: MotionValue<number>; active
       <CardProofs p={p} layer="behind" />
       <div className="absolute inset-0 overflow-hidden rounded-card shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6),inset_0_0_0_1px_rgba(242,237,227,0.06)]">
         <CardFace tone="gray" />
-        <motion.div className="absolute inset-0" style={{ opacity: color }}>
+        <motion.div data-card-color="" className="absolute inset-0" style={{ opacity: color }}>
           <CardFace tone="color" />
         </motion.div>
         <CardTest p={p} />

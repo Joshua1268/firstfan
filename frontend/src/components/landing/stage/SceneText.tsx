@@ -16,9 +16,19 @@ import { TwoVoices } from "./TwoVoices";
  * les visuels sont aria-hidden, leur contenu est repris ici en texte pour les lecteurs d'écran.
  */
 
+/**
+ * Stage animé : le texte visible n'existe que pour la scène courante ; les lecteurs d'écran lisent à la place
+ * la transcription complète (StageTranscript). Le texte visible est donc aria-hidden, sauf les liens (CTA).
+ */
+export const HideText = createContext(false);
+/** `aria-hidden` à poser sur un élément de texte du stage animé. */
+export function useTextHidden(): true | undefined {
+  return useContext(HideText) || undefined;
+}
+
 export function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted">
+    <p aria-hidden={useTextHidden()} className="font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted">
       {children}
     </p>
   );
@@ -37,7 +47,7 @@ export const TextBox = createContext(LIVE_BOX);
 
 function ProLine({ children }: { children: React.ReactNode }) {
   return (
-    <p className={`${LINE} text-ink-muted`}>
+    <p aria-hidden={useTextHidden()} className={`${LINE} text-ink-muted`}>
       <span className="mr-2 inline-block rounded-[6px] border border-line px-1.5 py-[3px] align-[2px] font-mono text-[10.5px] leading-none tracking-[0.12em] text-ink">
         TESTEUR
       </span>
@@ -47,11 +57,16 @@ function ProLine({ children }: { children: React.ReactNode }) {
 }
 
 function StepText({ step, children }: { step: Step; children?: React.ReactNode }) {
+  const hidden = useTextHidden();
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-3 lg:gap-5`}>
       <Kicker>{step.kicker}</Kicker>
-      <h2 className={TITLE}>{step.title}</h2>
-      <p className={`${LINE} max-w-[46ch] text-ink`}>{step.dev}</p>
+      <h2 aria-hidden={hidden} className={TITLE}>
+        {step.title}
+      </h2>
+      <p aria-hidden={hidden} className={`${LINE} max-w-[46ch] text-ink`}>
+        {step.dev}
+      </p>
       <div className="max-w-[46ch]">
         <ProLine>{step.pro}</ProLine>
       </div>
@@ -61,12 +76,15 @@ function StepText({ step, children }: { step: Step; children?: React.ReactNode }
 }
 
 function LoopText() {
+  const hidden = useTextHidden();
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-3 lg:gap-5`}>
       <Kicker>{LOOP.kicker}</Kicker>
-      <h2 className={TITLE}>{LOOP.title}</h2>
-      <p className="max-w-[46ch] font-mono text-[12.5px] leading-[1.6] text-ink-muted lg:text-[14px]">{LOOP.voice}</p>
-      <div className="sr-only">
+      <h2 aria-hidden={hidden} className={TITLE}>
+        {LOOP.title}
+      </h2>
+      <p aria-hidden={hidden} className="max-w-[46ch] font-mono text-[12.5px] leading-[1.6] text-ink-muted lg:text-[14px]">{LOOP.voice}</p>
+      <div className="sr-only" aria-hidden={hidden}>
         <ol>
           {LOOP.labels.map((l) => (
             <li key={l}>{l}</li>
@@ -92,17 +110,18 @@ function BreakText({ p }: { p: MotionValue<number> }) {
   const title = useStepValue(p, 0.19, 105, 0, { duration: dur.slow / 1000, ease: ease.outExpo }, { duration: dur.fast / 1000 });
   const line = useStepValue(p, 0.2, 0, 1, { duration: dur.medium / 1000, ease: ease.outQuint }, { duration: dur.fast / 1000 });
   const titleY = useTransform(title, (v) => `${v}%`);
+  const hidden = useTextHidden();
   const lineY = useTransform(line, [0, 1], [12, 0]);
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-4 lg:gap-6`}>
-      <h2 className={TITLE}>
+      <h2 aria-hidden={hidden} className={TITLE}>
         <span className="block overflow-clip pb-[0.06em]">
           <motion.span className="block" style={{ y: titleY }}>
             {BREAK.title}
           </motion.span>
         </span>
       </h2>
-      <motion.p className={`${LINE} max-w-[40ch] text-ink`} style={{ y: lineY, opacity: line }}>
+      <motion.p aria-hidden={hidden} className={`${LINE} max-w-[40ch] text-ink`} style={{ y: lineY, opacity: line }}>
         {BREAK.line}
       </motion.p>
     </div>
@@ -131,6 +150,7 @@ function Step4Ctas({ p }: { p: MotionValue<number> }) {
 }
 
 export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> }) {
+  const hidden = useTextHidden();
   switch (id) {
     case "loop":
       return <LoopText />;
@@ -141,7 +161,7 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
     case "step1":
       return (
         <StepText step={STEP1}>
-          <ul className="sr-only">
+          <ul className="sr-only" aria-hidden={hidden}>
             {TESTERS.map((t) => (
               <li key={t.name}>{[t.name, t.job, t.rating, "tag" in t ? t.tag : null, "Métier vérifié"].filter(Boolean).join(" · ")}</li>
             ))}
@@ -151,7 +171,7 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
     case "step2":
       return (
         <StepText step={STEP2}>
-          <ul className="sr-only">
+          <ul className="sr-only" aria-hidden={hidden}>
             {CHECKLIST.map((c, i) => (
               <li key={c}>
                 {c}, capturé à {STAMPS[i]}
@@ -163,7 +183,7 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
     case "step3":
       return (
         <StepText step={STEP3}>
-          <ul className="sr-only">
+          <ul className="sr-only" aria-hidden={hidden}>
             {FEEDBACK.map((f) => (
               <li key={f}>{f}</li>
             ))}
@@ -179,7 +199,7 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
     case "step4":
       return (
         <StepText step={STEP4}>
-          <p className="sr-only">
+          <p className="sr-only" aria-hidden={hidden}>
             {CURVES.ghost} : la courbe chute presque à zéro dès {CURVES.axis[1]}. {CURVES.green} : {CURVES.j7}, {CURVES.j30}.
           </p>
           <Step4Ctas p={p} />
@@ -203,7 +223,9 @@ export function SceneTextLive({ id, p }: { id: SceneId; p: MotionValue<number> }
         animate={{ y: 0, opacity: 1, transition: ENTER }}
         exit={{ y: -16, opacity: 0, transition: EXIT }}
       >
-        <SceneContent id={id} p={p} />
+        <HideText.Provider value={true}>
+          <SceneContent id={id} p={p} />
+        </HideText.Provider>
       </motion.div>
     </AnimatePresence>
   );

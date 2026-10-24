@@ -5,7 +5,7 @@ import { useId } from "react";
 import { dur } from "@/lib/motion-tokens";
 import { CheckIcon } from "../icons";
 import { InkRing, useStamp } from "./CardProofs";
-import { go, useStage, useThreshold } from "./context";
+import { go, useLayoutValue, useStage, useThreshold } from "./context";
 import { CURVES } from "./copy";
 import { GRAPH_VIEW as G } from "./layout";
 
@@ -25,12 +25,31 @@ const GREEN_D = `M ${G.x0} ${G.top} C 140 ${G.top + 4} 200 ${J7.y - 6} ${J7.x} $
 
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-function Sticker({ text, at, p, t, align }: { text: string; at: { x: number; y: number }; p: MotionValue<number>; t: number; align: "center" | "end" }) {
+function Sticker({
+  text,
+  at,
+  p,
+  t,
+  align,
+  below = false,
+}: {
+  text: string;
+  at: { x: number; y: number };
+  p: MotionValue<number>;
+  t: number;
+  align: "center" | "end";
+  /** Sous la courbe : sur un graphe étroit, J7 passe dessous pour ne pas toucher J30. */
+  below?: boolean;
+}) {
   const s = useStamp(p, t);
+  const v = below
+    ? `top-3 ${align === "end" ? "origin-top-right" : "origin-top"}`
+    : `bottom-3 ${align === "end" ? "origin-bottom-right" : "origin-bottom"}`;
   return (
     <div className="absolute" style={{ left: pct(at.x, G.w), top: pct(at.y, G.h) }}>
       <motion.div
-        className={`absolute bottom-3 ${align === "end" ? "right-[-6px] origin-bottom-right" : "left-0 -translate-x-1/2 origin-bottom"}`}
+        data-curve-sticker={text}
+        className={`absolute ${v} ${align === "end" ? "right-[-6px]" : "left-0 -translate-x-1/2"}`}
         style={{ scale: s.scale, opacity: s.opacity, rotate: align === "end" ? 4 : -5 }}
       >
         <span className="relative inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-3 py-1.5 text-[13px] font-semibold leading-none text-accent-ink shadow-[0_10px_24px_rgba(0,0,0,0.45)] lg:text-[15px]">
@@ -45,6 +64,8 @@ function Sticker({ text, at, p, t, align }: { text: string; at: { x: number; y: 
 
 export function Curves({ p }: { p: MotionValue<number> }) {
   const { layout, instant } = useStage();
+  // Graphe étroit (mobile, petit desktop) : J7 passe sous la courbe, J30 reste dessus, libellé vert au-dessus de J30.
+  const narrow = useLayoutValue((l) => l.graph.w < 520);
   const clip = useId().replace(/:/g, "");
   const x = useTransform(() => layout.get().graph.cx - layout.get().graph.w / 2);
   const y = useTransform(() => layout.get().graph.cy - layout.get().graph.h / 2);
@@ -96,8 +117,9 @@ export function Curves({ p }: { p: MotionValue<number> }) {
         return (
           <span
             key={label}
+            data-axis-label={label}
             className={`absolute font-mono text-[11px] leading-none text-ink-muted lg:text-[12px] ${i === 0 ? "" : i === 2 ? "-translate-x-full" : "-translate-x-1/2"}`}
-            style={{ left: pct(gx + (i === 0 ? 6 : 0), G.w), top: pct(G.y0 + 14, G.h) }}
+            style={{ left: pct(gx + (i === 0 ? 30 : 0), G.w), top: pct(i === 0 ? G.y0 - 22 : G.y0 + 14, G.h) }}
           >
             {label}
           </span>
@@ -105,6 +127,7 @@ export function Curves({ p }: { p: MotionValue<number> }) {
       })}
       {/* Libellés des courbes */}
       <motion.span
+        data-curve-label=""
         className="absolute whitespace-nowrap text-[12px] font-medium text-ink-muted lg:text-[13px]"
         style={{ left: pct(300, G.w), top: pct(yAt(0.04) - 30, G.h) }}
       >
@@ -114,12 +137,13 @@ export function Curves({ p }: { p: MotionValue<number> }) {
         </span>
       </motion.span>
       <motion.span
+        data-curve-label=""
         className="absolute -translate-x-full whitespace-nowrap text-[12px] font-semibold text-ink lg:text-[13px]"
-        style={{ left: pct(G.j30, G.w), top: pct(J30.y - 34, G.h), opacity: green }}
+        style={{ left: pct(G.j30, G.w), top: narrow ? `calc(${pct(J30.y, G.h)} - 78px)` : pct(J30.y + 14, G.h), opacity: green }}
       >
         {CURVES.green}
       </motion.span>
-      <Sticker text={CURVES.j7} at={J7} p={p} t={0.9} align="center" />
+      <Sticker text={CURVES.j7} at={J7} p={p} t={0.9} align="center" below={narrow} />
       <Sticker text={CURVES.j30} at={J30} p={p} t={0.96} align="end" />
     </motion.div>
   );

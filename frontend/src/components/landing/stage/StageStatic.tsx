@@ -2,7 +2,9 @@
 
 import { animate, useInView, useMotionValue, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
+import { ChevronIcon } from "../icons";
 import { Break } from "./Break";
+import { NAV } from "./copy";
 import { StageProvider, useStageValues } from "./context";
 import { Curves } from "./Curves";
 import { useMedia, useStageLayout } from "./hooks";
@@ -74,8 +76,8 @@ function Frame({ def, animated }: { def: FrameDef; animated: boolean }) {
     <section ref={root} data-static-scene={def.id} className="relative overflow-clip lg:h-[max(640px,100svh)]">
       <StageProvider value={ctx}>
         <div ref={visual} aria-hidden="true" className="absolute inset-x-0 top-0 h-[max(640px,100svh)] [perspective:1200px]">
-          {withRing && <Loop p={ring} final={def.final} />}
           {withRing && <Break p={ring} final={def.final} />}
+          {withRing && <Loop p={ring} final={def.final} />}
           {def.id === "step4" && <Curves p={p} />}
           <StoryCard p={p} active={false} />
           {def.id === "step1" && <Testers p={p} />}
@@ -92,6 +94,15 @@ function Frame({ def, animated }: { def: FrameDef; animated: boolean }) {
 export function StageStatic({ animated }: { animated: boolean }) {
   return (
     <div className="stage-static">
+      <div className="px-[var(--grid-margin)] pt-6">
+        <a
+          href="#pro"
+          className="inline-flex h-10 items-center gap-1 font-mono text-[12px] leading-none text-ink-muted transition-colors duration-150 hover:text-ink"
+        >
+          {NAV.skip}
+          <ChevronIcon size={14} />
+        </a>
+      </div>
       {FRAMES.map((def) => (
         <Frame key={def.id} def={def} animated={animated} />
       ))}
