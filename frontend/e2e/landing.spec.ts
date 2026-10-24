@@ -451,12 +451,13 @@ test("live section shows server counters and the demo mention", async ({ page })
 test("live section polls the public stats through the same origin", async ({ page }) => {
   await page.clock.install();
   const polled: string[] = [];
-  page.on("requestfinished", async (r) => {
-    if (!new URL(r.url()).pathname.startsWith("/api/public/stats")) return;
-    const res = await r.response();
-    if (res?.ok()) polled.push(r.url());
+  // Toute requête compte (même un 503 d'un amont lent) : on vérifie que le navigateur interroge la même origine.
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname.startsWith("/api/public/stats")) polled.push(r.url());
   });
   await page.goto("/");
+  // L'intervalle n'existe qu'après l'hydratation : on attend que le polling soit armé avant d'avancer l'horloge.
+  await expect(page.locator("#en-direct[data-live-polling]")).toHaveCount(1, { timeout: 20_000 });
   await page.clock.runFor(16_000);
   await expect.poll(() => polled.length).toBeGreaterThan(0);
   expect(new URL(polled[0]).origin).toBe(new URL(page.url()).origin);

@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, motion, useInView } from "motion/react";
+import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { ease, spring } from "@/lib/motion-tokens";
@@ -13,7 +13,7 @@ import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useRe
  *   sans aucun compteur (jamais de chiffre inventé).
  * - Polling toutes les 15 s, en pause quand l'onglet est caché. La requête part du navigateur vers la même
  *   origine (`/api/public/stats`, route Next qui relit Django côté serveur) : aucun CORS à ouvrir côté Django.
- * - À l'entrée dans le viewport (une fois) : comptage de 0 à la valeur (écrit dans textContent par une ref).
+ * - À l'entrée dans le viewport (une fois) : comptage de 0 à la valeur (MotionValue rendue par motion, sans re-render React).
  *   Ensuite, odomètre : seuls les chiffres qui changent roulent, et seulement sur un changement réel.
  * - Reduced-motion : valeurs finales, mises à jour en texte simple.
  */
@@ -75,7 +75,9 @@ function Counter({
   countUp: boolean;
   reduce: boolean;
 }) {
-  const text = useRef<HTMLSpanElement>(null);
+  // Valeur affichée en mode texte : une MotionValue que motion écrit seul dans le DOM (React ne gère pas ce nœud).
+  const count = useMotionValue(value);
+  const shown = useTransform(count, (v) => Math.round(v));
   const [odo, setOdo] = useState(false);
   const [changes, setChanges] = useState(0);
   const [seen, setSeen] = useState(value);
@@ -88,13 +90,10 @@ function Counter({
   // Comptage dès l'entrée dans le viewport, puis bascule en odomètre.
   useEffect(() => {
     if (!countUp || reduce || odo) return;
-    const controls = animate(0, value, {
+    const controls = animate(count, value, {
       duration: 1.2,
       ease: ease.outQuint as unknown as [number, number, number, number],
       delay: index * 0.12,
-      onUpdate: (v) => {
-        if (text.current) text.current.textContent = String(Math.round(v));
-      },
       onComplete: () => setOdo(true),
     });
     return () => controls.stop();
@@ -102,11 +101,16 @@ function Counter({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countUp, reduce]);
 
+  // Mode texte (reduced-motion, ou avant l'odomètre) : la valeur suit les mises à jour du polling.
+  useEffect(() => {
+    if (reduce || !countUp) count.set(value);
+  }, [value, reduce, countUp, count]);
+
   return (
     <div data-live-counter="" className="relative flex flex-col gap-3 border-line py-6 md:py-0">
       <p className="relative self-start font-mono text-[length:var(--text-counter)] font-medium leading-[var(--leading-counter)] tabular-nums text-ink">
         <span aria-hidden="true">
-          {odo && !reduce ? <Odometer value={value} /> : <span ref={text}>{value}</span>}
+          {odo && !reduce ? <Odometer value={value} /> : <motion.span>{shown}</motion.span>}
         </span>
         <span className="sr-only">{value}</span>
         {changes > 0 && (
@@ -176,9 +180,13 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
       }
     };
     const id = window.setInterval(poll, POLL_MS);
+    // Repère pour les tests e2e : le polling est armé (après l'hydratation).
+    const el = root.current;
+    el?.setAttribute("data-live-polling", "");
     return () => {
       alive = false;
       window.clearInterval(id);
+      el?.removeAttribute("data-live-polling");
     };
   }, [stats, visible]);
 
