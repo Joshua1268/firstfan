@@ -448,6 +448,34 @@ test("live section shows server counters and the demo mention", async ({ page })
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
 });
 
+// Le passage de 0 à la valeur est fixé au niveau unitaire (count-up.test.ts) : la base de démo renvoie des 0
+// et l'e2e ne contrôle pas la valeur rendue côté serveur. Ici : valeur finale juste, et rien n'est animé en reduced-motion.
+for (const reducedMotion of ["reduce", "no-preference"] as const) {
+  test(`live counters show the server value (reduced motion: ${reducedMotion})`, async ({ browser }, info) => {
+    const context = await browser.newContext({ ...info.project.use, reducedMotion });
+    const page = await context.newPage();
+    await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
+    const counters = page.locator("#en-direct [data-live-counter]");
+    await counters.first().scrollIntoViewIfNeeded();
+    const read = () =>
+      counters.evaluateAll((els) =>
+        els.map((el) => ({
+          // Odomètre : chaque colonne contient 0 à 9, on lit donc la valeur qu'il affiche.
+          shown:
+            el.querySelector("[data-odometer]")?.getAttribute("data-odometer") ??
+            el.querySelector("[aria-hidden='true']")!.textContent!,
+          server: el.querySelector(".sr-only")!.textContent!,
+        })),
+      );
+    if (reducedMotion === "reduce") {
+      // Tout de suite, sans attendre de comptage.
+      for (const c of await read()) expect(c.shown).toBe(c.server);
+    }
+    await expect.poll(async () => (await read()).every((c) => c.shown === c.server), { timeout: 5000 }).toBe(true);
+    await context.close();
+  });
+}
+
 test("live section polls the public stats through the same origin", async ({ page }) => {
   await page.clock.install();
   const polled: string[] = [];

@@ -1,9 +1,10 @@
 "use client";
 
-import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
+import { motion, useInView, useMotionValue, useTransform } from "motion/react";
+import { startCountUp } from "./count-up";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
-import { ease, spring } from "@/lib/motion-tokens";
+import { spring } from "@/lib/motion-tokens";
 import type { PublicStats } from "@/lib/stats";
 import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useReduce } from "./reveal";
 
@@ -46,7 +47,7 @@ const ODOMETER = { type: "spring", ...spring.odometer } as const;
 function Odometer({ value }: { value: number }) {
   const digits = String(value).split("");
   return (
-    <span className="inline-flex">
+    <span data-odometer={value} className="inline-flex">
       {digits.map((d, i) => (
         <span key={digits.length - i} className="inline-block h-[1em] overflow-hidden">
           <motion.span className="flex flex-col" initial={false} animate={{ y: `${-Number(d)}em` }} transition={ODOMETER}>
@@ -90,12 +91,8 @@ function Counter({
   // Comptage dès l'entrée dans le viewport, puis bascule en odomètre.
   useEffect(() => {
     if (!countUp || reduce || odo) return;
-    const controls = animate(count, value, {
-      duration: 1.2,
-      ease: ease.outQuint as unknown as [number, number, number, number],
-      delay: index * 0.12,
-      onComplete: () => setOdo(true),
-    });
+    // Repart de 0 (la MotionValue porte la valeur du serveur jusqu'ici), puis compte jusqu'à la valeur.
+    const controls = startCountUp(count, value, { delay: index * 0.12, onComplete: () => setOdo(true) });
     return () => controls.stop();
     // La valeur de départ est celle du serveur : on ne relance pas le comptage quand elle change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
