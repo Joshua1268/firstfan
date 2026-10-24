@@ -16,3 +16,17 @@ export function overlaps(a: Box, b: Box): boolean {
   if (!a || !b) return false;
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
+
+/**
+ * Fait défiler la page pour que la progression brute du stage vaille `p` (offset « start start » / « end end »).
+ * Défilement instantané : le `p` lissé (spring 200/40) rattrape ensuite la valeur.
+ */
+export async function scrollStageTo(page: import("@playwright/test").Page, p: number) {
+  await page.evaluate((target) => {
+    const stage = document.querySelector<HTMLElement>("[data-stage]");
+    if (!stage) throw new Error("stage introuvable");
+    const top = stage.getBoundingClientRect().top + window.scrollY;
+    const range = stage.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: top + target * range, behavior: "instant" });
+  }, p);
+}

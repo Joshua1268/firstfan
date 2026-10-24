@@ -320,3 +320,50 @@ body::before {
     display: none;
   }
 }
+
+/* ---------- Stage « Boucle et histoire » (§3.4) ---------- */
+
+/* Valeurs par défaut (1440px) avant la première mesure, et pour le rendu sans JS. */
+.stage-frame,
+.stage-static section {
+  --st-tl: 16px;
+  --st-tw: calc(100% - 32px);
+  --st-ql: 16px;
+  --st-qlw: calc(100% - 32px);
+  --st-qr: 16px;
+  --st-qrw: calc(100% - 32px);
+  --st-vy: -260px;
+  --st-vh: 70px;
+  --st-nav: 16px;
+}
+@media (min-width: 1024px) {
+  .stage-frame,
+  .stage-static section {
+    --st-tl: 100px;
+    --st-tw: 520px;
+    --st-ql: 100px;
+    --st-qlw: 411px;
+    --st-qr: 869px;
+    --st-qrw: 411px;
+    --st-vy: -8px;
+    --st-vh: 150px;
+    --st-nav: 16px;
+  }
+}
+.stage-static {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce), (max-height: 359px) {
+  .stage-live {
+    display: none;
+  }
+  .stage-static {
+    display: block;
+  }
+}
+[data-stage-fallback] .stage-live {
+  display: none;
+}
+[data-stage-fallback] .stage-static {
+  display: block;
+}

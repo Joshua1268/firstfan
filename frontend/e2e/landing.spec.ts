@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { overlaps, scan } from "./helpers";
+import { overlaps, scan, scrollStageTo } from "./helpers";
 
 /** Boîtes visibles de tout ce qu'aucun autocollant ne doit recouvrir. */
 async function guardedBoxes(page: Page) {
@@ -248,4 +248,30 @@ test("jobs marquee pauses on hover", async ({ page }, info) => {
   await expect(track).toHaveCSS("animation-play-state", "running");
   await band.hover();
   await expect(track).toHaveCSS("animation-play-state", "paused");
+});
+
+test("stage scenes advance with scroll", async ({ page }) => {
+  await page.goto("/");
+  const stage = page.locator("[data-stage]");
+  await scrollStageTo(page, 0.05);
+  await expect(stage).toHaveAttribute("data-scene", "loop");
+  await scrollStageTo(page, 0.4);
+  await expect(stage).toHaveAttribute("data-scene", "step1");
+  await scrollStageTo(page, 0.92);
+  await expect(stage).toHaveAttribute("data-scene", "step4");
+});
+
+test("stage jump back", async ({ page }) => {
+  await page.goto("/");
+  await scrollStageTo(page, 0.92);
+  await page.getByRole("button", { name: "Boucle" }).click();
+  await page.waitForTimeout(1200);
+  await expect(page.locator("[data-stage]")).toHaveAttribute("data-scene", "loop");
+  await expect(page.locator("[data-scene-text]")).toHaveCount(1);
+});
+
+test("skip story link goes to pro section", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Passer l'histoire" }).click();
+  await expect(page.locator("#pro")).toBeInViewport();
 });
