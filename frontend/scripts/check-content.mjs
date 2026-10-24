@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const CURRENCY = String.raw`(?:fcfa|cfa|xof|francs?|euros?|dollars?|€|\$|f|k)`;
+const CURRENCY = String.raw`(?:fcfa|cfa|xof|francs?|euros?|dollars?|€|\$(?!\{)|f|k)`;
 const NUM = String.raw`\d{1,3}(?:[   .,]\d{3})+|\d+`;
 
 const RULES = [

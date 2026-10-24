@@ -203,5 +203,46 @@ test("jobs marquee is a static centered list with reduced motion", async ({ brow
   await expect(track).toHaveCSS("flex-wrap", "wrap");
   await expect(track).toHaveCSS("justify-content", "center");
   await expect(page.locator("[data-marquee-track] [aria-hidden='true'][data-marquee-copy]")).toBeHidden();
+  // Les 14 métiers sont dans le viewport, sans débordement horizontal.
+  const pills = page.locator("[data-marquee-track] [data-pill][data-copy='0']");
+  await expect(pills).toHaveCount(14);
+  const vw = page.viewportSize()!.width;
+  const boxes = await pills.evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ l: r.left, r: r.right })));
+  for (const b of boxes) {
+    expect(b.l).toBeGreaterThanOrEqual(0);
+    expect(b.r).toBeLessThanOrEqual(vw);
+  }
+  const overflow = await page.locator("[data-marquee-copy='']").first().evaluate((e) => e.scrollWidth - e.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.locator("[data-jobs-marquee]").screenshot({
+    path: `../.superpowers/sdd/2026-10-23-socle-et-landing/shots/task5-reduced-${info.project.name}.png`,
+  });
   await context.close();
+});
+
+test("jobs marquee stamps a visible job", async ({ page }) => {
+  await page.goto("/");
+  const band = page.locator("[data-jobs-marquee] .marquee-band");
+  await band.scrollIntoViewIfNeeded();
+  const stamped = page.locator("[data-pill][data-stamped='true']");
+  await expect(stamped).toHaveCount(1, { timeout: 6000 });
+  const inside = await stamped.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const b = el.closest(".marquee-band")!.getBoundingClientRect();
+    return r.left >= b.left && r.right <= b.right;
+  });
+  expect(inside).toBe(true);
+  // Le tampon retombe après 1200 ms.
+  await expect(stamped).toHaveCount(0, { timeout: 3000 });
+});
+
+test("jobs marquee pauses on hover", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile" || info.project.name === "tablet", "pas de survol sur tactile");
+  await page.goto("/");
+  const band = page.locator("[data-jobs-marquee] .marquee-band");
+  await band.scrollIntoViewIfNeeded();
+  const track = page.locator("[data-marquee-track]");
+  await expect(track).toHaveCSS("animation-play-state", "running");
+  await band.hover();
+  await expect(track).toHaveCSS("animation-play-state", "paused");
 });

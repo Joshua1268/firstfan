@@ -275,6 +275,7 @@ body::before {
 
 /* Bandeau métiers (§3.3) : défilement de 0 à -50 % sur 40 s, contenu doublé, pause au survol. */
 .marquee-band {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
 }
 .marquee-track {
@@ -293,11 +294,13 @@ body::before {
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee-band {
+    -webkit-mask-image: none;
     mask-image: none;
   }
   .marquee-track {
     animation: none;
-    width: auto;
+    will-change: auto;
+    width: 100%;
     flex-wrap: wrap;
     justify-content: center;
     padding-block: 16px;
@@ -306,6 +309,8 @@ body::before {
     height: auto;
   }
   .marquee-list {
+    flex: 0 1 auto;
+    max-width: 100%;
     flex-wrap: wrap;
     justify-content: center;
     row-gap: 12px;

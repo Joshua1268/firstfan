@@ -22,3 +22,13 @@ test("(c), (R), TM are not emojis", () => {
   assert.deepEqual(scan("Pro®"), []);
   assert.equal(scan("\u{1F680}")[0].rule, "emoji");
 });
+
+test("template literal interpolation is not a currency", () => {
+  assert.deepEqual(scan("w-8 ${a}"), []);
+  assert.deepEqual(scan("w-8 ${a} $"), []);
+});
+test("dollar amounts are still flagged", () => {
+  assert.equal(scan("5 $")[0].rule, "amount");
+  assert.equal(scan("$5")[0].rule, "amount");
+  assert.equal(scan("5$")[0].rule, "amount");
+});
