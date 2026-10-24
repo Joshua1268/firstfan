@@ -39,8 +39,9 @@ export function cardPose(v: number, pass: number, shake: number, l: StageLayout)
   let scale = 0.6 + 0.4 * pass;
   let rotateY = 0;
 
-  // 0.20 à 0.225 : au centre, entre les deux voix.
-  const toVoices = inOut(seg(v, 0.2, 0.225));
+  // 0.214 à 0.236 : au centre, entre les deux voix. La carte reste à côté de la brèche pendant presque toute la
+  // scène B, pour que l'image « anneau ouvert, carte passée » se lise avant de laisser place aux voix.
+  const toVoices = inOut(seg(v, 0.214, 0.236));
   x = mix(x, 0, toVoices);
   y = mix(y, l.voicesY, toVoices);
   scale = mix(scale, l.voicesScale, toVoices);

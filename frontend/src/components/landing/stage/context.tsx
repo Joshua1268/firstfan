@@ -149,11 +149,21 @@ export function useLayoutValue<T extends number | boolean | string>(pick: (l: St
 /**
  * Transform recalculé seulement quand `p` est dans [lo, hi] : hors de sa scène, un calque garde sa dernière
  * valeur (déjà invisible) au lieu de recalculer et d'allouer à chaque frame.
+ * `track` liste les autres MotionValues lues par `fn` (animations en temps réel, géométrie). Motion collecte les
+ * dépendances à chaque rendu React : si un rendu tombe hors de la plage, `fn` n'est pas appelé, et sans cette liste
+ * le calque ne suivrait plus que `p` (une pastille en vol se figerait dès que le scroll s'arrête).
  */
-export function useGatedTransform<T>(p: MotionValue<number>, lo: number, hi: number, fn: () => T): MotionValue<T> {
+export function useGatedTransform<T>(
+  p: MotionValue<number>,
+  lo: number,
+  hi: number,
+  track: readonly { get(): unknown }[],
+  fn: () => T,
+): MotionValue<T> {
   const cache = useRef<{ v: T } | null>(null);
   return useTransform(() => {
     const v = p.get();
+    for (const mv of track) mv.get();
     if (cache.current && (v < lo || v > hi)) return cache.current.v;
     cache.current = { v: fn() };
     return cache.current.v;

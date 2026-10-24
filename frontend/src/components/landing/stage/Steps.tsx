@@ -33,7 +33,10 @@ function testerSpot(l: StageLayout, v: number, slot: number, count: number) {
     const cardLeft = c.x - (CARD_W * l.k) / 2;
     // Écart vertical : la carte (96px x scale) plus le tampon qui dépasse en haut, sans toucher la carte voisine.
     const gap = 126;
-    return { x: cardLeft - 86 + (slot === 1 ? -26 : 0), y: c.y + (slot - (count - 1) / 2) * gap };
+    // Jamais sous le bloc texte (colonnes 1 à 5) : sur les petits laptops, l'éventail se resserre contre la carte.
+    const half = 110 * Math.max(0.82, l.k) + 10;
+    const minX = l.textLeft + l.textWidth + 12 + half - l.vw / 2;
+    return { x: Math.max(minX, cardLeft - 86 + (slot === 1 ? -26 : 0)), y: c.y + (slot - (count - 1) / 2) * gap };
   }
   // Espacement d'au moins la hauteur d'une carte testeur (96px x scale) plus le tampon qui dépasse.
   const bottom = c.y + (CARD_H * l.k) / 2;
@@ -82,7 +85,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
   const inkScale = useTransform(ink, [0, 1], [0.6, 1.9]);
   const inkOpacity = useTransform(ink, [0, 0.001, 1], [0, 0.9, 0]);
 
-  const x = useGatedTransform(p, 0.3, 0.5, () => {
+  const x = useGatedTransform(p, 0.3, 0.5, [layout, enter, anchor, knock], () => {
     const l = layout.get();
     const v = p.get();
     const s = testerSpot(l, v, slot, count);
@@ -90,7 +93,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
     const base = s.x - 120 * (1 - enter.get()) + knock.get();
     return isAwa ? base + (a.x - s.x) * anchor.get() : base;
   });
-  const y = useGatedTransform(p, 0.3, 0.5, () => {
+  const y = useGatedTransform(p, 0.3, 0.5, [layout, anchor], () => {
     const l = layout.get();
     const v = p.get();
     const s = testerSpot(l, v, slot, count);
@@ -100,7 +103,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
     () => -6 * (1 - enter.get()) + FAN_ROT[slot] * (layout.get().desktop ? 1 : 0.4) * enter.get() * (1 - anchor.get()),
   );
   const leave = useTransform(p, [0.46, 0.49], [1, 0], { clamp: true });
-  const scale = useGatedTransform(p, 0.3, 0.5, () => {
+  const scale = useGatedTransform(p, 0.3, 0.5, [layout, anchor], () => {
     const l = layout.get();
     const base = l.desktop ? Math.max(0.82, l.k) : TESTER_SCALE_MOBILE;
     return base * (isAwa ? 1 - 0.14 * anchor.get() : 1 - 0.08 * anchor.get());
@@ -114,9 +117,14 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-semibold leading-tight text-ink">{t.name}</p>
           <p className="truncate text-[12.5px] leading-tight text-ink-muted">{t.job}</p>
-          <p className="mt-1 font-mono text-[11.5px] leading-none tabular-nums text-ink">
+          {/* Note et mention sur une seule ligne : la mention est une pastille courte, jamais renvoyée à la ligne. */}
+          <p className="mt-1 flex items-center gap-1.5 whitespace-nowrap font-mono text-[11.5px] leading-none tabular-nums text-ink">
             {t.rating}
-            {"tag" in t && <span className="ml-1.5 text-ink-muted">· {t.tag}</span>}
+            {"tag" in t && (
+              <span className="rounded-full border border-line px-1.5 py-[3px] font-sans text-[10.5px] font-medium leading-none text-ink-muted">
+                {t.tag}
+              </span>
+            )}
           </p>
         </div>
         {/* Emplacement du tampon MÉTIER VÉRIFIÉ */}
@@ -178,7 +186,7 @@ function useFlight(p: MotionValue<number>, progress: MotionValue<number>, from: 
   const { layout } = useStage();
   const stamp = useMotionValue(1);
   const lift = layout.get().desktop ? 46 : 38;
-  const pos = useGatedTransform(p, 0.68, 0.82, () => {
+  const pos = useGatedTransform(p, 0.68, 0.82, [layout, progress], () => {
     const l = layout.get();
     const s = avatarSpots(l, p.get());
     const a = s[from];
@@ -284,7 +292,7 @@ export function Ratings({ p }: { p: MotionValue<number> }) {
     }
   });
 
-  const spots = useGatedTransform(p, 0.68, 0.82, () => avatarSpots(layout.get(), p.get()));
+  const spots = useGatedTransform(p, 0.68, 0.82, [layout], () => avatarSpots(layout.get(), p.get()));
   const devX = useTransform(spots, (s) => s.dev.x);
   const devY = useTransform(spots, (s) => s.dev.y);
   const awaX = useTransform(spots, (s) => s.awa.x);

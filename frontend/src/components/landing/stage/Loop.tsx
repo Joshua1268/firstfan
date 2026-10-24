@@ -25,6 +25,8 @@ const LABEL_DEG = [90, 180, 270, 360];
 const ARROW_DEG = [135, 225, 315, 405];
 /** L'arrow à 315° (soit -45°) tombe dans la brèche. */
 const BREACH_ARROW = 2;
+/** Label posé en haut quand l'anneau s'arrête (« Personne n'utilise ») : le seul qui reste après la cassure. */
+const STOP_LABEL = 2;
 
 const linear = (t: number) => t;
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
@@ -40,21 +42,33 @@ export function activeLabel(rotate: number) {
   return (((Math.round((180 - rotate) / 90) % 4) + 4) % 4) as 0 | 1 | 2 | 3;
 }
 
-/** Recul de la boucle (§4, étape 4) puis effacement quand la carte part vers l'étape 01. */
+/**
+ * Recul de la boucle (§4, étape 4) puis effacement quand la carte part vers l'étape 01.
+ * Le recul (scale 1 vers 0.7, moins si la place manque, glissement entre le texte et la carte) se joue dès la cassure. L'anneau ouvert reste
+ * net et lisible pendant toute la scène B, brèche tournée vers la carte : c'est l'image signature. Le fondu vers
+ * le calque flouté en filigrane (opacité 0.15) ne se fait qu'à l'entrée des deux voix (0.22 à 0.26).
+ */
 export function useRecess(p: MotionValue<number>) {
   const { recess, layout } = useStage();
   const scrub = useTransform(p, [0.19, 0.22], [0, 1], { clamp: true });
+  const toGhost = useTransform(p, [0.22, 0.26], [0, 1], { clamp: true });
   const out = useTransform(p, [0.29, 0.32], [1, 0], { clamp: true });
   // Le scrub de la spec, plus un recul joué en temps réel juste après le passage de la carte.
   const prog = useTransform(() => Math.max(scrub.get(), recess.get()));
-  const scale = useTransform(prog, (v) => 1 - 0.3 * v);
-  const sharp = useTransform(prog, (v) => 1 - v);
-  const blurred = useTransform(() => 0.15 * prog.get() * out.get());
+  const scale = useTransform(() => 1 - (1 - layout.get().ring.recessScale) * prog.get());
+  const sharp = useTransform(() => (1 - 0.15 * prog.get()) * (1 - toGhost.get()));
+  const blurred = useTransform(() => 0.15 * prog.get() * toGhost.get() * out.get());
+  /** Éléments de la boucle qui n'ont plus de sens une fois cassée (compteur de tours). */
+  const spent = useTransform(prog, (v) => 1 - v);
   const x = useTransform(() => {
     const r = layout.get().ring;
     return r.cx + (r.drift - r.cx) * prog.get();
   });
-  return { scale, sharp, blurred, x };
+  const y = useTransform(() => {
+    const r = layout.get().ring;
+    return r.cy + r.driftY * prog.get();
+  });
+  return { scale, sharp, blurred, spent, x, y };
 }
 
 const LABEL_SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
@@ -65,12 +79,15 @@ function RingLabel({
   r,
   rotate,
   counter,
+  spent,
   final,
 }: {
   i: number;
   r: number;
   rotate: MotionValue<number>;
   counter: MotionValue<number>;
+  /** Effacement des labels latéraux après la cassure (l'anneau reculé tient alors entre le texte et la carte). */
+  spent: MotionValue<number>;
   final: boolean;
 }) {
   const { instant } = useStage();
@@ -89,7 +106,7 @@ function RingLabel({
   });
   return (
     <div className="absolute left-0 top-0" style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
-      <motion.div style={{ rotate: counter }}>
+      <motion.div style={{ rotate: counter, opacity: i === STOP_LABEL ? 1 : spent }}>
         <motion.span
           data-ring-label=""
           className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-bg px-3 py-1 font-display text-[13px] font-semibold md:text-[15px] leading-none text-ink lg:text-[18px]"
@@ -220,8 +237,7 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
   const rotate = useRingRotate(p);
   const counter = useTransform(rotate, (v) => (final ? 0 : -v));
   const ringRotate = useTransform(rotate, (v) => (final ? 0 : v));
-  const { scale, sharp, x: cx } = useRecess(p);
-  const cy = useTransform(() => layout.get().ring.cy);
+  const { scale, sharp, spent, x: cx, y: cy } = useRecess(p);
   const counterY = useTransform(() => layout.get().ring.cy + layout.get().ring.r + (layout.get().desktop ? 48 : 20));
   const r = useRingRadius();
   // La flèche prise dans la brèche disparaît à la cassure.
@@ -231,21 +247,29 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
 
   return (
     <motion.div className="absolute inset-0" style={{ opacity: fade }}>
-      {/* Les bulles sous les labels : un label (fond opaque) reste toujours lisible. */}
-      {LOOP.bubbles.map((_, i) => (
-        <Bubble key={i} i={i} p={p} final={final} />
-      ))}
+      {/*
+       * Ordre de superposition : trait et flèches, puis bulles, puis labels. Une flèche ne passe jamais sur une
+       * bulle (la bulle, opaque, la masque) ; un label (fond opaque) reste toujours lisible au-dessus des bulles.
+       * Flèches et labels tournent dans deux calques distincts, avec la même rotation.
+       */}
       <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
         <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {ARROW_DEG.map((deg, i) => (
             <ArcArrow key={deg} deg={deg} r={r} hidden={i === BREACH_ARROW ? breachArrow : undefined} />
           ))}
+        </motion.div>
+      </motion.div>
+      {LOOP.bubbles.map((_, i) => (
+        <Bubble key={i} i={i} p={p} final={final} />
+      ))}
+      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
+        <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {LABEL_DEG.map((_, i) => (
-            <RingLabel key={i} i={i} r={r} rotate={rotate} counter={counter} final={final} />
+            <RingLabel key={i} i={i} r={r} rotate={rotate} counter={counter} spent={spent} final={final} />
           ))}
         </motion.div>
       </motion.div>
-      <motion.div className="absolute left-1/2 top-1/2 w-[320px] -ml-[160px]" style={{ x: cx, y: counterY, opacity: sharp }}>
+      <motion.div className="absolute left-1/2 top-1/2 w-[320px] -ml-[160px]" style={{ x: cx, y: counterY, opacity: spent }}>
         <TourCounter p={p} final={final} />
       </motion.div>
     </motion.div>

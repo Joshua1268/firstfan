@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CARD_W, computeLayout, passPoint } from "./layout";
+import { CARD_W, computeLayout, passPoint, RING_PAD } from "./layout";
 
 const SIZES = [
   [1024, 768],
@@ -30,6 +30,13 @@ describe("stage layout", () => {
         expect(ringLeft).toBeGreaterThanOrEqual(l.textLeft + l.textWidth);
         expect(CARD_W * l.k * 1.18).toBeLessThanOrEqual(l.rightW + 0.5);
         expect(l.navLeft).toBeGreaterThanOrEqual(16);
+      });
+      it(`${vw}x${vh}: after the break, the open ring sits whole between the text and the card`, () => {
+        const half = l.ring.recessScale * (l.ring.r + RING_PAD);
+        const cardLeft = vw / 2 + l.ring.cx + passPoint(l.pass, 1).x - (CARD_W * l.k) / 2;
+        expect(vw / 2 + l.ring.drift - half).toBeGreaterThanOrEqual(l.textLeft + l.textWidth);
+        expect(vw / 2 + l.ring.drift + half).toBeLessThanOrEqual(cardLeft);
+        expect(l.ring.recessScale).toBeGreaterThanOrEqual(0.4);
       });
     }
   }

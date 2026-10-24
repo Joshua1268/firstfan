@@ -65,7 +65,10 @@ function Ring() {
   );
 }
 
-/** Titre : chaque mot sort de son masque en CSS (60 ms d'écart) quand le bloc entre dans le viewport. */
+/**
+ * Titre : chaque mot sort de son masque en CSS (60 ms d'écart) quand le bloc entre dans le viewport.
+ * Sur desktop, il tient sur deux lignes pleine largeur : les CTA restent ainsi au-dessus du pli (1440x900).
+ */
 function Title() {
   const reduce = useReduce();
   const ref = useRef<HTMLHeadingElement>(null);
@@ -81,7 +84,7 @@ function Title() {
       ref={ref}
       id="cta-final-title"
       data-state={state}
-      className="cta-title text-center font-display text-[clamp(52px,14vw,96px)] font-extrabold uppercase leading-[var(--leading-h1)] tracking-[var(--tracking-h1)] text-ink [font-variation-settings:'wdth'_62] md:text-[length:min(var(--text-h1),11.5vw)]"
+      className="cta-title text-center font-display text-[clamp(52px,14vw,96px)] font-extrabold uppercase leading-[var(--leading-h1)] tracking-[var(--tracking-h1)] text-ink [font-variation-settings:'wdth'_62] md:text-[length:min(var(--text-h1),11.5vw)] lg:text-[length:min(var(--text-h1),8vw,112px)]"
     >
       {WORDS.map((w, i) => (
         <span key={w}>
@@ -180,7 +183,8 @@ function MagneticCta() {
     y.set(0);
   };
   return (
-    <motion.span style={on ? { x: sx, y: sy } : undefined} whileTap={reduce ? undefined : { scale: 0.97 }} className="flex w-full md:inline-flex md:w-auto">
+    // tabIndex -1 : Motion rend focusable tout élément avec whileTap ; le seul arrêt de tabulation est le lien.
+    <motion.span tabIndex={-1} style={on ? { x: sx, y: sy } : undefined} whileTap={reduce ? undefined : { scale: 0.97 }} className="flex w-full md:inline-flex md:w-auto">
       <Link
         href="/inscription?role=dev"
         prefetch={false}
@@ -231,20 +235,20 @@ export function FinalCta() {
     <section
       id="cta-final"
       aria-labelledby="cta-final-title"
-      className="relative flex min-h-svh flex-col justify-center overflow-hidden bg-bg py-[var(--section-y)]"
+      className="relative flex min-h-svh flex-col justify-center overflow-hidden bg-bg py-[var(--section-y)] lg:pb-8 lg:pt-[120px]"
     >
       <motion.div {...head} className="absolute inset-0">
         <Ring />
       </motion.div>
       <div className={`${containerCls} relative flex flex-col items-center`}>
         <Title />
-        <p className="mt-6 max-w-[46ch] text-center text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
+        <p className="mt-6 max-w-[46ch] text-center lg:mt-4 text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
           Ton app mérite mieux que «&nbsp;c&apos;est super&nbsp;». Ton expertise mérite d&apos;être payée.
         </p>
 
         <motion.div
           {...board}
-          className="mt-12 grid w-full max-w-[1080px] items-center gap-y-10 md:mt-16 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10"
+          className="mt-12 grid w-full max-w-[1080px] items-center gap-y-10 md:mt-16 lg:mt-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10"
         >
           <div className="order-2 lg:order-1">
             <Board side={-1} />
@@ -257,7 +261,7 @@ export function FinalCta() {
           </div>
         </motion.div>
 
-        <motion.div {...ctas} className="mt-12 flex w-full flex-col gap-3 md:mt-14 md:w-auto md:flex-row">
+        <motion.div {...ctas} className="mt-12 flex w-full flex-col gap-3 md:mt-14 md:w-auto md:flex-row lg:mt-10">
           {/* Mobile : CTA pro devant ; le doublon masqué garde l'ordre de tabulation égal à l'ordre visuel. */}
           <CtaRise delay={0} className="md:hidden">
             <ProCta />

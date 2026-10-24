@@ -121,7 +121,7 @@ export function Stickers({
       Math.max(0, 1300 - sinceNavigation() * 1000),
     );
     // Vernis : une écriture de variable CSS par frame, sans re-render React.
-    const off = mx.on("change", (v) => root.current?.style.setProperty("--sheen", `${50 + v * 30}%`));
+    const off = mx.on("change", (v) => root.current?.style.setProperty("--sheen-x", `${(-20 * v).toFixed(2)}%`));
     return () => {
       window.clearTimeout(t);
       window.removeEventListener("pointermove", onMove);
@@ -136,7 +136,7 @@ export function Stickers({
 
   return (
     // Décoratifs pour les technologies d'assistance : ces preuves sont reprises en texte dans les sections suivantes.
-    <div ref={root} aria-hidden="true" className="absolute inset-0" style={{ ["--sheen" as string]: "50%" }}>
+    <div ref={root} aria-hidden="true" className="absolute inset-0" style={{ ["--sheen-x" as string]: "0%" }}>
       {defs.map((def) => (
         <Sticker
           key={def.n}

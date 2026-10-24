@@ -80,7 +80,8 @@ export function Nav() {
           {PRODUCT_NAME}
         </Link>
 
-        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 xl:flex">
+        {/* Liens de section dès 1024px : dans le flux entre 1024 et 1279px (aucun chevauchement), centrés au-delà. */}
+        <ul className="hidden items-center gap-6 lg:flex xl:absolute xl:left-1/2 xl:-translate-x-1/2 xl:gap-8">
           {LINKS.map((l) => (
             <li key={l.href}>
               <a href={l.href} className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
@@ -90,7 +91,7 @@ export function Nav() {
           ))}
         </ul>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-6 md:ml-auto md:flex lg:ml-0">
           <Link prefetch={false} href="/connexion" className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
             Connexion
           </Link>
@@ -106,7 +107,7 @@ export function Nav() {
         <button
           ref={buttonRef}
           type="button"
-          className="relative -mr-2 flex size-11 items-center justify-center text-ink md:hidden"
+          className="relative -mr-2 flex size-11 items-center justify-center text-ink md:ml-4 lg:hidden"
           aria-expanded={open}
           aria-controls={menuId}
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
@@ -139,7 +140,7 @@ export function Nav() {
             id={menuId}
             data-mobile-menu
             key="menu"
-            className="fixed inset-0 z-0 flex flex-col bg-bg px-[var(--grid-margin)] pb-[max(24px,env(safe-area-inset-bottom))] pt-24 md:hidden"
+            className="fixed inset-0 z-0 flex flex-col bg-bg px-[var(--grid-margin)] pb-[max(24px,env(safe-area-inset-bottom))] pt-24 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

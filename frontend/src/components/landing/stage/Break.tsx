@@ -23,6 +23,9 @@ const SHARDS = [
   { x: 54, y: -40, r: -10 },
 ];
 
+/** Angle du label posé en haut à l'arrêt de l'anneau. */
+const STOP_DEG = 270;
+
 const rad = (d: number) => (d * Math.PI) / 180;
 const pt = (r: number, d: number) => `${(Math.cos(rad(d)) * r).toFixed(2)} ${(Math.sin(rad(d)) * r).toFixed(2)}`;
 
@@ -47,7 +50,6 @@ function BlurredRing({ r, opacity }: { r: number; opacity: MotionValue<number> |
   const { a, b, len } = arcPaths(r);
   const size = 2 * r + 220;
   const off = len * (CUT_DEG / 180);
-  const labelDeg = [90, 180, 270, 360];
   return (
     <motion.div
       className="absolute left-0 top-0"
@@ -59,15 +61,13 @@ function BlurredRing({ r, opacity }: { r: number; opacity: MotionValue<number> |
           <path d={b} transform={`translate(${tangent.x * SEPARATION} ${tangent.y * SEPARATION})`} />
         </g>
       </svg>
-      {labelDeg.map((d, i) => (
-        <span
-          key={d}
-          className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-display text-[18px] font-semibold text-ink"
-          style={{ left: size / 2 + Math.cos(rad(d)) * r, top: size / 2 + Math.sin(rad(d)) * r }}
-        >
-          {LOOP.labels[i]}
-        </span>
-      ))}
+      {/* Comme l'anneau net après la cassure : seul le label du haut (« Personne n'utilise ») reste. */}
+      <span
+        className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-display text-[18px] font-semibold text-ink"
+        style={{ left: size / 2 + Math.cos(rad(STOP_DEG)) * r, top: size / 2 + Math.sin(rad(STOP_DEG)) * r }}
+      >
+        {LOOP.labels[2]}
+      </span>
     </motion.div>
   );
 }
@@ -85,7 +85,7 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   const wave = useMotionValue(0);
   const interacted = useRef(false);
 
-  const { scale, sharp, blurred, x: ringX } = useRecess(p);
+  const { scale, sharp, blurred, x: ringX, y: ringY } = useRecess(p);
   // L'onde part du point de franchissement : repère de l'anneau avant son recul.
   const cx = useTransform(() => layout.get().ring.cx);
   const reduce = useReducedMotion() ?? false;
@@ -162,7 +162,7 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   const size = 2 * r + 40;
   return (
     <>
-      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: ringX, y: cy, scale }}>
+      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: ringX, y: ringY, scale }}>
         <BlurredRing r={r} opacity={final ? 0 : blurred} />
         <motion.svg
           width={size}

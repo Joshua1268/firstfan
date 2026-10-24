@@ -4,9 +4,11 @@ import { Providers } from "@/components/providers";
 import { PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
+// `subsets` ne choisit que les fichiers préchargés : le CSS déclare tous les sous-ensembles (latin-ext compris), chargés
+// à la demande via unicode-range. Le texte de la page est en latin seul : précharger latin-ext ralentissait le LCP.
 const archivo = Archivo({
   variable: "--font-archivo",
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   axes: ["wdth"],
   display: "swap",
   preload: true,
@@ -15,7 +17,7 @@ const archivo = Archivo({
 
 const geist = Geist({
   variable: "--font-geist",
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   weight: ["400", "500", "600"],
   display: "swap",
   preload: true,
@@ -23,7 +25,7 @@ const geist = Geist({
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   weight: "500",
   display: "swap",
   preload: false,

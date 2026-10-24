@@ -28,7 +28,7 @@ const NO_JS = "<style>.stage-live{display:none!important}.stage-static{display:b
 const noop = () => () => {};
 
 /** Stage sticky animé. Monté seulement quand il sert (ses écouteurs de scroll ne tournent pas pour rien). */
-function LiveStage() {
+function LiveStage({ hydrated }: { hydrated: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -63,9 +63,13 @@ function LiveStage() {
       className="stage-live relative h-[360vh] lg:h-[480vh]"
     >
       <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
-        {/* En tête de l'ordre de tabulation : le lien d'évitement, puis la transcription pour les lecteurs d'écran. */}
+        {/*
+         * En tête de l'ordre de tabulation : le lien d'évitement, puis la transcription pour les lecteurs d'écran.
+         * La transcription n'est montée qu'après l'hydratation : le HTML serveur ne porte qu'un seul plan de titres,
+         * celui du repli statique (lu sans JS et en reduced-motion).
+         */}
         <SkipStory />
-        <StageTranscript />
+        {hydrated && <StageTranscript />}
         <StageProvider value={ctx}>
           <div aria-hidden="true" className="absolute inset-0 [perspective:1200px]">
             {/* Les arcs d'abord : les labels de l'anneau passent au-dessus du trait. */}
@@ -102,7 +106,7 @@ export function Stage() {
   return (
     <div id="boucle" className="stage-root" data-stage-fallback={lowEnd ? "" : undefined}>
       <noscript dangerouslySetInnerHTML={{ __html: NO_JS }} />
-      {(!hydrated || !fallback) && <LiveStage />}
+      {(!hydrated || !fallback) && <LiveStage hydrated={hydrated} />}
       {(!hydrated || fallback) && <StageStatic animated={lowEnd} />}
     </div>
   );

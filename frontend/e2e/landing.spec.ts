@@ -43,6 +43,8 @@ test("mobile layout", async ({ page }, info) => {
   await page.goto("/");
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
+  expect(await page.evaluate(() => window.innerWidth)).toBe(375);
   const h1 = await page.getByRole("heading", { level: 1 }).boundingBox();
   for (const s of await page.locator("[data-sticker]").all()) expect(overlaps(await s.boundingBox(), h1)).toBe(false);
   const ctas = page.locator("[data-hero-cta]:visible");
@@ -53,8 +55,14 @@ test("hero CTA order is checked on what is actually visible", async ({ page }) =
   await page.goto("/");
   const viewport = page.viewportSize()!;
   const hero = page.locator("#hero");
-  const dev = await hero.getByRole("link", { name: "Je suis développeur" }).boundingBox();
-  const pro = await hero.getByRole("link", { name: "Je teste et je suis rémunéré" }).boundingBox();
+  // Les deux boîtes sont lues ensemble, polices chargées : sinon un échange de police entre les deux lectures
+  // (machine chargée) peut faire passer les CTA à la ligne entre deux mesures.
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(1100); // fin de l'entrée CSS des CTA (560 ms + 420 ms)
+  const [dev, pro] = await Promise.all([
+    hero.getByRole("link", { name: "Je suis développeur" }).boundingBox(),
+    hero.getByRole("link", { name: "Je teste et je suis rémunéré" }).boundingBox(),
+  ]);
   expect(dev).not.toBeNull();
   expect(pro).not.toBeNull();
   await expect(hero.locator("[data-hero-cta]:visible")).toHaveCount(2);
@@ -77,6 +85,8 @@ test("stickers never cover the hero text or the CTAs, and the page never scrolls
   await expect(page.locator("[data-sticker]")).toHaveCount(smallScreen(info.project.name) ? 5 : 8);
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
+  expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize()!.width);
   for (const s of await page.locator("[data-sticker]").all()) {
     const box = (await s.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
@@ -312,8 +322,24 @@ test("stage scene text for steps 01 to 04 is in the HTML without JavaScript", as
   await context.close();
 });
 
+test("server HTML has a single heading per stage scene", async ({ request }) => {
+  const html = await (await request.get("/")).text();
+  for (const title of ["Et si on cassait la boucle", "Des pros de ton métier cible. Vérifiés.", "Pas des likes. Des gens qui reviennent."]) {
+    const count = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].filter((m) => m[1].replace(/<[^>]+>/g, "").includes(title)).length;
+    expect(count, title).toBe(1);
+  }
+});
+
+test("hydrated page keeps a single heading per stage scene", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("[data-stage-transcript]")).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Des pros de ton métier cible. Vérifiés." })).toHaveCount(1);
+});
+
 test("screen readers get every stage scene in reading order", async ({ page }) => {
   await page.goto("/");
+  // La transcription est montée après l'hydratation.
+  await expect(page.locator("[data-stage-transcript]")).toBeAttached();
   const tree = await page.locator("[data-stage]").ariaSnapshot();
   const order = [
     "On te dit",
@@ -519,11 +545,28 @@ test("final CTA links and section anchors", async ({ page }) => {
     await expect(page.locator(`section#${id}`)).toHaveAttribute("aria-labelledby", /.+/);
 });
 
+test("final CTA buttons sit above the fold once the section is reached", async ({ page }, info) => {
+  test.skip(!["desktop", "wide", "laptop", "laptop-sm"].includes(info.project.name));
+  await page.goto("/");
+  await page.locator("#cta-final").evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: "instant" }));
+  await page.waitForTimeout(1600);
+  const cta = await page.locator("#cta-final").getByRole("link", { name: "Je suis développeur" }).boundingBox();
+  expect(cta!.y + cta!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+});
+
+test("final CTA: one tab stop per button (no focusable wrapper)", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#cta-final").scrollIntoViewIfNeeded();
+  await expect(page.locator('#cta-final [tabindex="0"]')).toHaveCount(0);
+});
+
 test("lower sections never scroll sideways", async ({ page }) => {
   await page.goto("/");
+  const width = page.viewportSize()!.width;
   for (const id of ["pro", "en-direct", "comment-ca-marche", "confiance", "entre-devs", "cta-final"]) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), id).toBe(true);
+    expect(await page.evaluate(() => window.innerWidth), `${id} : fenêtre de mise en page élargie`).toBe(width);
   }
 });

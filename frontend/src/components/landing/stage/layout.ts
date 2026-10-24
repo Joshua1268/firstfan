@@ -35,8 +35,11 @@ export type StageLayout = {
   /** Scale (avant k) de la carte en scène C, pour qu'elle tienne entre les deux citations. */
   voicesScale: number;
   voicesY: number;
-  /** `drift` : abscisse où l'anneau recule en filigrane après la cassure, pour libérer la place de la carte. */
-  ring: { cx: number; cy: number; r: number; drift: number };
+  /**
+   * Recul après la cassure : l'anneau ouvert glisse en (`drift`, `cy + driftY`) et passe à `recessScale`,
+   * pour rester entier et lisible à côté de la carte passée par la brèche (labels compris).
+   */
+  ring: { cx: number; cy: number; r: number; drift: number; driftY: number; recessScale: number };
   /** Passage par la brèche, relatif au centre de l'anneau : contrôles de la courbe et arrivée. */
   pass: { c1: Pt; c2: Pt; breach: Pt; c3: Pt; end: Pt };
   /** Graphe de l'étape 04 : centre, largeur, hauteur (viewBox 600x320 mis à l'échelle). */
@@ -44,6 +47,12 @@ export type StageLayout = {
   /** Abscisse (absolue) de la barre de navigation verticale. */
   navLeft: number;
 };
+
+/**
+ * Débord horizontal de l'anneau reculé au-delà du trait (px, à scale 1) : après la cassure, seuls le trait et le
+ * label du haut restent (les labels latéraux s'effacent), donc le débord se limite aux éclats et au trait.
+ */
+export const RING_PAD = 12;
 
 export const GRAPH_VIEW = { w: 600, h: 320, x0: 60, y0: 270, j7: 260, j30: 580, top: 40 } as const;
 
@@ -90,10 +99,14 @@ function desktopLayout(vw: number, vh: number): StageLayout {
   const d = clamp(Math.min(480, zoneR - zoneL, vh - 64 - 220), 260, 480);
   const ringCx = (zoneL + zoneR) / 2 - vw / 2;
   const endMaxX = vw / 2 - g - (CARD_W * k) / 2 - ringCx;
-  // Après la cassure, l'anneau (à 0.7) glisse entre le texte et la carte : il ne reste pas sous la carte.
-  const cardLeft = vw - g - CARD_W * k;
-  const drift = (text.left + text.width + cardLeft) / 2 - vw / 2;
-  const ring = { cx: ringCx, cy: cy - 8, r: d / 2, drift };
+  const pass = passFor(d / 2, endMaxX);
+  // Après la cassure, l'anneau glisse entre le texte et la carte et réduit assez pour y tenir, labels compris.
+  const cardLeft = vw / 2 + ringCx + pass.end.x - (CARD_W * k) / 2;
+  const zoneA = text.left + text.width + 16;
+  const zoneB = cardLeft - 16;
+  const recessScale = clamp((zoneB - zoneA) / (2 * (d / 2 + RING_PAD)), 0.4, 0.7);
+  const drift = (zoneA + zoneB) / 2 - vw / 2;
+  const ring = { cx: ringCx, cy: cy - 8, r: d / 2, drift, driftY: 0, recessScale };
 
   const mid = span(5, 8);
   const voicesScale = Math.min(1, (mid.width + 2 * g) / (CARD_W * k));
@@ -114,7 +127,7 @@ function desktopLayout(vw: number, vh: number): StageLayout {
     voicesScale,
     voicesY: cy - 40,
     ring,
-    pass: passFor(ring.r, endMaxX),
+    pass,
     graph: { cx: rightCx, cy, w: gw, h: (gw * GRAPH_VIEW.h) / GRAPH_VIEW.w },
     navLeft: Math.max(16, left - 84),
   };
@@ -128,7 +141,8 @@ function mobileLayout(vw: number, vh: number): StageLayout {
   const cardW = Math.min(0.62 * vw, 400);
   const k = cardW / CARD_W;
   const r = clamp(Math.min(0.32 * vw, 210, (0.42 * vh) / 2), 110, 210);
-  const ring = { cx: 0, cy: cy + 6, r, drift: 0 };
+  // Après la cassure, l'anneau monte et glisse à gauche : la brèche (en haut à droite) reste visible au-dessus de la carte.
+  const ring = { cx: 0, cy: cy + 6, r, drift: -0.1 * vw, driftY: -0.07 * vh, recessScale: 0.7 };
   const endMaxX = vw / 2 - m - cardW / 2;
   const voicesScale = (0.6 * vw) / cardW;
   const vTop = 64 + 44;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLayout } from "./layout";
+import { computeLayout, passPoint } from "./layout";
 import { cardPose } from "./pose";
 
 const l = computeLayout(1440, 900);
@@ -16,6 +16,10 @@ describe("card milestones (§3.4)", () => {
     const pose = cardPose(0.195, 1, 0, l);
     expect(pose.scale).toBeCloseTo(l.k);
     expect(pose.opacity).toBe(1);
+  });
+  it("stays beside the breach for most of the break scene", () => {
+    const pose = cardPose(0.212, 1, 0, l);
+    expect(pose.x).toBeCloseTo(l.ring.cx + passPoint(l.pass, 1).x);
   });
   it("is centred between the two voices", () => {
     const pose = cardPose(0.26, 1, 0, l);

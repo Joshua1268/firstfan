@@ -36,6 +36,21 @@ export function Kicker({ children }: { children: React.ReactNode }) {
 
 const TITLE =
   "font-display text-[26px] font-extrabold leading-[1.02] tracking-[-0.01em] text-ink [font-variation-settings:'wdth'_75] text-balance md:text-[34px] lg:text-[clamp(34px,3.9vw,58px)] lg:leading-[0.95]";
+/**
+ * Titre de scène. Dans le stage animé, le texte visible est aria-hidden et doublé par la transcription : il est
+ * alors rendu en paragraphe, pour que la page n'expose qu'un seul plan de titres (transcription ou repli statique).
+ */
+function SceneTitle({ children }: { children: React.ReactNode }) {
+  const hidden = useTextHidden();
+  if (hidden)
+    return (
+      <p aria-hidden className={TITLE}>
+        {children}
+      </p>
+    );
+  return <h2 className={TITLE}>{children}</h2>;
+}
+
 const LINE = "text-[15px] leading-[1.5] lg:text-[clamp(16px,1.25vw,19px)]";
 
 /** Position du bloc texte : colonnes 1 à 5 (desktop), bas de l'écran (mobile). */
@@ -61,9 +76,7 @@ function StepText({ step, children }: { step: Step; children?: React.ReactNode }
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-3 lg:gap-5`}>
       <Kicker>{step.kicker}</Kicker>
-      <h2 aria-hidden={hidden} className={TITLE}>
-        {step.title}
-      </h2>
+      <SceneTitle>{step.title}</SceneTitle>
       <p aria-hidden={hidden} className={`${LINE} max-w-[46ch] text-ink`}>
         {step.dev}
       </p>
@@ -80,9 +93,7 @@ function LoopText() {
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-3 lg:gap-5`}>
       <Kicker>{LOOP.kicker}</Kicker>
-      <h2 aria-hidden={hidden} className={TITLE}>
-        {LOOP.title}
-      </h2>
+      <SceneTitle>{LOOP.title}</SceneTitle>
       <p aria-hidden={hidden} className="max-w-[46ch] font-mono text-[12.5px] leading-[1.6] text-ink-muted lg:text-[14px]">{LOOP.voice}</p>
       <div className="sr-only" aria-hidden={hidden}>
         <ol>
@@ -114,13 +125,13 @@ function BreakText({ p }: { p: MotionValue<number> }) {
   const lineY = useTransform(line, [0, 1], [12, 0]);
   return (
     <div className={`${useContext(TextBox)} flex flex-col gap-4 lg:gap-6`}>
-      <h2 aria-hidden={hidden} className={TITLE}>
+      <SceneTitle>
         <span className="block overflow-clip pb-[0.06em]">
           <motion.span className="block" style={{ y: titleY }}>
             {BREAK.title}
           </motion.span>
         </span>
-      </h2>
+      </SceneTitle>
       <motion.p aria-hidden={hidden} className={`${LINE} max-w-[40ch] text-ink`} style={{ y: lineY, opacity: line }}>
         {BREAK.line}
       </motion.p>
@@ -129,11 +140,17 @@ function BreakText({ p }: { p: MotionValue<number> }) {
 }
 
 function Step4Ctas({ p }: { p: MotionValue<number> }) {
+  // Stage animé sur mobile : le cadre fait 100svh et la barre CTA collée porte déjà les deux CTA ; ceux de la
+  // scène tomberaient sous la barre. Ils restent dans le repli statique (texte dans le flux) et sur desktop.
+  const live = useTextHidden();
   const rise = useStepValue(p, 0.97, 0, 1, { type: "spring", stiffness: 260, damping: 22 }, { duration: dur.fast / 1000 });
   const y = useTransform(rise, [0, 1], [16, 0]);
   const visibility = useTransform(rise, (v) => (v > 0.01 ? "visible" : "hidden"));
   return (
-    <motion.div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-3" style={{ y, opacity: rise, visibility }}>
+    <motion.div
+      className={`mt-1 flex-wrap items-center gap-x-5 gap-y-3 ${live ? "hidden lg:flex" : "flex"}`}
+      style={{ y, opacity: rise, visibility }}
+    >
       <Link
         prefetch={false}
         href="/inscription?role=dev"

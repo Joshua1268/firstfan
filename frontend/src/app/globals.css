@@ -109,6 +109,14 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--leading-body);
+}
+
+/*
+ * Aucun défilement horizontal (§5). Le clip est posé sur main et footer, pas sur body : sur body, il serait
+ * propagé au viewport, et Chrome mobile élargirait quand même la fenêtre de mise en page (page dézoomée).
+ */
+main,
+footer {
   overflow-x: clip;
 }
 
@@ -117,7 +125,10 @@ body {
   outline-offset: 3px;
 }
 
-/* Grain fixe (§5) : PNG précalculé, aucun feTurbulence en direct. */
+/*
+ * Grain fixe (§5) : PNG précalculé, aucun feTurbulence en direct. Tuile de 128px en 4 niveaux de gris (4 Ko,
+ * sous le budget de 6 Ko) : une tuile 256px en 8 bits pesait 65 Ko et retardait le LCP mobile.
+ */
 body::before {
   content: "";
   position: fixed;
@@ -125,7 +136,7 @@ body::before {
   z-index: 60;
   pointer-events: none;
   background-image: url("/grain.png");
-  background-size: 256px 256px;
+  background-size: 128px 128px;
   opacity: 0.035;
 }
 
@@ -213,14 +224,24 @@ body::before {
   user-select: none;
   -webkit-user-select: none;
 }
+/* Vernis : un calque de dégradé qui glisse en translateX (compositor), jamais de background-position animé. */
 .sticker-sheen {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 46%, transparent 62%);
-  background-size: 300% 100%;
-  background-position: var(--sheen, 50%) 0;
   mix-blend-mode: soft-light;
+}
+.sticker-sheen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 46%, transparent 62%);
+  /* --sheen-x : de -20 % à 20 % de la largeur du calque (soit background-position 20 % à 80 %), écrit par la parallaxe souris. */
+  transform: translateX(var(--sheen-x, 0%));
 }
 .sticker:has(.sticker-fold) {
   overflow: visible;
@@ -235,9 +256,21 @@ body::before {
   width: 16px;
   height: 16px;
   transform-origin: 0% 0%;
-  background: linear-gradient(45deg, var(--accent-press) 50%, transparent 50%);
+}
+/* Rabat et son ombre : deux triangles figés qui tournent avec le coin (aucun filtre sur un calque animé). */
+.sticker-fold::before,
+.sticker-fold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   border-bottom-left-radius: 3px;
-  filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.25));
+}
+.sticker-fold::before {
+  transform: translate(-1px, 1px);
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0.22) 50%, transparent 50%);
+}
+.sticker-fold::after {
+  background: linear-gradient(45deg, var(--accent-press) 50%, transparent 50%);
 }
 /* Badge dentelé : bord festonné par masque radial. */
 .sticker-seal {
