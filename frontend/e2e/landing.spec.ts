@@ -378,3 +378,123 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
   noOverlap(stickers, await boxes("step4", "[data-curve-label]"));
   await context.close();
 });
+
+// ---------- Sections sous l'histoire (§3.5 à §3.11, Task 7) ----------
+
+test("reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  for (const t of ["Tu connais la boucle", "Et si on cassait la boucle ?", "Des pros de ton métier cible. Vérifiés."])
+    await expect(page.getByText(t, { exact: false }).first()).toBeVisible();
+  // États finaux figés : écran « Mission validée » du téléphone, tampon HORODATÉ, snippet complet.
+  const pro = page.locator("#pro");
+  await pro.scrollIntoViewIfNeeded();
+  await expect(pro.locator("[data-phone-screen='done']")).toBeVisible();
+  await expect(pro.locator("[data-phone-screen='done']")).toContainText("Paiement envoyé");
+  await expect(pro.locator("[data-static-missions]")).toBeVisible();
+  await expect(page.locator("#confiance [data-cert-stamp]")).toBeVisible();
+  await expect(page.locator("#confiance [data-cert-hash]")).toHaveText("9f3a…c21e");
+  await expect(page.locator("#entre-devs [data-snippet]")).toContainText('data-app="monapp"');
+});
+
+test("no js", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("http://127.0.0.1:3100/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator("#pro")).toContainText(/métier/i);
+  for (const [sel, text] of [
+    ["#pro", "Ton métier vaut de l'argent. Ici, il est payé."],
+    ["#pro", "Je teste et je suis rémunéré"],
+    ["#en-direct", "Chaque chiffre vient d'un vrai test, pas d'un formulaire."],
+    ["#comment-ca-marche", "Trois promesses. Deux gagnants."],
+    ["#confiance", "Protégé dès le dépôt."],
+    ["#entre-devs", "Une ligne de code. Et tu sais qui revient."],
+    ["#cta-final", "Arrête de recommencer la boucle."],
+    ["footer", "Construit à Abidjan, pour les devs, par les devs"],
+  ] as const) {
+    await expect(page.locator(sel)).toContainText(text);
+  }
+  // Sans JS, rien ne reste masqué par un état initial d'animation.
+  for (const t of ["Trois promesses. Deux gagnants.", "Protégé dès le dépôt.", "Arrête de recommencer la boucle."])
+    await expect(page.getByRole("heading", { name: t })).toBeVisible();
+  await expect(page.getByText("Webhooks mobile money en local, vous faites comment ?")).toBeVisible();
+  await ctx.close();
+});
+
+test("api down", { tag: "@api-down" }, async ({ page }) => {
+  await page.route("**/api/public/stats/**", (r) => r.abort());
+  // Le polling vise la route Next sans barre finale.
+  await page.route("**/api/public/stats", (r) => r.abort());
+  const res = await page.goto("/");
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("[data-live-counter]")).toHaveCount(0);
+  // La section garde son texte, sans chiffre inventé.
+  await expect(page.locator("#en-direct")).toContainText("Chaque chiffre vient d'un vrai test, pas d'un formulaire.");
+  await expect(page.locator("[data-live-badge]")).toHaveCount(0);
+});
+
+test("demo label when demo", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Données de démo CADEV").first()).toBeVisible();
+});
+
+test("live section shows server counters and the demo mention", async ({ page }) => {
+  await page.goto("/");
+  const live = page.locator("#en-direct");
+  await live.scrollIntoViewIfNeeded();
+  await expect(live.locator("[data-live-counter]")).toHaveCount(3);
+  await expect(live).toContainText("Données de démo CADEV · mises à jour toutes les 15 s");
+  await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
+});
+
+test("live section polls the public stats through the same origin", async ({ page }) => {
+  await page.clock.install();
+  const polled: string[] = [];
+  page.on("requestfinished", async (r) => {
+    if (!new URL(r.url()).pathname.startsWith("/api/public/stats")) return;
+    const res = await r.response();
+    if (res?.ok()) polled.push(r.url());
+  });
+  await page.goto("/");
+  await page.clock.runFor(16_000);
+  await expect.poll(() => polled.length).toBeGreaterThan(0);
+  expect(new URL(polled[0]).origin).toBe(new URL(page.url()).origin);
+});
+
+test("copy button copies the snippet and says so", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const devs = page.locator("#entre-devs");
+  await devs.scrollIntoViewIfNeeded();
+  await devs.getByRole("button", { name: "Copier" }).click();
+  await expect(devs.getByRole("button", { name: "Copié" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    '<script src="https://[nom].ci/usage.js" data-app="monapp" defer></script>',
+  );
+});
+
+test("final CTA links and section anchors", async ({ page }) => {
+  await page.goto("/");
+  const cta = page.locator("#cta-final");
+  await expect(cta.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
+  await expect(cta.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute("href", "/inscription?role=tester");
+  await expect(page.locator("#pro").getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute(
+    "href",
+    "/inscription?role=tester",
+  );
+  // Chaque ancre de la nav mène à une section qui existe.
+  for (const href of await page.locator("header nav a[href^='#']").evaluateAll((els) => els.map((e) => e.getAttribute("href")!)))
+    await expect(page.locator(href)).toHaveCount(1);
+  for (const id of ["pro", "en-direct", "comment-ca-marche", "confiance", "entre-devs", "cta-final"])
+    await expect(page.locator(`section#${id}`)).toHaveAttribute("aria-labelledby", /.+/);
+});
+
+test("lower sections never scroll sideways", async ({ page }) => {
+  await page.goto("/");
+  for (const id of ["pro", "en-direct", "comment-ca-marche", "confiance", "entre-devs", "cta-final"]) {
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), id).toBe(true);
+  }
+});

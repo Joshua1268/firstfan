@@ -367,3 +367,64 @@ body::before {
 [data-stage-fallback] .stage-static {
   display: block;
 }
+
+/* ---------- Sections sous l'histoire (§3.5 à §3.11) ---------- */
+
+/* Téléphone de la section pro : inclinaison fixe sur desktop seulement, jamais en reduced-motion. */
+@media (min-width: 1024px) {
+  .pro-phone-tilt {
+    transform: rotateY(-14deg) rotateX(6deg);
+  }
+}
+.pro-static-missions {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pro-phone-tilt {
+    transform: none;
+  }
+  .pro-ghost {
+    display: none !important;
+  }
+  .pro-static-missions {
+    display: block;
+  }
+}
+
+/* Curseur bloc du hash (Confiance) et du snippet (Entre devs) : clignote à 1 Hz. */
+.cert-cursor {
+  animation: cursor-blink 1s steps(1) infinite;
+}
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Snippet tapé : le cache recule d'un caractère par pas (transform seulement). */
+.snippet-cover.is-typing {
+  animation: snippet-type var(--ms) steps(var(--n)) forwards;
+}
+@keyframes snippet-type {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Titre du CTA final : les mots sortent du masque quand le bloc entre dans le viewport (JS seulement). */
+.cta-title[data-state="armed"] .cta-word {
+  transform: translateY(105%);
+}
+.cta-title[data-state="play"] .cta-word {
+  animation: hero-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Footer : le [NOM] géant en contour blanc chaud à 8 %. */
+.footer-name {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);
+}

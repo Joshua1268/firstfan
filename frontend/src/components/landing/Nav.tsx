@@ -8,7 +8,7 @@ import { dur, ease } from "@/lib/motion-tokens";
 
 const LINKS = [
   { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "#pour-les-testeurs", label: "Pour les testeurs" },
+  { href: "#pro", label: "Pour les testeurs" },
   { href: "#entre-devs", label: "Entre devs" },
 ] as const;
 

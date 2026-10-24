@@ -32,3 +32,9 @@ test("dollar amounts are still flagged", () => {
   assert.equal(scan("$5")[0].rule, "amount");
   assert.equal(scan("5$")[0].rule, "amount");
 });
+
+test("hexadecimal hashes are not amounts", () => {
+  assert.deepEqual(scan("sha256 : 9f3a…c21e"), []);
+  assert.deepEqual(scan("#0f0"), []);
+  assert.equal(scan("9f la mission")[0].rule, "amount");
+});
