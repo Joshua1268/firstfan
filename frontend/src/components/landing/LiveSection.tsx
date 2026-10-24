@@ -5,6 +5,7 @@ import { startCountUp } from "./count-up";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { spring } from "@/lib/motion-tokens";
+import { liveCounters, liveSummary } from "@/lib/live-counters";
 import type { PublicStats } from "@/lib/stats";
 import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useReduce } from "./reveal";
 
@@ -12,6 +13,8 @@ import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useRe
  * Section « En direct » (§3.6).
  * - Valeurs initiales rendues côté serveur ; si l'API ne répond pas (`stats` null), la section garde son texte
  *   sans aucun compteur (jamais de chiffre inventé).
+ * - Même règle que le badge du hero (`liveCounters`) : un compteur à zéro n'est jamais affiché ; si tous valent
+ *   zéro, la rangée de compteurs disparaît.
  * - Polling toutes les 15 s, en pause quand l'onglet est caché. La requête part du navigateur vers la même
  *   origine (`/api/public/stats`, route Next qui relit Django côté serveur) : aucun CORS à ouvrir côté Django.
  * - À l'entrée dans le viewport (une fois) : comptage de 0 à la valeur (MotionValue rendue par motion, sans re-render React).
@@ -22,19 +25,15 @@ import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useRe
 const POLL_MS = 15_000;
 const SUMMARY_EVERY_MS = 60_000;
 
-type Counts = Pick<PublicStats, "tests_in_progress" | "verified_testers" | "apps_tested">;
+/** Colonnes occupées dans la rangée de 3 (desktop). */
+const SPAN: Record<number, string> = { 1: "md:col-span-1", 2: "md:col-span-2" };
 
-const COUNTERS: { key: keyof Counts; one: string; many: string }[] = [
-  { key: "tests_in_progress", one: "test en cours", many: "tests en cours" },
-  { key: "verified_testers", one: "testeur vérifié", many: "testeurs vérifiés" },
-  { key: "apps_tested", one: "app testée", many: "apps testées" },
-];
-
-const labelFor = (c: (typeof COUNTERS)[number], v: number) => (v > 1 ? c.many : c.one);
-
-function summary(s: Counts) {
-  return COUNTERS.map((c) => `${s[c.key]} ${labelFor(c, s[c.key])}`).join(", ") + ".";
-}
+/** Grille selon le nombre de compteurs non nuls (1 à 3) : la rangée reste pleine et alignée à gauche. */
+const GRID: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-2 md:grid-cols-3 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1",
+};
 
 /** Heure locale d'Abidjan (UTC), au format 14:32. */
 function hhmm(d: Date) {
@@ -198,11 +197,13 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
     const wait = Math.max(0, SUMMARY_EVERY_MS - (now - lastAnnounce.current));
     const t = window.setTimeout(() => {
       lastAnnounce.current = Date.now();
-      setAnnounce(summary(data));
+      setAnnounce(liveSummary(liveCounters(data)));
     }, wait);
     return () => window.clearTimeout(t);
   }, [data]);
 
+  const counters = liveCounters(data);
+  const inline = counters.length === 1 || counters.length === 2;
   const reveal = useReveal(0.3);
   const card = riseVariants(20, spring.soft, 0.09);
 
@@ -219,34 +220,36 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
           En ce moment sur {PRODUCT_NAME}
         </h2>
 
-        {data && (
-          <div className="mt-10 grid grid-cols-2 gap-x-[var(--grid-gutter)] md:mt-14 md:grid-cols-3 md:gap-y-0 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1">
-            {COUNTERS.map((c, i) => (
-              <Counter
-                key={c.key}
-                value={data[c.key]}
-                label={labelFor(c, data[c.key])}
-                index={i}
-                countUp={inView}
-                reduce={reduce}
-              />
-            ))}
-          </div>
-        )}
+        {/* Avec 1 ou 2 compteurs, la phrase prend les colonnes libres de la même rangée (desktop) : la rangée reste
+            pleine sur 3 colonnes, sans trou. Avec 3 compteurs, elle passe dessous. */}
+        <div className={inline ? "md:mt-14 md:grid md:grid-cols-3 md:items-end md:gap-x-[var(--grid-gutter)]" : ""}>
+          {counters.length > 0 && (
+            <div
+              data-live-counters={counters.length}
+              className={`mt-10 grid gap-x-[var(--grid-gutter)] md:gap-y-0 ${inline ? `md:mt-0 ${SPAN[counters.length]}` : "md:mt-14"} ${GRID[counters.length]}`}
+            >
+              {counters.map((c, i) => (
+                <Counter key={c.key} value={c.value} label={c.label} index={i} countUp={inView} reduce={reduce} />
+              ))}
+            </div>
+          )}
 
-        <p className="mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink md:mt-14">
-          Chaque chiffre vient d&apos;un vrai test, pas d&apos;un formulaire.
-        </p>
-        {data?.demo && (
-          <p className="mt-3 font-mono text-[12px] uppercase leading-snug tracking-[0.12em] text-ink-muted">
-            Données de démo CADEV · mises à jour toutes les 15 s
-          </p>
-        )}
-        {data && offline && lastUpdate && (
-          <p className="mt-2 font-mono text-[12px] leading-snug text-ink-muted">
-            Direct en pause. Dernière mise à jour à {hhmm(lastUpdate)}.
-          </p>
-        )}
+          <div className={inline ? `md:pb-1 ${SPAN[3 - counters.length]}` : ""}>
+            <p className={`mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink ${inline ? "md:mt-0" : "md:mt-14"}`}>
+              Chaque chiffre vient d&apos;un vrai test, pas d&apos;un formulaire.
+            </p>
+            {data?.demo && (
+              <p className="mt-3 font-mono text-[12px] uppercase leading-snug tracking-[0.12em] text-ink-muted">
+                Données de démo CADEV · mises à jour toutes les 15 s
+              </p>
+            )}
+            {data && offline && lastUpdate && (
+              <p className="mt-2 font-mono text-[12px] leading-snug text-ink-muted">
+                Direct en pause. Dernière mise à jour à {hhmm(lastUpdate)}.
+              </p>
+            )}
+          </div>
+        </div>
         <p aria-live="polite" className="sr-only">
           {announce}
         </p>
