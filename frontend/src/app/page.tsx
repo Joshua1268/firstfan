@@ -1,5 +1,18 @@
-import { PRODUCT_NAME } from "@/lib/brand";
+import { Hero } from "@/components/landing/Hero";
+import { MobileCtaBar } from "@/components/landing/MobileCtaBar";
+import { Nav } from "@/components/landing/Nav";
+import { fetchPublicStats } from "@/lib/stats";
 
-export default function Home() {
-  return <main>{PRODUCT_NAME}</main>;
+// Composition serveur de la landing (§3) : les sections suivantes s'ajoutent sous le hero.
+export default async function Home() {
+  const stats = await fetchPublicStats();
+  return (
+    <>
+      <Nav />
+      <main>
+        <Hero stats={stats} />
+      </main>
+      <MobileCtaBar />
+    </>
+  );
 }

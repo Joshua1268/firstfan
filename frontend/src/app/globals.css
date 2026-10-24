@@ -116,3 +116,159 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Grain fixe (§5) : PNG précalculé, aucun feTurbulence en direct. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: url("/grain.png");
+  background-size: 256px 256px;
+  opacity: 0.035;
+}
+
+/* ---------- Hero (§2, §3.2) ---------- */
+
+/* Mots du H1 : sortie de masque en CSS, avant l'hydratation. Le texte reste à opacité 1. */
+.hero-mask {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0;
+  vertical-align: top;
+  /* Les capitales d'Archivo dépassent l'interligne 0.86 : on agrandit la boîte sans bouger la ligne. */
+  padding-block: 0.08em 0.02em;
+  margin-block: -0.08em -0.02em;
+}
+.hero-word {
+  display: inline-block;
+  animation: hero-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(80ms + var(--i, 0) * 60ms);
+}
+@keyframes hero-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hero-lift-12 {
+  animation: hero-lift-12 420ms cubic-bezier(0.22, 1, 0.36, 1) 420ms both;
+}
+.hero-lift-16 {
+  animation: hero-lift-16 420ms cubic-bezier(0.22, 1, 0.36, 1) 560ms both;
+}
+@keyframes hero-lift-12 {
+  from {
+    transform: translateY(12px);
+  }
+}
+@keyframes hero-lift-16 {
+  from {
+    transform: translateY(16px);
+  }
+}
+
+/* Point en direct : pulse en pseudo-élément toutes les 1,6 s à partir de 1300 ms. */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  opacity: 0;
+  animation: live-pulse 1600ms cubic-bezier(0.22, 1, 0.36, 1) 1300ms infinite;
+}
+@keyframes live-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Autocollants : ombre statique portée par un calque (on anime son opacité et son scale, jamais box-shadow). */
+.sticker-shadow {
+  position: absolute;
+  inset: 0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.sticker {
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sticker-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 46%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: var(--sheen, 50%) 0;
+  mix-blend-mode: soft-light;
+}
+.sticker:has(.sticker-fold) {
+  overflow: visible;
+}
+.sticker-fold-bg {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+.sticker-fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  transform-origin: 0% 0%;
+  background: linear-gradient(45deg, var(--accent-press) 50%, transparent 50%);
+  border-bottom-left-radius: 3px;
+  filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.25));
+}
+/* Badge dentelé : bord festonné par masque radial. */
+.sticker-seal {
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50.0 0.0L55.8 5.9L62.9 1.7L67.0 8.9L75.0 6.7L77.1 14.7L85.4 14.6L85.3 22.9L93.3 25.0L91.1 33.0L98.3 37.1L94.1 44.2L100.0 50.0L94.1 55.8L98.3 62.9L91.1 67.0L93.3 75.0L85.3 77.1L85.4 85.4L77.1 85.3L75.0 93.3L67.0 91.1L62.9 98.3L55.8 94.1L50.0 100.0L44.2 94.1L37.1 98.3L33.0 91.1L25.0 93.3L22.9 85.3L14.6 85.4L14.7 77.1L6.7 75.0L8.9 67.0L1.7 62.9L5.9 55.8L0.0 50.0L5.9 44.2L1.7 37.1L8.9 33.0L6.7 25.0L14.7 22.9L14.6 14.6L22.9 14.7L25.0 6.7L33.0 8.9L37.1 1.7L44.2 5.9Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+/* Ticket perforé : encoches latérales et ligne de perforation. */
+.sticker-ticket {
+  border-radius: 6px;
+  mask:
+    radial-gradient(circle 7px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 7px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+.sticker-ticket::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 14px;
+  border-left: 1.5px dashed color-mix(in srgb, var(--bg) 45%, transparent);
+}
+
+/* Barre CTA mobile collée en bas. */
+.cta-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word,
+  .hero-lift-12,
+  .hero-lift-16,
+  .live-dot::after {
+    animation: none;
+  }
+}
