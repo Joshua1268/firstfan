@@ -22,6 +22,7 @@ export function overlaps(a: Box, b: Box): boolean {
  * Défilement instantané : le `p` lissé (spring 200/40) rattrape ensuite la valeur.
  */
 export async function scrollStageTo(page: import("@playwright/test").Page, p: number) {
+  await waitForLiveStage(page);
   await page.evaluate((target) => {
     const stage = document.querySelector<HTMLElement>("[data-stage]");
     if (!stage) throw new Error("stage introuvable");
@@ -29,4 +30,13 @@ export async function scrollStageTo(page: import("@playwright/test").Page, p: nu
     const range = stage.offsetHeight - window.innerHeight;
     window.scrollTo({ top: top + target * range, behavior: "instant" });
   }, p);
+}
+
+/**
+ * Le module du stage animé est chargé après l'hydratation (inactivité ou approche du viewport). Avant, le HTML
+ * serveur est affiché mais pas interactif : les tests qui pilotent le stage attendent son chargement.
+ * Sans effet en reduced-motion ou sans stage animé : le marqueur est posé dans tous les cas.
+ */
+export async function waitForLiveStage(page: import("@playwright/test").Page) {
+  await page.locator("[data-stage-loaded]").waitFor({ state: "attached", timeout: 15_000 });
 }

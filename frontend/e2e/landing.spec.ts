@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { overlaps, scan, scrollStageTo } from "./helpers";
+import { overlaps, scan, scrollStageTo, waitForLiveStage } from "./helpers";
 
 /** Boîtes visibles de tout ce qu'aucun autocollant ne doit recouvrir. */
 async function guardedBoxes(page: Page) {
@@ -273,6 +273,7 @@ test("stage scenes advance with scroll", async ({ page }) => {
 
 test("stage jump back", async ({ page }) => {
   await page.goto("/");
+  await waitForLiveStage(page);
   await scrollStageTo(page, 0.92);
   await page.getByRole("button", { name: "Boucle" }).click();
   await page.waitForTimeout(1200);
