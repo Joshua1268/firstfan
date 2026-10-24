@@ -6,6 +6,8 @@ import "./globals.css";
 
 // `subsets` ne choisit que les fichiers préchargés : le CSS déclare tous les sous-ensembles (latin-ext compris), chargés
 // à la demande via unicode-range. Le texte de la page est en latin seul : précharger latin-ext ralentissait le LCP.
+// Archivo reste préchargé : sans préchargement, le H1 s'affiche d'abord dans le fallback, que adjustFontFallback ne sait
+// pas condenser (wdth 62) ; à l'échange, le titre change de largeur et de retour à la ligne (CLS 0,32 mesuré en desktop).
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],

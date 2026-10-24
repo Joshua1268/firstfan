@@ -70,7 +70,7 @@ Aucun chiffre n'est inventé côté frontend. Les compteurs « tests en cours »
 
 ```bash
 cd backend && uv run pytest -q
-cd frontend && node --test scripts/ && pnpm vitest run && pnpm playwright test && pnpm build
+cd frontend && pnpm test && pnpm playwright test && pnpm build
 ```
 
 Le détail des tests frontend (Playwright, garde-fou de contenu) est dans `frontend/README.md`.

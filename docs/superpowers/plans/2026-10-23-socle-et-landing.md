@@ -215,7 +215,7 @@ it("returns null on network error", async () => { mockFetchReject(); expect(awai
 it("returns null on non-200", async () => { mockFetch({}, 503); expect(await fetchPublicStats()).toBeNull() })
 ```
 
-- [ ] **Step 4 : Lancer `node --test scripts/ && pnpm vitest run`**
+- [ ] **Step 4 : Lancer `pnpm test`**
   - Attendu : échec.
 - [ ] **Step 5 : Implémenter**
   - `check-content.mjs`, qui exporte `scan(text): {rule, match, index}[]` et a une CLI.
@@ -408,7 +408,7 @@ test("demo label when demo", async ({ page }) => { await page.goto("/"); await e
   - L'ordre de tabulation suit la page. Le focus est visible avec un anneau accent.
   - Les crans du stage sont atteignables au clavier.
 - [ ] **Step 4 : Vérification finale**
-  - Lancer `cd backend && uv run pytest -q`, puis `cd frontend && node --test scripts/ && pnpm vitest run && pnpm playwright test && pnpm build`.
+  - Lancer `cd backend && uv run pytest -q`, puis `cd frontend && pnpm test && pnpm playwright test && pnpm build`.
   - Attendu : tout est vert.
 - [ ] **Step 5 : Commit** : `chore(landing): finition perf, accessibilite et revue visuelle`
 

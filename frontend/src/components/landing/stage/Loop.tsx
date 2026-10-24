@@ -9,7 +9,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import { dur, ease } from "@/lib/motion-tokens";
 import { go, useRingRadius, useStage, useStepValue, useThreshold } from "./context";
 import { LOOP } from "./copy";
@@ -80,12 +80,15 @@ function RingLabel({
   rotate,
   counter,
   spent,
+  onSize,
   final,
 }: {
   i: number;
   r: number;
   rotate: MotionValue<number>;
   counter: MotionValue<number>;
+  /** Mesure du label (px, sans transform), lue par les bulles pour s'effacer à son passage. */
+  onSize: (i: number, size: { w: number; h: number }) => void;
   /** Effacement des labels latéraux après la cassure (l'anneau reculé tient alors entre le texte et la carte). */
   spent: MotionValue<number>;
   final: boolean;
@@ -108,6 +111,9 @@ function RingLabel({
     <div className="absolute left-0 top-0" style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
       <motion.div style={{ rotate: counter, opacity: i === STOP_LABEL ? 1 : spent }}>
         <motion.span
+          ref={(el) => {
+            if (el) onSize(i, { w: el.offsetWidth, h: el.offsetHeight });
+          }}
           data-ring-label=""
           className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-bg px-3 py-1 font-display text-[13px] font-semibold md:text-[15px] leading-none text-ink lg:text-[18px]"
           style={{ scale }}
@@ -173,13 +179,45 @@ function bubblePos(l: StageLayout, i: number) {
   return { x: l.ring.cx + Math.cos(a) * l.ring.r * s.d, y: l.ring.cy + Math.sin(a) * l.ring.r * s.d };
 }
 
-function Bubble({ i, p, final }: { i: number; p: MotionValue<number>; final: boolean }) {
+type LabelSizes = RefObject<{ w: number; h: number }[]>;
+type RingFrame = { cx: MotionValue<number>; cy: MotionValue<number>; rotate: MotionValue<number>; sizes: LabelSizes };
+
+/** Marge (px) entre une bulle et un label avant que la bulle ne commence à s'effacer, et longueur du fondu. */
+const CLEAR_GAP = 6;
+const CLEAR_RAMP = 14;
+
+/**
+ * Écart (px, positif quand les boîtes sont séparées) entre une bulle et le label le plus proche de l'anneau qui tourne.
+ * Les labels (fond opaque) passent au-dessus des bulles : une bulle s'efface pendant qu'un label la croise, pour qu'aucun
+ * texte ne soit jamais masqué (en particulier sur téléphone, où l'anneau occupe toute la largeur).
+ */
+export function labelGap(
+  bubble: { x: number; y: number; w: number; h: number },
+  ring: { cx: number; cy: number; r: number; rotate: number },
+  labels: { w: number; h: number }[],
+) {
+  let gap = Infinity;
+  labels.forEach((size, i) => {
+    if (!size) return;
+    const a = ((LABEL_DEG[i] + ring.rotate) * Math.PI) / 180;
+    const lx = ring.cx + Math.cos(a) * ring.r;
+    const ly = ring.cy + Math.sin(a) * ring.r;
+    // Le label actif grossit jusqu'à 1.2 : on prend toujours cette taille.
+    const dx = Math.abs(bubble.x - lx) - (bubble.w / 2 + (size.w * 1.2) / 2);
+    const dy = Math.abs(bubble.y - ly) - (bubble.h / 2 + (size.h * 1.2) / 2);
+    gap = Math.min(gap, Math.max(dx, dy));
+  });
+  return gap;
+}
+
+function Bubble({ i, p, final, ring }: { i: number; p: MotionValue<number>; final: boolean; ring: RingFrame }) {
   const { layout } = useStage();
   const t = 0.01 + 0.012 * i;
   const pop = useStepValue(p, t, 0, 1, BUBBLE_SPRING);
   const start = 0.08 + 0.012 * i;
   const d = 0.05;
   const side = i % 2 === 0 ? 1 : -1;
+  const size = useRef({ w: 0, h: 0 });
   const x = useTransform(() => bubblePos(layout.get(), i).x);
   const yBase = useTransform(() => bubblePos(layout.get(), i).y);
   const fall = useTransform(p, [start, start + d * 0.6, start + d], [0, 240, 360], { ease: [gravityEase, linear], clamp: true });
@@ -187,14 +225,30 @@ function Bubble({ i, p, final }: { i: number; p: MotionValue<number>; final: boo
   const rotate = useTransform(p, [start, start + d], [0, 22 * side], { clamp: true });
   const scaleX = useTransform(p, [start, start + d * 0.5], [1, 0.85], { clamp: true });
   const fade = useTransform(p, [start + d * 0.4, start + d], [1, 0], { clamp: true });
+  // Effacement au passage d'un label (écart en px vers opacité, sur CLEAR_RAMP px).
+  const clear = useTransform(() => {
+    const gap = labelGap(
+      { x: x.get(), y: y.get(), w: size.current.w, h: size.current.h },
+      { cx: ring.cx.get(), cy: ring.cy.get(), r: layout.get().ring.r, rotate: ring.rotate.get() },
+      ring.sizes.current,
+    );
+    return Math.min(1, Math.max(0, (gap - CLEAR_GAP) / CLEAR_RAMP));
+  });
+  const opacity = useTransform(() => fade.get() * clear.get());
   const popScale = useTransform(pop, [0, 1], [0.8, 1]);
   return (
     <motion.div
       className="absolute left-1/2 top-1/2"
-      style={final ? { x, y } : { x, y, rotate, scaleX, opacity: fade }}
+      style={final ? { x, y } : { x, y, rotate, scaleX, opacity }}
     >
       <motion.div style={final ? undefined : { scale: popScale, opacity: pop }} className="-translate-x-1/2 -translate-y-1/2">
-        <span data-loop-bubble="" className="relative block whitespace-nowrap rounded-full bg-watermark px-3.5 py-2 text-[13px] leading-none text-ink-muted lg:text-[14px]">
+        <span
+          ref={(el) => {
+            if (el) size.current = { w: el.offsetWidth, h: el.offsetHeight + 6 };
+          }}
+          data-loop-bubble=""
+          className="relative block whitespace-nowrap rounded-full bg-watermark px-3.5 py-2 text-[13px] leading-none text-ink-muted lg:text-[14px]"
+        >
           <span className={final ? "line-through decoration-ghost" : undefined}>{LOOP.bubbles[i]}</span>
           {/* Queue de bulle */}
           <span className="absolute -bottom-1 left-4 size-2.5 rotate-45 bg-watermark" />
@@ -244,12 +298,18 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
   const breachArrow = useMotionValue(final || p.get() >= 0.185 ? 0 : 1);
   useThreshold(p, 0.185, (above) => go(breachArrow, above ? 0 : 1, { duration: dur.fast / 1000 }, instant));
   const fade = useTransform(p, [0.29, 0.32], [1, 0], { clamp: true });
+  const sizes: LabelSizes = useRef([]);
+  const onSize = useCallback((i: number, size: { w: number; h: number }) => {
+    sizes.current[i] = size;
+  }, []);
+  const ringFrame: RingFrame = { cx, cy, rotate: ringRotate, sizes };
 
   return (
     <motion.div className="absolute inset-0" style={{ opacity: fade }}>
       {/*
        * Ordre de superposition : trait et flèches, puis bulles, puis labels. Une flèche ne passe jamais sur une
-       * bulle (la bulle, opaque, la masque) ; un label (fond opaque) reste toujours lisible au-dessus des bulles.
+       * bulle (la bulle, opaque, la masque) ; un label (fond opaque) reste lisible au-dessus des bulles, et une bulle
+       * s'efface le temps qu'un label la croise (labelGap) : aucun texte n'est jamais masqué.
        * Flèches et labels tournent dans deux calques distincts, avec la même rotation.
        */}
       <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
@@ -260,12 +320,12 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
         </motion.div>
       </motion.div>
       {LOOP.bubbles.map((_, i) => (
-        <Bubble key={i} i={i} p={p} final={final} />
+        <Bubble key={i} i={i} p={p} final={final} ring={ringFrame} />
       ))}
       <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
         <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {LABEL_DEG.map((_, i) => (
-            <RingLabel key={i} i={i} r={r} rotate={rotate} counter={counter} spent={spent} final={final} />
+            <RingLabel key={i} i={i} r={r} rotate={rotate} counter={counter} spent={spent} onSize={onSize} final={final} />
           ))}
         </motion.div>
       </motion.div>

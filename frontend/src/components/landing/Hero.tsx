@@ -7,6 +7,7 @@ import { useRef, useState, type ReactNode } from "react";
 import type { PublicStats } from "@/lib/stats";
 import { ease } from "@/lib/motion-tokens";
 import { ArrowIcon, ChevronIcon } from "./icons";
+import { heroBadge } from "@/lib/hero-badge";
 import { LiveBadge } from "./LiveBadge";
 
 export type Camp = "dev" | "pro";
@@ -191,7 +192,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
 
         {/* Pied du hero : badge en direct et indice de scroll. */}
         <div className="mt-8 flex flex-col items-center gap-5 md:pointer-events-none md:flex-row md:items-end md:justify-between md:gap-4 md:absolute md:inset-x-[var(--grid-margin)] md:bottom-8 md:mt-0">
-          <LiveBadge value={stats?.tests_in_progress ?? null} demo={stats?.demo ?? false} className="md:pointer-events-auto" />
+          <LiveBadge badge={heroBadge(stats)} demo={stats?.demo ?? false} className="md:pointer-events-auto" />
           <a
             href="#boucle"
             className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] leading-none text-ink-muted transition-colors duration-150 hover:text-ink md:pointer-events-auto md:absolute md:left-1/2 md:-translate-x-1/2"

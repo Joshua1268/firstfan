@@ -124,7 +124,7 @@ test("live badge shows the server value without JS", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.locator("[data-live-badge]")).toContainText(/\d+ tests? en cours/);
+  await expect(page.locator("[data-live-badge]")).toContainText(/[1-9]\d* (tests? en cours|testeurs? vérifiés?)/);
   await context.close();
 });
 
@@ -320,6 +320,32 @@ test("stage scene text for steps 01 to 04 is in the HTML without JavaScript", as
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
   }
   await context.close();
+});
+
+test("live stage scene A: a ring label never covers a visible bubble", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("[data-stage]")).toBeAttached();
+  for (const p of [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14]) {
+    await scrollStageTo(page, p);
+    await page.waitForTimeout(900);
+    const hits = await page.evaluate(() => {
+      const shown = (el: Element) => {
+        let o = 1;
+        for (let a: Element | null = el; a; a = a.parentElement) o *= Number(getComputedStyle(a).opacity);
+        return o;
+      };
+      const labels = [...document.querySelectorAll("[data-stage] [data-ring-label]")].map((e) => e.getBoundingClientRect());
+      const out: string[] = [];
+      for (const b of document.querySelectorAll("[data-stage] [data-loop-bubble]")) {
+        if (shown(b) < 0.3) continue;
+        const r = b.getBoundingClientRect();
+        for (const l of labels)
+          if (r.left < l.right && l.left < r.right && r.top < l.bottom && l.top < r.bottom) out.push(b.textContent ?? "");
+      }
+      return out;
+    });
+    expect(hits, `p=${p}`).toEqual([]);
+  }
 });
 
 test("server HTML has a single heading per stage scene", async ({ request }) => {

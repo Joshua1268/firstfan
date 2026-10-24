@@ -43,8 +43,8 @@ Règles de motion appliquées partout : on n'anime que `transform`, `opacity`, `
 ## Tests
 
 ```bash
-node --test scripts/        # garde-fou de contenu
-pnpm vitest run             # tests unitaires (géométrie du stage, seuils, stats, URL d'API)
+pnpm test                   # garde-fou de contenu (node --test scripts/*.test.mjs) puis vitest
+pnpm vitest run             # tests unitaires seuls (géométrie du stage, seuils, stats, URL d'API)
 pnpm playwright test        # tests de bout en bout
 pnpm build                  # build de production
 ```
