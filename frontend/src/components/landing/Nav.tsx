@@ -5,14 +5,11 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, ease } from "@/lib/motion-tokens";
+import { navLinks, PAGE_CTA, type SitePage } from "@/lib/site-links";
 
-const LINKS = [
-  { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "#pro", label: "Pour les testeurs" },
-  { href: "#entre-devs", label: "Entre devs" },
-] as const;
-
-export function Nav() {
+export function Nav({ page = "home" }: { page?: SitePage }) {
+  const LINKS = navLinks(page);
+  const cta = PAGE_CTA[page];
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   // §3.1 : fond lié au scroll sur 40px ; en reduced-motion, il change d'un coup.
@@ -84,9 +81,20 @@ export function Nav() {
         <ul className="hidden items-center gap-6 lg:flex xl:absolute xl:left-1/2 xl:-translate-x-1/2 xl:gap-8">
           {LINKS.map((l) => (
             <li key={l.href}>
-              <a href={l.href} className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
-                {l.label}
-              </a>
+              {l.href.startsWith("/testeurs") ? (
+                <Link
+                  href={l.href}
+                  prefetch={false}
+                  aria-current={page === "testeurs" ? "page" : undefined}
+                  className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink aria-[current=page]:text-ink"
+                >
+                  {l.label}
+                </Link>
+              ) : (
+                <a href={l.href} className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
+                  {l.label}
+                </a>
+              )}
             </li>
           ))}
         </ul>
@@ -96,11 +104,11 @@ export function Nav() {
             Connexion
           </Link>
           <Link
-            href="/inscription?role=dev"
+            href={cta.href}
             prefetch={false}
             className="inline-flex h-10 items-center rounded-pill border border-ink/40 px-5 text-[15px] font-semibold text-ink transition-colors duration-150 hover:border-ink hover:bg-ink/[0.06]"
           >
-            Je suis développeur
+            {cta.label}
           </Link>
         </div>
 
@@ -174,20 +182,12 @@ export function Nav() {
             </motion.ul>
             <div className="mt-auto flex flex-col gap-3">
               <Link
-                href="/inscription?role=tester"
+                href={cta.href}
                 prefetch={false}
                 onClick={() => close(false)}
                 className="flex h-14 items-center justify-center rounded-pill bg-accent text-[16px] font-semibold text-accent-ink"
               >
-                Je teste et je suis rémunéré
-              </Link>
-              <Link
-                href="/inscription?role=dev"
-                prefetch={false}
-                onClick={() => close(false)}
-                className="flex h-14 items-center justify-center rounded-pill border border-ink/60 text-[16px] font-semibold text-ink"
-              >
-                Je suis développeur
+                {cta.label}
               </Link>
             </div>
           </motion.div>
