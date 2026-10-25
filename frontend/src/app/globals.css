@@ -456,7 +456,7 @@ body::before {
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
-/* Footer : le [NOM] géant en contour blanc chaud à 8 %. */
+/* Footer : le FirstFan géant en contour blanc chaud à 8 %. */
 .footer-name {
   color: transparent;
   -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);

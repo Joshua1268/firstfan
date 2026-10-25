@@ -1,10 +1,10 @@
-# [NOM]
+# FirstFan
 
 Projet CADEV 2026, groupe Côte d'Ivoire.
 
-[NOM] met en relation des développeurs qui ont un MVP et zéro vrai utilisateur avec des professionnels vérifiés (comptables, restauratrices, commerçants, livreurs...) qui testent leur application pour de vrai. Le testeur suit un parcours guidé et laisse des preuves horodatées. Il est rémunéré après validation, par mobile money. Le dev et le testeur se notent mutuellement. Un petit script mesure ensuite qui utilise encore l'app à J7 et à J30.
+FirstFan met en relation des développeurs qui ont un MVP et zéro vrai utilisateur avec des professionnels vérifiés (comptables, restauratrices, commerçants, livreurs...) qui testent leur application pour de vrai. Le testeur suit un parcours guidé et laisse des preuves horodatées. Il est rémunéré après validation, par mobile money. Le dev et le testeur se notent mutuellement. Un petit script mesure ensuite qui utilise encore l'app à J7 et à J30.
 
-Le nom du produit n'est pas encore choisi : `[NOM]` est un marqueur, défini à un seul endroit de chaque côté (`frontend/src/lib/brand.ts` et `PRODUCT_NAME` dans `backend/config/settings.py`).
+Le nom du produit, FirstFan, est défini à un seul endroit de chaque côté (`frontend/src/lib/brand.ts` et `PRODUCT_NAME` dans `backend/config/settings.py`).
 
 Ce dépôt contient pour l'instant le socle technique et la page d'accueil animée, branchée sur une vraie API de compteurs publics. Les parcours développeur et testeur viennent ensuite.
 

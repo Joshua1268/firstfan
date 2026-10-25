@@ -1,7 +1,7 @@
 # Conception : plateforme « Tes futurs clients testent ton app »
 
 Statut : brouillon, en attente de validation de Josué.
-Nom du produit : non fixé (pistes : VraiVrai, ClientDjidji). Placeholder dans le code : `[NOM]`, nom technique du dossier `cadev-2026`.
+Nom du produit : FirstFan (choisi le 25/10, voir `docs/recherche/2026-10-25-nom-anglais.md`). Nom technique du dossier `cadev-2026`.
 
 ## 1. Intention
 
@@ -177,4 +177,4 @@ Un dev peut faire un test technique de l'app d'un autre dev (bugs, sécurité, p
 
 ## 15. Questions ouvertes pour Josué
 
-- Nom définitif du produit, pour le domaine et le logo.
+- Domaine définitif (FirstFan : .io, .dev, .africa libres le 25/10) et logo.
