@@ -27,3 +27,11 @@ def test_seed_demo_refuses_outside_demo_mode(db, settings):
     assert not User.objects.exists()
     call_command("seed_demo", "--force")
     assert TesterProfile.objects.filter(verification=TesterProfile.Verification.VERIFIED).count() == VERIFIED
+
+
+def test_seed_demo_profiles_have_momo_and_are_available(db, settings):
+    settings.DEMO_MODE = True
+    call_command("seed_demo")
+    first = TesterProfile.objects.get(user__username="demo-testeur-01")
+    assert first.momo_number == "0700000001" and first.available
+    assert TesterProfile.objects.filter(momo_number="", available=True).count() == 0
