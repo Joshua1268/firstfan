@@ -32,5 +32,5 @@ def test_professions_cover_demo_testers():
     assert len(PROFESSIONS) == len(set(PROFESSIONS)) == 13
 
 
-def test_proof_gets_random_name(db):
+def test_proof_gets_random_name():
     assert TesterProfile._meta.get_field("proof").upload_to == private_upload_path("proofs")
