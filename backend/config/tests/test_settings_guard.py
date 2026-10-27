@@ -62,6 +62,8 @@ def test_incomplete_production_env_refuses_to_start(overrides, message):
 
 
 def test_debug_keeps_dev_defaults():
-    r = run_settings(DEBUG="true", SECRET_KEY=None, ALLOWED_HOSTS=None, DEMO_MODE=None, CSRF_TRUSTED_ORIGINS=None)
+    r = run_settings(
+        DEBUG="true", SECRET_KEY=None, ALLOWED_HOSTS=None, DEMO_MODE=None, CSRF_TRUSTED_ORIGINS=None
+    )
     assert r.returncode == 0, r.stderr
     assert "BrowsableAPIRenderer" in r.stdout

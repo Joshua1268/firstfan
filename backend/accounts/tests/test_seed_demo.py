@@ -1,8 +1,8 @@
 import pytest
 from django.core.management import CommandError, call_command
 
-from accounts.models import TesterProfile, User
 from accounts.management.commands.seed_demo import DEMO_TESTERS
+from accounts.models import TesterProfile, User
 from public.services import get_public_stats
 
 VERIFIED = sum(1 for t in DEMO_TESTERS if t[4])
