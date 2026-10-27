@@ -146,4 +146,4 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
 
 
 class SelectionSerializer(serializers.Serializer):
-    tester_ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=True)
+    tester_ids = serializers.ListField(child=serializers.IntegerField())
