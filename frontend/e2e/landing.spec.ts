@@ -381,10 +381,10 @@ test("stage threshold choreographies reverse when scrolling back up", async ({ p
   await expect.poll(async () => (await read()).color, { timeout: 8000 }).toBeLessThan(0.05);
 });
 
-test("stage scene text for steps 01 to 04 is in the HTML without JavaScript", async ({ browser }) => {
+test("stage scene text for steps 01 to 04 is in the HTML without JavaScript", async ({ browser }, info) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto("http://127.0.0.1:3100/");
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
   for (const title of [
     "Des pros de ton métier cible. Vérifiés.",
     "Un parcours guidé, des preuves horodatées.",
@@ -523,10 +523,10 @@ test("reduced motion", async ({ page }) => {
   await expect(page.locator("#entre-devs [data-snippet]")).toContainText('data-app="monapp"');
 });
 
-test("no js", async ({ browser }) => {
+test("no js", async ({ browser }, info) => {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
-  await page.goto("http://127.0.0.1:3100/");
+  await page.goto(info.project.use.baseURL ?? "http://127.0.0.1:3100/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("#pro")).toContainText(/métier/i);
   for (const [sel, text] of [

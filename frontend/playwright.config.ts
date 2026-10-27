@@ -1,16 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * E2E de la landing.
- *
- * Prérequis : la base Postgres du projet doit tourner avant `pnpm exec playwright test` :
- *   docker compose -f ../docker-compose.yml up -d db
- *   (cd ../backend && uv run python manage.py migrate)
- *
- * Deux serveurs sont lancés (ou réutilisés s'ils répondent déjà) :
- *   1. Django sur 127.0.0.1:8010 (compteurs publics de la landing ; pas 8000, souvent déjà pris
- *      par un autre projet, ce qui ferait réutiliser la mauvaise API par reuseExistingServer) ;
- *   2. Next en build de production sur le port 3100, qui lit l'API via API_INTERNAL_URL.
+ * Landing e2e. Run `make up` first: Django comes from Docker on 127.0.0.1:8010
+ * (not 8000, often taken by another project that reuseExistingServer would pick up).
+ * Next runs as a production build on port 3100 (and 3101 for the api-down project).
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -72,11 +65,10 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "uv run python manage.py runserver 127.0.0.1:8010",
-      cwd: "../backend",
+      // Django comes from Docker only: fail fast instead of starting it here.
+      command: "echo 'Django is not running on 8010: run make up first.' && exit 1",
       url: "http://127.0.0.1:8010/api/health/",
       reuseExistingServer: true,
-      timeout: 60_000,
     },
     {
       command: "pnpm build && pnpm start -p 3100",
