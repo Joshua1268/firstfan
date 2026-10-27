@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.contrib.auth import authenticate, login, logout
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
@@ -104,4 +106,5 @@ class TesterProofView(APIView):
         profile = get_object_or_404(TesterProfile, user_id=user_id)
         if not profile.proof:
             raise Http404
-        return FileResponse(profile.proof.open("rb"))
+        ext = Path(profile.proof.name).suffix
+        return FileResponse(profile.proof.open("rb"), as_attachment=True, filename=f"justificatif{ext}")

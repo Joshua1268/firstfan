@@ -93,6 +93,7 @@ def test_proof_download_owner_only(tester_client, tester_user, dev_client, dev_u
     patch_multipart(tester_client, {"proof": SimpleUploadedFile("diplome.pdf", PDF)})
     r = tester_client.get(proof_url)
     assert r.status_code == 200 and b"".join(r.streaming_content) == PDF
+    assert r["Content-Disposition"] == 'attachment; filename="justificatif.pdf"'
     assert dev_client.get(proof_url).status_code == 404
     assert dev_client.get(f"{proof_url}?user={tester_user.id}").status_code == 404
     dev_user.is_staff = True
