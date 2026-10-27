@@ -8,10 +8,11 @@ import { useEffect, useState, type ComponentType } from "react";
 type StageComponent = ComponentType;
 
 // NEXT_RUNTIME is empty in the client bundle, so this require is compiled out there.
-const ServerStage: StageComponent | null = process.env.NEXT_RUNTIME
-  ? // eslint-disable-next-line @typescript-eslint/no-require-imports -- synchronous server render only
-    (require("./StageImpl") as typeof import("./StageImpl")).Stage
-  : null;
+let ServerStage: StageComponent | null = null;
+if (process.env.NEXT_RUNTIME) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- synchronous server render only
+  ServerStage = (require("./StageImpl") as typeof import("./StageImpl")).Stage;
+}
 
 export function Stage() {
   const [Live, setLive] = useState<StageComponent | null>(null);
