@@ -1,15 +1,21 @@
 from django.contrib.auth import authenticate, login, logout
+from django.http import FileResponse, Http404
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from core.permissions import IsTester
+
+from .models import TesterProfile
 from .professions import PROFESSIONS
-from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
+from .serializers import LoginSerializer, MeSerializer, RegisterSerializer, TesterProfileSerializer
 from .services import register_user
 
 
@@ -67,3 +73,32 @@ class ProfessionList(APIView):
 
     def get(self, request):
         return Response(PROFESSIONS)
+
+
+class TesterProfileView(APIView):
+    permission_classes = [IsAuthenticated, IsTester]
+    parser_classes = [JSONParser, MultiPartParser]
+
+    def get(self, request):
+        profile = get_object_or_404(TesterProfile, user=request.user)
+        return Response(TesterProfileSerializer(profile).data)
+
+    def patch(self, request):
+        profile = get_object_or_404(TesterProfile, user=request.user)
+        serializer = TesterProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class TesterProofView(APIView):
+    def get(self, request):
+        user_id = request.user.id
+        if request.user.is_staff and "user" in request.query_params:
+            user_id = request.query_params["user"]
+            if not user_id.isdigit():
+                raise Http404
+        profile = get_object_or_404(TesterProfile, user_id=user_id)
+        if not profile.proof:
+            raise Http404
+        return FileResponse(profile.proof.open("rb"))
