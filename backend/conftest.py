@@ -1,8 +1,11 @@
 import pytest
 from django.core.cache import cache
 from django.test import Client
+from django.utils import timezone
 
 from accounts.models import TesterProfile, User
+from campaigns.models import Campaign, ScenarioStep
+from projects.models import Project
 
 
 @pytest.fixture(autouse=True)
@@ -61,3 +64,32 @@ def tester_user(db):
 @pytest.fixture
 def tester_client(tester_user):
     return client_for(tester_user)
+
+
+def make_tester(email: str, profession: str = "Comptable", last_name: str = "", **profile) -> User:
+    user = User.objects.create_user(
+        email, email, "Sol1de-pass!", first_name="Test", last_name=last_name, role=User.Role.TESTER
+    )
+    fields = {
+        "profession": profession,
+        "momo_number": "0700000009",
+        "verification": TesterProfile.Verification.VERIFIED,
+        "verified_at": timezone.now(),
+    }
+    TesterProfile.objects.create(user=user, **(fields | profile))
+    return user
+
+
+@pytest.fixture
+def campaign(dev_user):
+    project = Project.objects.create(
+        owner=dev_user,
+        name="Compta Express",
+        url="https://compta.example",
+        description="Suivi des factures",
+        fingerprint="0" * 64,
+        fingerprinted_at=timezone.now(),
+    )
+    campaign = Campaign.objects.create(project=project, target_profession="Comptable", testers_wanted=2)
+    ScenarioStep.objects.create(campaign=campaign, order=1, instruction="Crée une facture")
+    return campaign
