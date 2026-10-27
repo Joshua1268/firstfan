@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import IsDev
+from payments.providers import get_provider
+from payments.services import start_checkout
 from projects.models import Project
 
 from .models import Campaign
@@ -71,3 +73,14 @@ class CampaignSelectionView(APIView):
         serializer.is_valid(raise_exception=True)
         select_testers(campaign, serializer.validated_data["tester_ids"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CampaignCheckoutView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def post(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
+        payment = start_checkout(campaign)
+        return Response(
+            {"reference": payment.reference, "redirect_url": get_provider().start_checkout(payment)}
+        )

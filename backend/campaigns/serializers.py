@@ -103,9 +103,9 @@ class CampaignDetailSerializer(serializers.ModelSerializer):
     def get_price_per_tester_xof(self, campaign: Campaign) -> int:
         return settings.PRICE_PER_TESTER_XOF
 
-    def get_payment(self, campaign: Campaign) -> None:
-        # No payment model yet: a campaign is always unpaid.
-        return None
+    def get_payment(self, campaign: Campaign) -> dict | None:
+        payment = campaign.payments.order_by("-created_at", "-pk").first()
+        return {"reference": payment.reference, "status": payment.status} if payment else None
 
 
 class TesterCandidateSerializer(serializers.ModelSerializer):
