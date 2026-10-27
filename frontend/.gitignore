@@ -15,7 +15,7 @@
 
 # next.js
 /.next/
-/.next-api-down/
+/.next-*/
 /out/
 
 # production

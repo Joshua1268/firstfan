@@ -1,88 +1,39 @@
 # FirstFan
 
+**Tes futurs clients testent ton app.**
+
+FirstFan met en relation des développeurs qui ont une app web et zéro vrai utilisateur avec des professionnels vérifiés du métier visé : comptables, restauratrices, commerçants, livreurs... Ces professionnels testent l'app pour de vrai, laissent des preuves de leur passage et un avis honnête. Ceux qui l'adoptent deviennent ses premiers clients, et FirstFan mesure qui revient.
+
 Projet CADEV 2026, groupe Côte d'Ivoire.
 
-FirstFan met en relation des développeurs qui ont un MVP et zéro vrai utilisateur avec des professionnels vérifiés (comptables, restauratrices, commerçants, livreurs...) qui testent leur application pour de vrai. Le testeur suit un parcours guidé et laisse des preuves horodatées. Il est rémunéré après validation, par mobile money. Le dev et le testeur se notent mutuellement. Un petit script mesure ensuite qui utilise encore l'app à J7 et à J30.
+## Le problème
 
-Le nom du produit, FirstFan, est défini à un seul endroit de chaque côté (`frontend/src/lib/brand.ts` et `PRODUCT_NAME` dans `backend/config/settings.py`).
+Un développeur construit un MVP, le montre, entend « c'est super »... et personne ne l'utilise. Sans vrais utilisateurs ni retours honnêtes, il abandonne ou recommence. FirstFan lui donne accès directement aux personnes pour qui l'app est faite.
 
-Ce dépôt contient pour l'instant le socle technique et la page d'accueil animée, branchée sur une vraie API de compteurs publics. Les parcours développeur et testeur viennent ensuite.
+## Fonctionnalités
 
-## Documents de référence
+### Pour le développeur
 
-- `docs/superpowers/specs/2026-10-23-plateforme-futurs-clients-design.md` : conception du produit.
-- `docs/superpowers/specs/2026-10-23-landing-spec.md` : spécification de la page d'accueil (textes exacts, système visuel, chorégraphies). C'est la source de vérité, citée par section (`§3.4`, `§5`...).
-- `docs/superpowers/plans/2026-10-23-socle-et-landing.md` : plan de réalisation du socle et de la landing.
+- **Dépôt de l'app** : nom, lien, description et captures.
+- **Certificat d'antériorité** : empreinte SHA-256 horodatée du projet, téléchargeable.
+- **Scénario de test** en étapes, pour un métier cible.
+- **Recommandation de testeurs** : les profils vérifiés les plus pertinents pour l'app sont proposés en tête de liste.
+- **Suivi en direct** des tests : étapes validées, captures, réponses.
+- **Validation et notation** de chaque test.
+- **Tableau d'adoption** : qui utilise encore l'app à J1, J7 et J30, grâce à un script de suivi d'une ligne.
+
+### Pour le testeur professionnel
+
+- **Profil métier vérifié** : badge « Métier vérifié » après contrôle.
+- **Invitations** aux tests qui correspondent à son métier.
+- **Test guidé** sur téléphone, étape par étape, avec réponse et capture.
+- **Avis structuré** : utilité pour son métier, points bloquants, intention de payer.
+- **Gains** : la rémunération est créditée après validation, et le testeur la retire sur son mobile money quand il le souhaite.
+
+### Pour l'équipe
+
+- **Back-office** : vérification des profils, suivi des campagnes et des paiements, gestion des litiges.
 
 ## Stack
 
-| Partie | Technologies |
-|---|---|
-| Backend (`backend/`) | Python 3.13, uv, Django 6.1, Django REST framework 3.18, PostgreSQL via `django-pg8000` et `pg8000` |
-| Frontend (`frontend/`) | Node 22, pnpm, Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Motion 14 |
-| Base de données | PostgreSQL 16 en Docker (`docker-compose.yml`, port 55432 en local) |
-| Tests | pytest et pytest-django ; Vitest, `node --test` et Playwright côté frontend |
-
-Next réécrit `/api/*` vers Django sur `http://127.0.0.1:8010` par défaut (le port 8000 est souvent pris par un autre projet), en gardant la barre finale attendue par Django (`/api/health/` répond 200 à travers Next). Seuls les compteurs publics passent par une route Next dédiée (`/api/public/stats`), qui met la réponse de Django en cache 15 s. La landing est rendue côté serveur ; les animations sont des composants client isolés.
-
-## Licences
-
-Aucune dépendance sous licence GPL, AGPL ou LGPL n'est acceptée, ni en production ni en développement.
-
-- **PostgreSQL sans psycopg.** `psycopg` et `psycopg2` sont sous LGPL. Le backend utilise `pg8000` (BSD-3-Clause), un pilote en pur Python, avec le moteur Django `django-pg8000` (MIT). Conséquence à connaître : ce moteur ne gère pas `JSONField` (`supports_json_field = False`), donc les données sont modélisées en tables.
-- **Next.js sans sharp.** `sharp` et ses binaires `libvips` sont sous LGPL. `frontend/pnpm-workspace.yaml` remplace `sharp` par un paquet local vide (`frontend/stubs/sharp`, licence MIT) qui lève une erreur s'il est appelé, et `next.config.ts` désactive l'optimisation d'images (`images.unoptimized: true`). La landing n'utilise d'ailleurs aucune image raster hors du grain.
-- **Polices** : Archivo, Geist et JetBrains Mono, toutes sous OFL, auto-hébergées par `next/font`.
-- **Outils ponctuels.** Lighthouse, utilisé pour les audits, est lancé par `npx` (Apache-2.0) et n'est pas une dépendance du projet.
-
-## Lancer le projet en local
-
-Prérequis : Docker, Python 3.13 avec [uv](https://docs.astral.sh/uv/), Node 22 avec pnpm.
-
-```bash
-# 1. Base de données
-docker compose up -d db
-
-# 2. Backend : dépendances, migrations, données de démo, serveur
-cd backend
-uv sync
-uv run python manage.py migrate
-uv run python manage.py seed_demo      # testeurs de démo, idempotent (voir plus bas)
-uv run python manage.py runserver 127.0.0.1:8010
-
-# 3. Frontend (dans un autre terminal)
-cd frontend
-pnpm install
-pnpm dev                               # http://localhost:3000
-```
-
-Variables d'environnement utiles :
-
-- Backend : `DATABASE_HOST`, `DATABASE_PORT` (55432 par défaut), `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `DEMO_MODE`, `PRODUCT_NAME`.
-- Frontend : `API_INTERNAL_URL` (adresse de Django vue par le serveur Next, `http://127.0.0.1:8010` par défaut), `NEXT_PUBLIC_CONTACT_EMAIL` (adresse de la page Contact, vide tant que le domaine n'est pas choisi).
-
-La liste commentée est dans `.env.example`. Les valeurs par défaut visent le développement local (DEBUG vrai, clé de dev, tous les hôtes, mode démo). Avec `DEBUG=false`, Django refuse de démarrer si `SECRET_KEY` manque ou vaut la clé de dev, si `ALLOWED_HOSTS` est vide ou contient `*`, si `CSRF_TRUSTED_ORIGINS` est vide, ou si `DEMO_MODE` n'est pas défini explicitement. Il active alors les cookies sécurisés, HSTS et `SECURE_PROXY_SSL_HEADER` (Caddy termine le TLS devant Django).
-
-DRF est fermé par défaut : session seule, `IsAuthenticated`, rendu JSON seul hors DEBUG, limites de débit anonyme et utilisateur. Une vue publique doit déclarer `AllowAny` explicitement ; seule la vue des compteurs publics le fait aujourd'hui.
-
-### Données de démo
-
-Tant que `DEMO_MODE` est vrai, l'API publique renvoie `demo: true` et la page affiche « Données de démo CADEV ». La commande `seed_demo` crée douze testeurs de démonstration (dix vérifiés), avec des identifiants fixes `demo-testeur-NN` et sans mot de passe utilisable : la relancer ne crée rien de plus. Elle refuse de tourner hors mode démo sans `--force`.
-
-Aucun chiffre n'est inventé côté frontend. Les compteurs « tests en cours » et « apps testées » valent 0 tant que les campagnes de test n'existent pas dans le modèle : comme dans le badge du hero, un compteur à zéro n'est jamais affiché (la section « En direct » ne montre alors que les testeurs vérifiés), et la rangée disparaît si tout vaut zéro.
-
-## Tests
-
-```bash
-cd backend && uv run pytest -q
-cd frontend && pnpm test && pnpm playwright test && pnpm build
-```
-
-Le détail des tests frontend (Playwright, garde-fou de contenu) est dans `frontend/README.md`.
-
-## Arborescence
-
-```
-backend/    Django : config/, accounts/ (utilisateurs à rôles, profils testeurs), public/ (compteurs publics), core/ (santé)
-frontend/   Next.js : src/app/ (page, API de relais), src/components/landing/ (sections de la landing), e2e/, scripts/
-docs/       spécifications et plans
-```
+Django et Django REST framework, PostgreSQL, Next.js et React, Tailwind CSS, Motion. Le projet est entièrement conteneurisé avec Docker.
