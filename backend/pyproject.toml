@@ -1,0 +1,17 @@
+[project]
+name = "cadev-backend"
+version = "0.1.0"
+description = "Backend Django/DRF de la plateforme de test de applications web par des professionnels verifies"
+requires-python = ">=3.13"
+dependencies = [
+    "django==6.1.2",
+    "django-pg8000==0.0.5",
+    "djangorestframework==3.18.3",
+    "pg8000==1.31.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-django>=4.14.0",
+]

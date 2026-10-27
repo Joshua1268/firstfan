@@ -1,0 +1,463 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0a0b;
+  --bg-deep: #070708;
+  --surface: #141416;
+  --surface-2: #111113;
+  --line: #26262a;
+  --watermark: #1a1a1d;
+  --ink: #f2ede3;
+  --ink-muted: #8f8a80;
+  --ghost: #4a4a50;
+  --accent: #c6f24e;
+  --accent-press: #a9d63a;
+  --accent-ink: #0a0a0b;
+  --danger: #ff6b5b;
+
+  --radius-pill: 999px;
+  --radius-label: 10px;
+  --radius-card: 20px;
+  --radius-phone: 40px;
+  --radius-terminal: 14px;
+  --radius-polaroid: 4px;
+
+  --text-h1: clamp(56px, 12.5vw, 196px);
+  --text-h2: clamp(36px, 6vw, 84px);
+  --text-h3: clamp(22px, 2.4vw, 30px);
+  --text-lead: clamp(17px, 1.6vw, 21px);
+  --text-quote: clamp(18px, 2vw, 26px);
+  --text-body: 16px;
+  --text-kicker: 12px;
+  --text-counter: clamp(44px, 7vw, 96px);
+  --text-sticker: 13px;
+  --text-button: 16px;
+
+  --leading-h1: 0.86;
+  --leading-h2: 0.95;
+  --leading-h3: 1.15;
+  --leading-lead: 1.5;
+  --leading-quote: 1.35;
+  --leading-body: 1.6;
+  --leading-kicker: 1.2;
+  --leading-counter: 1;
+  --leading-sticker: 1.1;
+  --leading-button: 1;
+
+  --tracking-h1: -0.015em;
+  --tracking-h2: -0.01em;
+  --tracking-kicker: 0.12em;
+
+  --grid-max: 1320px;
+  --grid-gutter: 12px;
+  --grid-margin: 16px;
+  --section-y: 96px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --text-kicker: 13px;
+    --text-sticker: 15px;
+    --grid-gutter: 24px;
+    --grid-margin: 48px;
+    --section-y: 160px;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-watermark: var(--watermark);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ghost: var(--ghost);
+  --color-accent: var(--accent);
+  --color-accent-press: var(--accent-press);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+
+  --font-display: var(--font-archivo), sans-serif;
+  --font-sans: var(--font-geist), sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-pill: 999px;
+  --radius-label: 10px;
+  --radius-card: 20px;
+  --radius-phone: 40px;
+  --radius-terminal: 14px;
+  --radius-polaroid: 4px;
+
+  --text-h1: clamp(56px, 12.5vw, 196px);
+  --text-h2: clamp(36px, 6vw, 84px);
+  --text-h3: clamp(22px, 2.4vw, 30px);
+  --text-lead: clamp(17px, 1.6vw, 21px);
+  --text-quote: clamp(18px, 2vw, 26px);
+  --text-counter: clamp(44px, 7vw, 96px);
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+/*
+ * Aucun défilement horizontal (§5). Le clip est posé sur main et footer, pas sur body : sur body, il serait
+ * propagé au viewport, et Chrome mobile élargirait quand même la fenêtre de mise en page (page dézoomée).
+ */
+main,
+footer {
+  overflow-x: clip;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/*
+ * Grain fixe (§5) : PNG précalculé, aucun feTurbulence en direct. Tuile de 128px en 4 niveaux de gris (4 Ko,
+ * sous le budget de 6 Ko) : une tuile 256px en 8 bits pesait 65 Ko et retardait le LCP mobile.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.035;
+}
+
+/* ---------- Hero (§2, §3.2) ---------- */
+
+/* Mots du H1 : sortie de masque en CSS, avant l'hydratation. Le texte reste à opacité 1. */
+.hero-mask {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0;
+  vertical-align: top;
+  /* Les capitales d'Archivo dépassent l'interligne 0.86 : on agrandit la boîte sans bouger la ligne. */
+  padding-block: 0.08em 0.02em;
+  margin-block: -0.08em -0.02em;
+}
+.hero-word {
+  display: inline-block;
+  animation: hero-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(80ms + var(--i, 0) * 60ms);
+}
+@keyframes hero-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hero-lift-12 {
+  animation: hero-lift-12 420ms cubic-bezier(0.22, 1, 0.36, 1) 420ms both;
+}
+.hero-lift-16 {
+  animation: hero-lift-16 420ms cubic-bezier(0.22, 1, 0.36, 1) 560ms both;
+}
+@keyframes hero-lift-12 {
+  from {
+    transform: translateY(12px);
+  }
+}
+@keyframes hero-lift-16 {
+  from {
+    transform: translateY(16px);
+  }
+}
+
+/* Point en direct : pulse en pseudo-élément toutes les 1,6 s à partir de 1300 ms. */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  opacity: 0;
+  animation: live-pulse 1600ms cubic-bezier(0.22, 1, 0.36, 1) 1300ms infinite;
+}
+@keyframes live-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Autocollants : ombre statique portée par un calque (on anime son opacité et son scale, jamais box-shadow). */
+.sticker-shadow {
+  position: absolute;
+  inset: 0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.sticker {
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Vernis : un calque de dégradé qui glisse en translateX (compositor), jamais de background-position animé. */
+.sticker-sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+.sticker-sheen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 46%, transparent 62%);
+  /* --sheen-x : de -20 % à 20 % de la largeur du calque (soit background-position 20 % à 80 %), écrit par la parallaxe souris. */
+  transform: translateX(var(--sheen-x, 0%));
+}
+.sticker:has(.sticker-fold) {
+  overflow: visible;
+}
+.sticker-fold-bg {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+.sticker-fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  transform-origin: 0% 0%;
+}
+/* Rabat et son ombre : deux triangles figés qui tournent avec le coin (aucun filtre sur un calque animé). */
+.sticker-fold::before,
+.sticker-fold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-bottom-left-radius: 3px;
+}
+.sticker-fold::before {
+  transform: translate(-1px, 1px);
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0.22) 50%, transparent 50%);
+}
+.sticker-fold::after {
+  background: linear-gradient(45deg, var(--accent-press) 50%, transparent 50%);
+}
+/* Badge dentelé : bord festonné par masque radial. */
+.sticker-seal {
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50.0 0.0L55.8 5.9L62.9 1.7L67.0 8.9L75.0 6.7L77.1 14.7L85.4 14.6L85.3 22.9L93.3 25.0L91.1 33.0L98.3 37.1L94.1 44.2L100.0 50.0L94.1 55.8L98.3 62.9L91.1 67.0L93.3 75.0L85.3 77.1L85.4 85.4L77.1 85.3L75.0 93.3L67.0 91.1L62.9 98.3L55.8 94.1L50.0 100.0L44.2 94.1L37.1 98.3L33.0 91.1L25.0 93.3L22.9 85.3L14.6 85.4L14.7 77.1L6.7 75.0L8.9 67.0L1.7 62.9L5.9 55.8L0.0 50.0L5.9 44.2L1.7 37.1L8.9 33.0L6.7 25.0L14.7 22.9L14.6 14.6L22.9 14.7L25.0 6.7L33.0 8.9L37.1 1.7L44.2 5.9Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+/* Ticket perforé : encoches latérales et ligne de perforation. */
+.sticker-ticket {
+  border-radius: 6px;
+  mask:
+    radial-gradient(circle 7px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 7px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+.sticker-ticket::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 14px;
+  border-left: 1.5px dashed color-mix(in srgb, var(--bg) 45%, transparent);
+}
+
+/* Barre CTA mobile collée en bas. */
+.cta-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word,
+  .hero-lift-12,
+  .hero-lift-16,
+  .live-dot::after {
+    animation: none;
+  }
+}
+
+/* Bandeau métiers (§3.3) : défilement de 0 à -50 % sur 40 s, contenu doublé, pause au survol. */
+.marquee-band {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+.marquee-band:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-band {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee-track {
+    animation: none;
+    will-change: auto;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-block: 16px;
+  }
+  .marquee-band {
+    height: auto;
+  }
+  .marquee-list {
+    flex: 0 1 auto;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 12px;
+    padding-right: 0;
+  }
+  .marquee-copy-decor {
+    display: none;
+  }
+}
+
+/* ---------- Stage « Boucle et histoire » (§3.4) ---------- */
+
+/* Valeurs par défaut (1440px) avant la première mesure, et pour le rendu sans JS. */
+.stage-frame,
+.stage-static section {
+  --st-tl: 16px;
+  --st-tw: calc(100% - 32px);
+  --st-ql: 16px;
+  --st-qlw: calc(100% - 32px);
+  --st-qr: 16px;
+  --st-qrw: calc(100% - 32px);
+  --st-vy: -260px;
+  --st-vh: 70px;
+  --st-nav: 16px;
+}
+@media (min-width: 1024px) {
+  .stage-frame,
+  .stage-static section {
+    --st-tl: 100px;
+    --st-tw: 520px;
+    --st-ql: 100px;
+    --st-qlw: 411px;
+    --st-qr: 869px;
+    --st-qrw: 411px;
+    --st-vy: -8px;
+    --st-vh: 150px;
+    --st-nav: 16px;
+  }
+}
+.stage-static {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce), (max-height: 359px) {
+  .stage-live {
+    display: none;
+  }
+  .stage-static {
+    display: block;
+  }
+}
+[data-stage-fallback] .stage-live {
+  display: none;
+}
+[data-stage-fallback] .stage-static {
+  display: block;
+}
+
+/* ---------- Sections sous l'histoire (§3.5 à §3.11) ---------- */
+
+/* Téléphone de la section pro : inclinaison fixe sur desktop seulement, jamais en reduced-motion. */
+@media (min-width: 1024px) {
+  .pro-phone-tilt {
+    transform: rotateY(-14deg) rotateX(6deg);
+  }
+}
+.pro-static-missions {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pro-phone-tilt {
+    transform: none;
+  }
+  .pro-ghost {
+    display: none !important;
+  }
+  .pro-static-missions {
+    display: block;
+  }
+}
+
+/* Curseur bloc du hash (Confiance) et du snippet (Entre devs) : clignote à 1 Hz. */
+.cert-cursor {
+  animation: cursor-blink 1s steps(1) infinite;
+}
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Snippet tapé : le cache recule d'un caractère par pas (transform seulement). */
+.snippet-cover.is-typing {
+  animation: snippet-type var(--ms) steps(var(--n)) forwards;
+}
+@keyframes snippet-type {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Titre du CTA final : les mots sortent du masque quand le bloc entre dans le viewport (JS seulement). */
+.cta-title[data-state="armed"] .cta-word {
+  transform: translateY(105%);
+}
+.cta-title[data-state="play"] .cta-word {
+  animation: hero-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Footer : le [NOM] géant en contour blanc chaud à 8 %. */
+.footer-name {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);
+}

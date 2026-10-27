@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_DB: cadev
+      POSTGRES_USER: cadev
+      POSTGRES_PASSWORD: cadev
+    volumes:
+      - cadev_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cadev_pgdata:

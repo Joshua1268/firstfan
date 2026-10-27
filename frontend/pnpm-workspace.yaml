@@ -1,0 +1,4 @@
+overrides:
+  sharp: file:./stubs/sharp
+allowBuilds:
+  unrs-resolver: false

@@ -9,3 +9,4 @@ __pycache__/
 .pytest_cache/
 test-results/
 playwright-report/
+db.sqlite3
