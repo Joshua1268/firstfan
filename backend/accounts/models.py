@@ -22,9 +22,7 @@ class TesterProfile(models.Model):
     city = models.CharField(max_length=80, blank=True)
     linkedin_url = models.URLField(blank=True)
     proof = models.FileField(upload_to="proofs/", blank=True)
-    verification = models.CharField(
-        max_length=10, choices=Verification.choices, default=Verification.PENDING
-    )
+    verification = models.CharField(max_length=10, choices=Verification.choices, default=Verification.PENDING)
     verified_at = models.DateTimeField(null=True, blank=True)
     rating_avg = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
 

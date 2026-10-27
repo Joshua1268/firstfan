@@ -7,8 +7,6 @@ from .services import get_public_stats
 
 
 class StatsView(APIView):
-    """Compteurs publics de la landing : seule vue ouverte à tous (le défaut DRF est IsAuthenticated)."""
-
     permission_classes = [AllowAny]
     authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
