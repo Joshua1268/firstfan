@@ -75,6 +75,10 @@ def test_logout(dev_client):
     assert dev_client.get("/api/auth/me/").status_code == 403
 
 
+def test_logout_anonymous(client, db):
+    assert client.post("/api/auth/logout/").status_code == 204
+
+
 def test_me_anonymous_403(client, db):
     assert client.get("/api/auth/me/").status_code == 403
 

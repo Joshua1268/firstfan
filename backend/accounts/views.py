@@ -58,6 +58,9 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    # Idempotent so the front can call it after the session expired.
+    permission_classes = [AllowAny]
+
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
