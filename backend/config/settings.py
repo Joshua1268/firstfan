@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "core",
     "public",
     "projects",
+    "campaigns",
 ]
 
 MIDDLEWARE = [
@@ -158,6 +159,10 @@ PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "FirstFan")
 
 # Public address of the site, used in the tracking script snippet.
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
+
+# Whole XOF amounts.
+PRICE_PER_TESTER_XOF = int(os.environ.get("PRICE_PER_TESTER_XOF", "5000"))
+TESTER_REWARD_XOF = int(os.environ.get("TESTER_REWARD_XOF", "3500"))
 
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
