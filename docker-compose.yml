@@ -9,6 +9,31 @@ services:
       POSTGRES_PASSWORD: cadev
     volumes:
       - cadev_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cadev -d cadev"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    command: uv run python manage.py runserver 0.0.0.0:8010
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      UV_PROJECT_ENVIRONMENT: /opt/venv
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8010:8010"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   cadev_pgdata:

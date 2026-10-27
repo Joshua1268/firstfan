@@ -1,10 +1,3 @@
-"""Amorce une base de démonstration : testeurs vérifiés plausibles, pour que les compteurs publics ne soient pas à zéro.
-
-Idempotent : chaque testeur de démo a un identifiant fixe (`demo-testeur-NN`), relancer la commande ne crée rien de plus
-et remet les profils dans leur état de démo. Refuse de tourner hors mode démo (DEMO_MODE) sans `--force`.
-Aucune campagne n'existe encore dans le modèle : « tests en cours » et « apps testées » restent à 0, rien n'est simulé.
-"""
-
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -12,7 +5,7 @@ from django.utils import timezone
 
 from accounts.models import TesterProfile, User
 
-# (prénom, initiale, métier, commune, vérifié, note moyenne)
+# (first name, initial, profession, city, verified, rating)
 DEMO_TESTERS = [
     ("Awa", "K", "Comptable", "Plateau", True, "4.90"),
     ("Koffi", "A", "Gérant de maquis", "Yopougon", True, "4.70"),
@@ -54,6 +47,8 @@ class Command(BaseCommand):
             profile, _ = TesterProfile.objects.get_or_create(user=user, defaults={"profession": profession})
             profile.profession = profession
             profile.city = city
+            profile.momo_number = f"07000000{i:02d}"
+            profile.available = True
             profile.verification = state
             profile.verified_at = (profile.verified_at or now) if verified else None
             profile.rating_avg = rating
@@ -61,6 +56,7 @@ class Command(BaseCommand):
         verified_count = sum(1 for t in DEMO_TESTERS if t[4])
         self.stdout.write(
             self.style.SUCCESS(
-                f"Démo : {len(DEMO_TESTERS)} testeurs ({verified_count} vérifiés), {created} créés à cette exécution."
+                f"Démo : {len(DEMO_TESTERS)} testeurs ({verified_count} vérifiés), "
+                f"{created} créés à cette exécution."
             )
         )

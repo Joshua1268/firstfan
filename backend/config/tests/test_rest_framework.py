@@ -1,5 +1,3 @@
-"""Défauts DRF fermés : une vue qui n'en dit rien exige une session ; la vue des stats reste publique."""
-
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
