@@ -1,0 +1,15 @@
+PROFESSIONS: list[str] = [
+    "Agent immobilier",
+    "Chauffeur VTC",
+    "Coiffeuse",
+    "Commerçante",
+    "Comptable",
+    "Couturière",
+    "Développeur web",
+    "Enseignant",
+    "Gérant de maquis",
+    "Infirmière",
+    "Pharmacienne",
+    "Restauratrice",
+    "Transitaire",
+]
