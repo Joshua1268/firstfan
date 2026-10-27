@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "accounts",
     "core",
     "public",
+    "projects",
 ]
 
 MIDDLEWARE = [
@@ -154,6 +155,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "FirstFan")
+
+# Public address of the site, used in the tracking script snippet.
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
 
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
