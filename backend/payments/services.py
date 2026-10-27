@@ -36,14 +36,18 @@ def confirm_payment(payment: Payment) -> None:
             return
         if payment.status != Payment.Status.PENDING:
             raise Conflict("Ce paiement a échoué : relance le paiement depuis la campagne.")
+        campaign = Campaign.objects.select_for_update().get(pk=payment.campaign_id)
+        selected = campaign.invitations.filter(status=Invitation.Status.SELECTED)
+        if payment.amount_xof != selected.count() * settings.PRICE_PER_TESTER_XOF:
+            raise Conflict("La sélection a changé : relance le paiement depuis la campagne.")
         now = timezone.now()
         payment.status = Payment.Status.PAID
         payment.paid_at = now
         payment.save(update_fields=["status", "paid_at"])
-        Campaign.objects.filter(pk=payment.campaign_id).update(status=Campaign.Status.OPEN, opened_at=now)
-        Invitation.objects.filter(campaign_id=payment.campaign_id, status=Invitation.Status.SELECTED).update(
-            status=Invitation.Status.SENT
-        )
+        campaign.status = Campaign.Status.OPEN
+        campaign.opened_at = now
+        campaign.save(update_fields=["status", "opened_at"])
+        selected.update(status=Invitation.Status.SENT)
 
 
 def fail_payment(payment: Payment) -> None:

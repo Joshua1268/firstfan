@@ -84,6 +84,17 @@ def test_confirm_twice_noop(dev_client, campaign, selected):
     assert Invitation.objects.get(tester=selected[0]).status == "accepted"
 
 
+def test_confirm_rejects_changed_selection(dev_client, campaign, selected):
+    reference = checkout(dev_client, campaign).json()["reference"]
+    Invitation.objects.filter(tester=selected[0]).delete()
+    assert simulate(dev_client, reference, "paid").status_code == 409
+    campaign.refresh_from_db()
+    assert campaign.status == "draft" and Payment.objects.get().status == "pending"
+    assert checkout(dev_client, campaign).json()["reference"] == reference
+    assert Payment.objects.get().amount_xof == 5000
+    assert simulate(dev_client, reference, "paid").status_code == 200
+
+
 def test_failed_payment_keeps_draft(dev_client, campaign, selected):
     reference = checkout(dev_client, campaign).json()["reference"]
     assert simulate(dev_client, reference, "failed").status_code == 200
