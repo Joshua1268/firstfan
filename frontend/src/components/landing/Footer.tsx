@@ -4,22 +4,16 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { footerLinks, type SitePage } from "@/lib/site-links";
 import { containerCls, useReduce } from "./reveal";
 
 /**
- * Footer (§3.11) : Geist 14px, filet `--line`, et le [NOM] en très grand, en contour blanc chaud à 8 %,
+ * Footer (§3.11) : Geist 14px, filet `--line`, et le FirstFan en très grand, en contour blanc chaud à 8 %,
  * rogné en bas. Il remonte de y 20 % à 0 par scrub à l'entrée ; statique en reduced-motion.
  */
 
-const LINKS = [
-  { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "/inscription?role=tester", label: "Devenir testeur" },
-  { href: "#entre-devs", label: "Pour les devs" },
-  { href: "/confidentialite", label: "Confidentialité" },
-  { href: "/contact", label: "Contact" },
-] as const;
-
-export function Footer() {
+export function Footer({ page = "home" }: { page?: SitePage }) {
+  const LINKS = footerLinks(page);
   const reduce = useReduce();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end end"] });
@@ -54,11 +48,11 @@ export function Footer() {
         </nav>
       </div>
 
-      {/* Le [NOM] géant, rogné en bas : décoratif (le nom est déjà dans la ligne du dessus). */}
-      <div aria-hidden="true" className="mt-12 h-[clamp(96px,22vw,320px)] overflow-hidden md:mt-16">
+      {/* Le FirstFan géant, rogné en bas : décoratif (le nom est déjà dans la ligne du dessus). */}
+      <div aria-hidden="true" className="mt-12 h-[clamp(80px,18vw,264px)] overflow-hidden md:mt-16">
         <motion.p
           style={reduce ? undefined : { y }}
-          className="footer-name select-none whitespace-nowrap text-center font-display text-[clamp(120px,30vw,440px)] font-extrabold uppercase leading-[0.8] [font-variation-settings:'wdth'_62]"
+          className="footer-name select-none whitespace-nowrap text-center font-display text-[clamp(96px,25vw,366px)] font-extrabold uppercase leading-[0.8] [font-variation-settings:'wdth'_62]"
         >
           {PRODUCT_NAME}
         </motion.p>

@@ -32,11 +32,15 @@ async function expectNoStickerOverlap(page: Page) {
 
 const smallScreen = (name: string) => name === "mobile" || name === "tablet";
 
-test("hero copy is server-rendered and CTAs are clickable", async ({ page }) => {
+test("hero copy is server-rendered and its single CTA is clickable", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Tes futurs clients testent ton app\./i);
-  await expect(page.getByRole("link", { name: "Je suis développeur" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Je teste et je suis rémunéré" }).first()).toBeVisible();
+  const hero = page.locator("#hero");
+  await expect(hero.getByRole("link", { name: "Je suis développeur" })).toBeVisible();
+  await expect(hero.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
+  // Le côté testeur a sa propre page : plus de CTA testeur dans le hero.
+  await expect(hero.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveCount(0);
+  await expect(hero.locator("a[href*='role=tester']")).toHaveCount(0);
 });
 
 test("mobile layout", async ({ page }, info) => {
@@ -49,31 +53,34 @@ test("mobile layout", async ({ page }, info) => {
   const h1 = await page.getByRole("heading", { level: 1 }).boundingBox();
   for (const s of await page.locator("[data-sticker]").all()) expect(overlaps(await s.boundingBox(), h1)).toBe(false);
   const ctas = page.locator("[data-hero-cta]:visible");
-  await expect(ctas.first()).toHaveAttribute("data-camp", "pro");
+  await expect(ctas).toHaveCount(1);
+  await expect(ctas.first()).toHaveAttribute("data-camp", "dev");
+  // Les autocollants mobiles sont posés sous le CTA : ils ne passent jamais devant le H1 dans l'ordre de lecture.
+  const cta = (await ctas.first().boundingBox())!;
+  for (const s of await page.locator("[data-sticker]").all()) expect((await s.boundingBox())!.y).toBeGreaterThan(cta.y + cta.height);
 });
 
-test("hero CTA order is checked on what is actually visible", async ({ page }) => {
+test("hero reads in three levels: H1, then one sentence, then one button", async ({ page }) => {
   await page.goto("/");
-  const viewport = page.viewportSize()!;
   const hero = page.locator("#hero");
-  // Les deux boîtes sont lues ensemble, polices chargées : sinon un échange de police entre les deux lectures
-  // (machine chargée) peut faire passer les CTA à la ligne entre deux mesures.
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(1100); // fin de l'entrée CSS des CTA (560 ms + 420 ms)
-  const [dev, pro] = await Promise.all([
+  await page.waitForTimeout(1100); // fin de l'entrée CSS (560 ms + 420 ms)
+  await expect(hero.locator("[data-hero-cta]:visible")).toHaveCount(1);
+  const [h1, lead, cta] = await Promise.all([
+    hero.getByRole("heading", { level: 1 }).boundingBox(),
+    hero.getByText("Des pros vérifiés du métier que tu vises").boundingBox(),
     hero.getByRole("link", { name: "Je suis développeur" }).boundingBox(),
-    hero.getByRole("link", { name: "Je teste et je suis rémunéré" }).boundingBox(),
   ]);
-  expect(dev).not.toBeNull();
-  expect(pro).not.toBeNull();
-  await expect(hero.locator("[data-hero-cta]:visible")).toHaveCount(2);
-  if (viewport.width < 768) {
-    // Mobile : CTA pro empilé au-dessus du CTA dev (§3.2).
-    expect(pro!.y + pro!.height).toBeLessThanOrEqual(dev!.y);
-  } else {
-    // Desktop et tablette : CTA dev devant (à gauche, ou au-dessus s'ils passent à la ligne).
-    expect(dev!.x < pro!.x || dev!.y + dev!.height <= pro!.y).toBe(true);
-  }
+  expect(h1!.y + h1!.height).toBeLessThanOrEqual(lead!.y);
+  expect(lead!.y + lead!.height).toBeLessThanOrEqual(cta!.y);
+  // La phrase tient en peu de lignes (deux sur desktop) : elle se lit d'un coup d'œil.
+  const lines = await hero.getByText("Des pros vérifiés du métier que tu vises").evaluate((el) => {
+    const lh = parseFloat(getComputedStyle(el).lineHeight);
+    return Math.round(el.getBoundingClientRect().height / lh);
+  });
+  expect(lines).toBeLessThanOrEqual(page.viewportSize()!.width >= 1280 ? 2 : page.viewportSize()!.width >= 768 ? 3 : 4);
+  // Le bouton est au-dessus du pli.
+  expect(cta!.y + cta!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
 });
 
 test("rendered page has no forbidden content", async ({ page }) => {
@@ -83,7 +90,9 @@ test("rendered page has no forbidden content", async ({ page }) => {
 
 test("stickers never cover the hero text or the CTAs, and the page never scrolls sideways", async ({ page }, info) => {
   await page.goto("/");
-  await expect(page.locator("[data-sticker]")).toHaveCount(smallScreen(info.project.name) ? 5 : 8);
+  await expect(page.locator("[data-sticker]")).toHaveCount(smallScreen(info.project.name) ? 2 : 3);
+  // Un seul autocollant lime sur desktop (aucun sur mobile, où il serait collé au CTA lime).
+  await expect(page.locator("[data-sticker][data-accent='true']")).toHaveCount(smallScreen(info.project.name) ? 0 : 1);
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
@@ -100,11 +109,9 @@ test("stickers still clear the hero text while a CTA camp is hovered", async ({ 
   test.skip(smallScreen(info.project.name), "pas de survol sur écran tactile");
   await page.goto("/");
   await page.waitForTimeout(1600);
-  for (const name of ["Je suis développeur", "Je teste et je suis rémunéré"]) {
-    await page.locator("#hero").getByRole("link", { name }).hover();
-    await page.waitForTimeout(900);
-    await expectNoStickerOverlap(page);
-  }
+  await page.locator("#hero").getByRole("link", { name: "Je suis développeur" }).hover();
+  await page.waitForTimeout(900);
+  await expectNoStickerOverlap(page);
 });
 
 test("stickers are hidden from assistive tech and the H1 is the first heading", async ({ page }) => {
@@ -140,8 +147,10 @@ test("mobile menu moves focus in, traps Tab, closes on Escape and gives focus ba
       const el = document.activeElement;
       return !!el && (el.closest("[data-mobile-menu]") !== null || el.getAttribute("aria-label") === "Fermer le menu");
     });
-  // 6 liens dans le menu + le bouton de fermeture : 7 tabulations ramènent au lien de tête.
-  for (let i = 0; i < 7; i++) {
+  // 5 liens dans le menu (3 sections, Connexion, le CTA dev) + le bouton de fermeture : 6 tabulations ramènent au lien de tête.
+  await expect(page.locator("[data-mobile-menu] a[href]")).toHaveCount(5);
+  await expect(page.locator("[data-mobile-menu]").getByRole("link", { name: "Pour les testeurs" })).toHaveAttribute("href", "/testeurs");
+  for (let i = 0; i < 6; i++) {
     await page.keyboard.press("Tab");
     expect(await focusIsTrapped()).toBe(true);
   }
@@ -522,7 +531,7 @@ test("no js", async ({ browser }) => {
   await expect(page.locator("#pro")).toContainText(/métier/i);
   for (const [sel, text] of [
     ["#pro", "Ton métier vaut de l'argent. Ici, il est payé."],
-    ["#pro", "Je teste et je suis rémunéré"],
+    ["#pro", "Devenir testeur"],
     ["#en-direct", "Chaque chiffre vient d'un vrai test, pas d'un formulaire."],
     ["#comment-ca-marche", "Trois promesses. Deux gagnants."],
     ["#confiance", "Protégé dès le dépôt."],
@@ -629,11 +638,17 @@ test("final CTA links and section anchors", async ({ page }) => {
   await page.goto("/");
   const cta = page.locator("#cta-final");
   await expect(cta.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
-  await expect(cta.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute("href", "/inscription?role=tester");
-  await expect(page.locator("#pro").getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute(
-    "href",
-    "/inscription?role=tester",
-  );
+  // Le côté testeur passe par sa page, /testeurs (CTA final, bandeau en milieu de page, nav, footer).
+  await expect(cta.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute("href", "/testeurs");
+  await expect(page.locator("#pro").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute("href", "/testeurs");
+  await expect(page.locator("footer").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute("href", "/testeurs");
+  await expect(page.locator("header nav a[href='/testeurs']").first()).toHaveText("Pour les testeurs");
+  // Le dev reste l'action principale du CTA final : devant le CTA testeur sur toutes les tailles.
+  const [dev, pro] = await Promise.all([
+    cta.getByRole("link", { name: "Je suis développeur" }).boundingBox(),
+    cta.getByRole("link", { name: "Je teste et je suis rémunéré" }).boundingBox(),
+  ]);
+  expect(dev!.x < pro!.x || dev!.y + dev!.height <= pro!.y).toBe(true);
   // Chaque ancre de la nav mène à une section qui existe.
   for (const href of await page.locator("header nav a[href^='#']").evaluateAll((els) => els.map((e) => e.getAttribute("href")!)))
     await expect(page.locator(href)).toHaveCount(1);

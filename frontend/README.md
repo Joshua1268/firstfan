@@ -1,6 +1,6 @@
-# Frontend [NOM]
+# Frontend FirstFan
 
-Page d'accueil de [NOM] : Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 et Motion 14. La page est rendue côté serveur ; les compteurs viennent de l'API Django (`GET /api/public/stats/`).
+Page d'accueil de FirstFan : Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 et Motion 14. La page est rendue côté serveur ; les compteurs viennent de l'API Django (`GET /api/public/stats/`).
 
 La spécification de référence est `../docs/superpowers/specs/2026-10-23-landing-spec.md`. Les sections y sont citées dans le code par leur numéro (`§3.4`, `§6`...).
 

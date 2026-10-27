@@ -245,7 +245,7 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
   );
 }
 
-function PhoneDemo() {
+export function PhoneDemo() {
   const reduce = useReduce();
   const root = useRef<HTMLDivElement>(null);
   const inView = useInView(root, { amount: 0.35 });
@@ -430,16 +430,17 @@ export function ProSection() {
             ))}
           </motion.ul>
           <div className="mt-10 flex flex-col gap-3 md:items-start">
+            {/* Bandeau côté testeur de l'accueil : il renvoie vers /testeurs, sans prendre le lime réservé au dev. */}
             <Link
-              href="/inscription?role=tester"
+              href="/testeurs"
               prefetch={false}
-              className="group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-pill bg-accent px-7 text-[16px] font-semibold leading-none text-accent-ink transition-colors duration-150 hover:bg-accent-press active:scale-[0.97] md:w-auto"
+              className="group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-pill border border-ink/70 px-7 text-[16px] font-semibold leading-none text-ink transition-colors duration-150 hover:border-ink hover:bg-ink/[0.07] active:scale-[0.97] md:w-auto"
             >
-              Je teste et je suis rémunéré
+              Devenir testeur
               <ArrowIcon size={20} className="transition-transform duration-150 group-hover:translate-x-1" />
             </Link>
             <p className="text-center text-[14px] leading-snug text-ink-muted md:text-left">
-              L&apos;inscription prend 3 minutes. Ta note grandit à chaque test.
+              Paiement, vérification, confidentialité : tout est sur la page testeurs.
             </p>
           </div>
         </div>

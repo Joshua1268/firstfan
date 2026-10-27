@@ -7,7 +7,7 @@ import { dur, ease, spring } from "@/lib/motion-tokens";
 import { containerCls, h2Cls, Kicker, STAMP_SPRING, useReveal } from "./reveal";
 
 /**
- * Section « C'est quoi [NOM] ? » (§3.7) : trois cartes, chacune avec son illustration au trait (64px)
+ * Section « C'est quoi FirstFan ? » (§3.7) : trois cartes, chacune avec son illustration au trait (64px)
  * qui se trace après l'entrée de la carte, puis son détail accent qui se tamponne.
  * Mobile : cartes empilées, sous-ligne TESTEUR avant la sous-ligne DEV. Reduced-motion : tout est posé.
  */

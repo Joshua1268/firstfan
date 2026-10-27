@@ -8,8 +8,17 @@ import { spring } from "@/lib/motion-tokens";
 /**
  * Barre CTA collée en bas, mobile seulement (§3).
  * Visible quand le hero est sorti à 80 % ; masquée pendant le CTA final (#cta-final) et clavier ouvert.
+ * Une seule action, celle du public de la page : le dev sur l'accueil, le pro sur /testeurs.
  */
-export function MobileCtaBar() {
+export function MobileCtaBar({
+  href = "/inscription?role=dev",
+  label = "Je suis développeur",
+  camp = "dev",
+}: {
+  href?: string;
+  label?: string;
+  camp?: "dev" | "pro";
+}) {
   const reduce = useReducedMotion();
   const [pastHero, setPastHero] = useState(false);
   const [inFinalCta, setInFinalCta] = useState(false);
@@ -54,20 +63,12 @@ export function MobileCtaBar() {
     >
       <div className="flex h-16 items-center gap-2.5 px-[var(--grid-margin)]">
         <Link
-          href="/inscription?role=tester"
+          href={href}
           prefetch={false}
-          data-camp="pro"
+          data-camp={camp}
           className="flex h-11 flex-1 items-center justify-center rounded-pill bg-accent text-[15px] font-semibold text-accent-ink active:bg-accent-press"
         >
-          Je teste
-        </Link>
-        <Link
-          href="/inscription?role=dev"
-          prefetch={false}
-          data-camp="dev"
-          className="flex h-11 flex-1 items-center justify-center rounded-pill border border-ink/60 text-[15px] font-semibold text-ink"
-        >
-          Je suis dev
+          {label}
         </Link>
       </div>
     </motion.div>

@@ -202,7 +202,7 @@ function MagneticCta() {
 function ProCta() {
   return (
     <Link
-      href="/inscription?role=tester"
+      href="/testeurs"
       prefetch={false}
       className="flex h-14 w-full items-center justify-center rounded-pill border border-ink/70 px-7 text-[16px] font-semibold leading-none text-ink transition-colors duration-150 hover:border-ink hover:bg-ink/[0.07] active:bg-ink/[0.1] md:w-auto"
     >
@@ -262,14 +262,11 @@ export function FinalCta() {
         </motion.div>
 
         <motion.div {...ctas} className="mt-12 flex w-full flex-col gap-3 md:mt-14 md:w-auto md:flex-row lg:mt-10">
-          {/* Mobile : CTA pro devant ; le doublon masqué garde l'ordre de tabulation égal à l'ordre visuel. */}
-          <CtaRise delay={0} className="md:hidden">
-            <ProCta />
-          </CtaRise>
-          <CtaRise delay={0.06}>
+          {/* Le dev reste l'action principale, devant sur toutes les tailles ; le pro est renvoyé vers sa page. */}
+          <CtaRise delay={0}>
             <MagneticCta />
           </CtaRise>
-          <CtaRise delay={0.12} className="hidden md:flex">
+          <CtaRise delay={0.06}>
             <ProCta />
           </CtaRise>
         </motion.div>

@@ -1,1 +1,1 @@
-export const PRODUCT_NAME = "[NOM]";
+export const PRODUCT_NAME = "FirstFan";

@@ -1,5 +1,5 @@
 """
-Réglages Django de [NOM].
+Réglages Django de FirstFan.
 
 Valeurs par défaut pensées pour le développement local (DEBUG vrai, clé de dev, tous les hôtes).
 Hors DEBUG, le démarrage échoue (ImproperlyConfigured) tant que la clé secrète, les hôtes autorisés,
@@ -174,7 +174,7 @@ AUTH_USER_MODEL = "accounts.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "[NOM]")
+PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "FirstFan")
 
 # DRF : fermé par défaut. Chaque vue publique doit le déclarer (AllowAny) explicitement.
 REST_FRAMEWORK = {
