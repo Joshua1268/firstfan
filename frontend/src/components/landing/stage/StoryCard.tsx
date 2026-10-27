@@ -25,7 +25,9 @@ function CardFace({ tone }: { tone: Tone }) {
         {[0, 1, 2].map((i) => (
           <span key={i} className={`size-2 rounded-full ${c ? "bg-ink/25" : "bg-ghost/60"}`} />
         ))}
-        <span className={`ml-3 flex h-[18px] flex-1 items-center rounded-full px-3 font-mono text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/60 text-ghost"}`}>
+        <span
+          className={`ml-3 flex h-[18px] flex-1 items-center rounded-full px-3 font-mono text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/60 text-ghost"}`}
+        >
           {CARD.url}
         </span>
       </div>
@@ -40,12 +42,19 @@ function CardFace({ tone }: { tone: Tone }) {
         </div>
         <ul className="mt-1.5 w-[228px]">
           {CARD.clients.map((cl) => (
-            <li key={cl.name} className={`flex h-[38px] items-center justify-between border-b text-[12px] ${c ? "border-line text-ink" : "border-ghost/30 text-ghost"}`}>
+            <li
+              key={cl.name}
+              className={`flex h-[38px] items-center justify-between border-b text-[12px] ${c ? "border-line text-ink" : "border-ghost/30 text-ghost"}`}
+            >
               <span className="flex items-center gap-2">
                 <span className={`size-5 rounded-full ${c ? "bg-ink/10" : "bg-ghost/30"}`} />
                 {cl.name}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/50 text-ghost"}`}>{cl.status}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/50 text-ghost"}`}
+              >
+                {cl.status}
+              </span>
             </li>
           ))}
         </ul>

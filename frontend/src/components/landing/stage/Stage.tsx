@@ -39,7 +39,8 @@ export function Stage() {
     // Le repli statique suffit (et c'est lui que le CSS affiche) : on ne charge pas le stage animé.
     const staticOnly = window.matchMedia("(prefers-reduced-motion: reduce), (max-height: 359px)");
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    const lowEnd = (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
+    const lowEnd =
+      (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
     if (lowEnd) root?.setAttribute("data-stage-fallback", "");
 
     function stop() {
@@ -61,10 +62,15 @@ export function Stage() {
         .then((m) => {
           // Si le focus est dans le stage, on le reporte sur l'élément équivalent du stage animé.
           const active = document.activeElement;
-          const href = active instanceof HTMLAnchorElement && root?.contains(active) ? active.getAttribute("href") : null;
+          const href =
+            active instanceof HTMLAnchorElement && root?.contains(active) ? active.getAttribute("href") : null;
           setLive(() => m.Stage);
           if (href)
-            requestAnimationFrame(() => root?.querySelector<HTMLElement>(`.stage-live a[href="${CSS.escape(href)}"]`)?.focus({ preventScroll: true }));
+            requestAnimationFrame(() =>
+              root
+                ?.querySelector<HTMLElement>(`.stage-live a[href="${CSS.escape(href)}"]`)
+                ?.focus({ preventScroll: true }),
+            );
         })
         // Chunk introuvable (réseau coupé) : le HTML serveur reste en place, lisible et navigable.
         .catch(() => {

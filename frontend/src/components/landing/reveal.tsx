@@ -12,7 +12,6 @@ import { spring } from "@/lib/motion-tokens";
  * En reduced-motion, `useReveal` monte directement l'état final, sans attendre l'entrée dans le viewport.
  */
 
-
 /**
  * Préférence reduced-motion sans écart d'hydratation : `false` pendant l'hydratation (comme le HTML serveur),
  * puis la vraie valeur au rendu suivant. À utiliser dès qu'un élément est rendu ou non selon la préférence.
@@ -37,13 +36,23 @@ export function useReveal(amount = 0.35) {
 }
 
 /** Entrée « carte » : y vers 0 en spring, avec un décalage par index (`custom`). */
-export function riseVariants(y: number, s: { stiffness: number; damping: number }, stagger: number, delay = 0): Variants {
+export function riseVariants(
+  y: number,
+  s: { stiffness: number; damping: number },
+  stagger: number,
+  delay = 0,
+): Variants {
   return {
     hidden: { opacity: 0, y },
     show: (i: number = 0) => ({
       opacity: 1,
       y: 0,
-      transition: { type: "spring", ...s, delay: delay + i * stagger, opacity: { duration: 0.24, delay: delay + i * stagger } },
+      transition: {
+        type: "spring",
+        ...s,
+        delay: delay + i * stagger,
+        opacity: { duration: 0.24, delay: delay + i * stagger },
+      },
     }),
   };
 }

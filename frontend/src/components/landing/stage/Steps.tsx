@@ -112,7 +112,10 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
 
   return (
     <motion.div className="absolute left-1/2 top-1/2" style={{ x, y, rotate, scale, opacity, zIndex: isAwa ? 2 : 1 }}>
-      <div data-tester={t.name} className="relative -ml-[110px] -mt-12 flex h-24 w-[220px] items-center gap-3 rounded-card border border-line bg-surface px-3.5 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.6)]">
+      <div
+        data-tester={t.name}
+        className="relative -ml-[110px] -mt-12 flex h-24 w-[220px] items-center gap-3 rounded-card border border-line bg-surface px-3.5 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.6)]"
+      >
         <JobAvatar size={40} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-semibold leading-tight text-ink">{t.name}</p>
@@ -182,7 +185,13 @@ function lerp3(k: readonly number[], t: number) {
 const RETURN = { type: "spring", stiffness: 400, damping: 34 } as const;
 
 /** Vol d'une pastille d'un avatar à l'autre : keyframes x/y en 3 points, rotate [-10, 6, 0], scale [1, 1.15, 1]. */
-function useFlight(p: MotionValue<number>, progress: MotionValue<number>, from: "dev" | "awa", to: "dev" | "awa", width: number) {
+function useFlight(
+  p: MotionValue<number>,
+  progress: MotionValue<number>,
+  from: "dev" | "awa",
+  to: "dev" | "awa",
+  width: number,
+) {
   const { layout } = useStage();
   const stamp = useMotionValue(1);
   const lift = layout.get().desktop ? 46 : 38;
@@ -209,9 +218,20 @@ function useFlight(p: MotionValue<number>, progress: MotionValue<number>, from: 
   return { x, y, rotate, scale, stamp };
 }
 
-function Pill({ flight, opacity, children }: { flight: ReturnType<typeof useFlight>; opacity: MotionValue<number>; children: React.ReactNode }) {
+function Pill({
+  flight,
+  opacity,
+  children,
+}: {
+  flight: ReturnType<typeof useFlight>;
+  opacity: MotionValue<number>;
+  children: React.ReactNode;
+}) {
   return (
-    <motion.div className="absolute left-1/2 top-1/2" style={{ x: flight.x, y: flight.y, rotate: flight.rotate, scale: flight.scale, opacity, zIndex: 3 }}>
+    <motion.div
+      className="absolute left-1/2 top-1/2"
+      style={{ x: flight.x, y: flight.y, rotate: flight.rotate, scale: flight.scale, opacity, zIndex: 3 }}
+    >
       <div data-rating-pill="" className="-translate-x-1/2 -translate-y-1/2">
         {children}
       </div>
@@ -220,7 +240,13 @@ function Pill({ flight, opacity, children }: { flight: ReturnType<typeof useFlig
 }
 
 /** Pastille de note : « De vers À : note », le mot « vers » remplacé par une flèche SVG. */
-export function DirectedRating({ r, strong = false }: { r: { from: string; to: string; value: string }; strong?: boolean }) {
+export function DirectedRating({
+  r,
+  strong = false,
+}: {
+  r: { from: string; to: string; value: string };
+  strong?: boolean;
+}) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[12.5px] font-semibold leading-none ${strong ? "bg-ink text-bg" : "border border-line bg-surface text-ink"}`}
@@ -307,7 +333,11 @@ export function Ratings({ p }: { p: MotionValue<number> }) {
           { x: awaX, y: awaY, label: "Awa K.", avatar: <JobAvatar size={size} />, odo: false },
         ] as const
       ).map((av) => (
-        <motion.div key={av.label} className="absolute left-1/2 top-1/2" style={{ x: av.x, y: av.y, opacity: shown, scale: avatarScale }}>
+        <motion.div
+          key={av.label}
+          className="absolute left-1/2 top-1/2"
+          style={{ x: av.x, y: av.y, opacity: shown, scale: avatarScale }}
+        >
           <div className="flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1">
             {av.avatar}
             <span data-avatar-label="" className="whitespace-nowrap font-mono text-[11px] leading-none text-ink-muted">

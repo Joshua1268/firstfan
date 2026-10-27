@@ -41,9 +41,38 @@ type StickerDef = {
 // concurrencer le H1. Les positions respectent les zones d'exclusion (aucun ne recouvre le H1, le texte ni le CTA)
 // et sont vérifiées par e2e/landing.spec.ts.
 const STICKERS: StickerDef[] = [
-  { n: 1, text: "Comptable vérifiée", camp: "dev", shape: "pill-check", accent: true, d: 0.9, r: -6, desktop: { layer: "title", left: "77.8%", top: "6%", compact: { left: "77.8%", top: "8.8%" } }, mobile: { zone: "bottom", left: "0%", top: "14%" } },
-  { n: 2, text: "14 captures horodatées", camp: "dev", shape: "ticket", accent: false, d: 0.7, r: -7, desktop: { layer: "title", left: "46.8%", top: "75.7%", compact: { left: "45.5%", top: "80.6%" } } },
-  { n: 3, text: "Toujours là à J7", camp: "dev", shape: "pill-check", accent: false, d: 0.5, r: 5, desktop: { layer: "cta", left: "72%", top: "18%", compact: { left: "70%", top: "22%" } }, mobile: { zone: "bottom", left: "52%", top: "30%" } },
+  {
+    n: 1,
+    text: "Comptable vérifiée",
+    camp: "dev",
+    shape: "pill-check",
+    accent: true,
+    d: 0.9,
+    r: -6,
+    desktop: { layer: "title", left: "77.8%", top: "6%", compact: { left: "77.8%", top: "8.8%" } },
+    mobile: { zone: "bottom", left: "0%", top: "14%" },
+  },
+  {
+    n: 2,
+    text: "14 captures horodatées",
+    camp: "dev",
+    shape: "ticket",
+    accent: false,
+    d: 0.7,
+    r: -7,
+    desktop: { layer: "title", left: "46.8%", top: "75.7%", compact: { left: "45.5%", top: "80.6%" } },
+  },
+  {
+    n: 3,
+    text: "Toujours là à J7",
+    camp: "dev",
+    shape: "pill-check",
+    accent: false,
+    d: 0.5,
+    r: 5,
+    desktop: { layer: "cta", left: "72%", top: "18%", compact: { left: "70%", top: "22%" } },
+    mobile: { zone: "bottom", left: "52%", top: "30%" },
+  },
 ];
 
 // Ordre de tamponnage : de haut en bas, dans l'ordre de lecture.
@@ -199,7 +228,11 @@ function Sticker({
   };
 
   const campState =
-    camp === null ? { scale: 1, y: 0, opacity: 1 } : camp === def.camp ? { scale: 1.07, y: -6, opacity: 1 } : { scale: 0.96, y: 0, opacity: 0.45 };
+    camp === null
+      ? { scale: 1, y: 0, opacity: 1 }
+      : camp === def.camp
+        ? { scale: 1.07, y: -6, opacity: 1 }
+        : { scale: 0.96, y: 0, opacity: 0.45 };
   const hoverState = hovered ? { scale: 1.07, y: campState.y, opacity: 1, rotate: -r } : { ...campState, rotate: 0 };
 
   return (
@@ -238,7 +271,15 @@ function Sticker({
                 animate={{ scale: 1.8, opacity: 0 }}
                 transition={{ duration: dur.medium / 1000, ease: "easeOut", delay: delay + 0.05 }}
               >
-                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth="1.5"
+                  vectorEffect="non-scaling-stroke"
+                />
               </motion.svg>
             )}
           </motion.div>
@@ -256,7 +297,8 @@ function shadowShape(shape: Shape) {
 
 const ink = "bg-ink text-bg";
 const lime = "bg-accent text-accent-ink";
-const textCls = "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
+const textCls =
+  "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
 
 function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
   const tone = def.accent ? lime : ink;
@@ -267,7 +309,10 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
     case "pill-check":
     case "pill":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker relative inline-flex items-center gap-1.5 rounded-pill px-4 py-2.5`}>
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker relative inline-flex items-center gap-1.5 rounded-pill px-4 py-2.5`}
+        >
           {def.shape === "pill-check" && <CheckIcon size={16} strokeWidth={2.25} />}
           {def.text}
           {sheen}
@@ -275,7 +320,10 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
       );
     case "circle-star":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker relative flex size-[72px] flex-col items-center justify-center gap-0.5 rounded-full md:size-[96px]`}>
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker relative flex size-[72px] flex-col items-center justify-center gap-0.5 rounded-full md:size-[96px]`}
+        >
           <StarIcon size={18} fill="currentColor" strokeWidth={1.5} />
           <span className="tabular-nums">{def.text}</span>
           {sheen}
@@ -283,7 +331,10 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
       );
     case "folded-check":
       return (
-        <div {...common} className={`sticker relative inline-flex items-center gap-1.5 py-2.5 pl-3.5 pr-7 text-accent-ink ${textCls}`}>
+        <div
+          {...common}
+          className={`sticker relative inline-flex items-center gap-1.5 py-2.5 pl-3.5 pr-7 text-accent-ink ${textCls}`}
+        >
           {/* Fond découpé au coin haut droit ; le rabat est un calque à part, non découpé. */}
           <span aria-hidden="true" className="sticker-fold-bg absolute inset-0 overflow-hidden rounded-label bg-accent">
             {sheen}
@@ -302,14 +353,20 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
       );
     case "seal":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker sticker-seal relative flex size-[80px] items-center justify-center text-center md:size-[118px]`}>
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker sticker-seal relative flex size-[80px] items-center justify-center text-center md:size-[118px]`}
+        >
           <span className="whitespace-normal px-3 leading-[1.05] md:px-4">{def.text}</span>
           {sheen}
         </div>
       );
     case "tag":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker relative inline-flex items-center gap-2.5 rounded-label py-2.5 pl-3 pr-4`}>
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker relative inline-flex items-center gap-2.5 rounded-label py-2.5 pl-3 pr-4`}
+        >
           <span aria-hidden="true" className="size-2.5 rounded-full bg-bg" />
           {def.text}
           {sheen}
@@ -317,15 +374,24 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
       );
     case "ticket":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker sticker-ticket relative inline-flex items-center gap-3 py-3 pl-5 pr-5`}>
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker sticker-ticket relative inline-flex items-center gap-3 py-3 pl-5 pr-5`}
+        >
           <span className="tabular-nums">{def.text}</span>
           {sheen}
         </div>
       );
     case "stamp":
       return (
-        <div {...common} className={`${tone} ${textCls} sticker relative flex size-[100px] items-center justify-center rounded-full text-center md:size-[112px]`}>
-          <span aria-hidden="true" className="absolute inset-[6px] rounded-full border-[1.5px] border-dashed border-bg/50" />
+        <div
+          {...common}
+          className={`${tone} ${textCls} sticker relative flex size-[100px] items-center justify-center rounded-full text-center md:size-[112px]`}
+        >
+          <span
+            aria-hidden="true"
+            className="absolute inset-[6px] rounded-full border-[1.5px] border-dashed border-bg/50"
+          />
           <span className="whitespace-normal px-4 leading-[1.1]">{def.text}</span>
           {sheen}
         </div>

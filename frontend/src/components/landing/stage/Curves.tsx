@@ -95,7 +95,12 @@ export function Curves({ p }: { p: MotionValue<number> }) {
           </clipPath>
         </defs>
         {/* Axes */}
-        <path d={`M ${G.x0} ${G.top - 10} V ${G.y0} H ${G.j30 + 8}`} fill="none" stroke="var(--line)" strokeWidth={1.5} />
+        <path
+          d={`M ${G.x0} ${G.top - 10} V ${G.y0} H ${G.j30 + 8}`}
+          fill="none"
+          stroke="var(--line)"
+          strokeWidth={1.5}
+        />
         {[G.j7, G.j30].map((gx) => (
           <path key={gx} d={`M ${gx} ${G.y0} v 6`} stroke="var(--line)" strokeWidth={1.5} />
         ))}
@@ -108,8 +113,21 @@ export function Curves({ p }: { p: MotionValue<number> }) {
           clipPath={`url(#${clip})`}
           style={{ opacity: ghostOpacity }}
         />
-        <motion.path d={GREEN_D} fill="none" stroke="var(--accent)" strokeWidth={3} strokeLinecap="round" style={{ pathLength: green }} />
-        <motion.circle cx={J30.x} cy={J30.y} r={5} fill="var(--accent)" style={{ scale: pulse, opacity: dot, transformBox: "fill-box", transformOrigin: "center" }} />
+        <motion.path
+          d={GREEN_D}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={3}
+          strokeLinecap="round"
+          style={{ pathLength: green }}
+        />
+        <motion.circle
+          cx={J30.x}
+          cy={J30.y}
+          r={5}
+          fill="var(--accent)"
+          style={{ scale: pulse, opacity: dot, transformBox: "fill-box", transformOrigin: "center" }}
+        />
       </svg>
       {/* Axe X */}
       {CURVES.axis.map((label, i) => {
@@ -133,13 +151,20 @@ export function Curves({ p }: { p: MotionValue<number> }) {
       >
         <span className="relative">
           {CURVES.ghost}
-          <motion.span className="absolute inset-x-0 top-1/2 h-[1.5px] origin-left bg-ink-muted" style={{ scaleX: strike }} />
+          <motion.span
+            className="absolute inset-x-0 top-1/2 h-[1.5px] origin-left bg-ink-muted"
+            style={{ scaleX: strike }}
+          />
         </span>
       </motion.span>
       <motion.span
         data-curve-label=""
         className="absolute -translate-x-full whitespace-nowrap text-[12px] font-semibold text-ink lg:text-[13px]"
-        style={{ left: pct(G.j30, G.w), top: narrow ? `calc(${pct(J30.y, G.h)} - 78px)` : pct(J30.y + 14, G.h), opacity: green }}
+        style={{
+          left: pct(G.j30, G.w),
+          top: narrow ? `calc(${pct(J30.y, G.h)} - 78px)` : pct(J30.y + 14, G.h),
+          opacity: green,
+        }}
       >
         {CURVES.green}
       </motion.span>

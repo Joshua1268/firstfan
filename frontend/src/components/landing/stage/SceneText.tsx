@@ -6,7 +6,21 @@ import { createContext, useContext } from "react";
 import { dur, ease } from "@/lib/motion-tokens";
 import { ArrowIcon } from "../icons";
 import { useStepValue } from "./context";
-import { BREAK, CHECKLIST, CURVES, FEEDBACK, LOOP, RATINGS, STAMPS, STEP1, STEP2, STEP3, STEP4, TESTERS, type Step } from "./copy";
+import {
+  BREAK,
+  CHECKLIST,
+  CURVES,
+  FEEDBACK,
+  LOOP,
+  RATINGS,
+  STAMPS,
+  STEP1,
+  STEP2,
+  STEP3,
+  STEP4,
+  TESTERS,
+  type Step,
+} from "./copy";
 import type { SceneId } from "./scenes";
 import { TwoVoices } from "./TwoVoices";
 
@@ -28,7 +42,10 @@ export function useTextHidden(): true | undefined {
 
 export function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <p aria-hidden={useTextHidden()} className="font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted">
+    <p
+      aria-hidden={useTextHidden()}
+      className="font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted"
+    >
       {children}
     </p>
   );
@@ -94,7 +111,12 @@ function LoopText() {
     <div className={`${useContext(TextBox)} flex flex-col gap-3 lg:gap-5`}>
       <Kicker>{LOOP.kicker}</Kicker>
       <SceneTitle>{LOOP.title}</SceneTitle>
-      <p aria-hidden={hidden} className="max-w-[46ch] font-mono text-[12.5px] leading-[1.6] text-ink-muted lg:text-[14px]">{LOOP.voice}</p>
+      <p
+        aria-hidden={hidden}
+        className="max-w-[46ch] font-mono text-[12.5px] leading-[1.6] text-ink-muted lg:text-[14px]"
+      >
+        {LOOP.voice}
+      </p>
       <div className="sr-only" aria-hidden={hidden}>
         <ol>
           {LOOP.labels.map((l) => (
@@ -118,8 +140,22 @@ function LoopText() {
 
 function BreakText({ p }: { p: MotionValue<number> }) {
   // Seuil 0.19 : le titre sort du masque (105 % vers 0, 640 ms, out-expo) ; 0.20 : la ligne monte.
-  const title = useStepValue(p, 0.19, 105, 0, { duration: dur.slow / 1000, ease: ease.outExpo }, { duration: dur.fast / 1000 });
-  const line = useStepValue(p, 0.2, 0, 1, { duration: dur.medium / 1000, ease: ease.outQuint }, { duration: dur.fast / 1000 });
+  const title = useStepValue(
+    p,
+    0.19,
+    105,
+    0,
+    { duration: dur.slow / 1000, ease: ease.outExpo },
+    { duration: dur.fast / 1000 },
+  );
+  const line = useStepValue(
+    p,
+    0.2,
+    0,
+    1,
+    { duration: dur.medium / 1000, ease: ease.outQuint },
+    { duration: dur.fast / 1000 },
+  );
   const titleY = useTransform(title, (v) => `${v}%`);
   const hidden = useTextHidden();
   const lineY = useTransform(line, [0, 1], [12, 0]);
@@ -143,7 +179,14 @@ function Step4Ctas({ p }: { p: MotionValue<number> }) {
   // Stage animé sur mobile : le cadre fait 100svh et la barre CTA collée porte déjà les deux CTA ; ceux de la
   // scène tomberaient sous la barre. Ils restent dans le repli statique (texte dans le flux) et sur desktop.
   const live = useTextHidden();
-  const rise = useStepValue(p, 0.97, 0, 1, { type: "spring", stiffness: 260, damping: 22 }, { duration: dur.fast / 1000 });
+  const rise = useStepValue(
+    p,
+    0.97,
+    0,
+    1,
+    { type: "spring", stiffness: 260, damping: 22 },
+    { duration: dur.fast / 1000 },
+  );
   const y = useTransform(rise, [0, 1], [16, 0]);
   const visibility = useTransform(rise, (v) => (v > 0.01 ? "visible" : "hidden"));
   return (
@@ -158,7 +201,10 @@ function Step4Ctas({ p }: { p: MotionValue<number> }) {
       >
         {CURVES.ctaDev}
       </Link>
-      <a href="#pro" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink underline-offset-4 hover:underline">
+      <a
+        href="#pro"
+        className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
+      >
         {CURVES.ctaPro}
         <ArrowIcon size={18} />
       </a>
@@ -180,7 +226,9 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
         <StepText step={STEP1}>
           <ul className="sr-only" aria-hidden={hidden}>
             {TESTERS.map((t) => (
-              <li key={t.name}>{[t.name, t.job, t.rating, "tag" in t ? t.tag : null, "Métier vérifié"].filter(Boolean).join(" · ")}</li>
+              <li key={t.name}>
+                {[t.name, t.job, t.rating, "tag" in t ? t.tag : null, "Métier vérifié"].filter(Boolean).join(" · ")}
+              </li>
             ))}
           </ul>
         </StepText>
@@ -217,7 +265,8 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
       return (
         <StepText step={STEP4}>
           <p className="sr-only" aria-hidden={hidden}>
-            {CURVES.ghost} : la courbe chute presque à zéro dès {CURVES.axis[1]}. {CURVES.green} : {CURVES.j7}, {CURVES.j30}.
+            {CURVES.ghost} : la courbe chute presque à zéro dès {CURVES.axis[1]}. {CURVES.green} : {CURVES.j7},{" "}
+            {CURVES.j30}.
           </p>
           <Step4Ctas p={p} />
         </StepText>
@@ -247,4 +296,3 @@ export function SceneTextLive({ id, p }: { id: SceneId; p: MotionValue<number> }
     </AnimatePresence>
   );
 }
-

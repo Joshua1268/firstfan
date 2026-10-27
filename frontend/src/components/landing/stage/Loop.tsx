@@ -108,7 +108,10 @@ function RingLabel({
     go(opacity, active ? 1 : 0.4, LABEL_SPRING, instant);
   });
   return (
-    <div className="absolute left-0 top-0" style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
+    <div
+      className="absolute left-0 top-0"
+      style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}
+    >
       <motion.div style={{ rotate: counter, opacity: i === STOP_LABEL ? 1 : spent }}>
         <motion.span
           ref={(el) => {
@@ -142,7 +145,14 @@ function ArcArrow({ deg, r, hidden }: { deg: number; r: number; hidden?: MotionV
         opacity: hidden,
       }}
     >
-      <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </motion.svg>
   );
 }
@@ -220,7 +230,10 @@ function Bubble({ i, p, final, ring }: { i: number; p: MotionValue<number>; fina
   const size = useRef({ w: 0, h: 0 });
   const x = useTransform(() => bubblePos(layout.get(), i).x);
   const yBase = useTransform(() => bubblePos(layout.get(), i).y);
-  const fall = useTransform(p, [start, start + d * 0.6, start + d], [0, 240, 360], { ease: [gravityEase, linear], clamp: true });
+  const fall = useTransform(p, [start, start + d * 0.6, start + d], [0, 240, 360], {
+    ease: [gravityEase, linear],
+    clamp: true,
+  });
   const y = useTransform(() => yBase.get() + (final ? 0 : fall.get()));
   const rotate = useTransform(p, [start, start + d], [0, 22 * side], { clamp: true });
   const scaleX = useTransform(p, [start, start + d * 0.5], [1, 0.85], { clamp: true });
@@ -237,11 +250,11 @@ function Bubble({ i, p, final, ring }: { i: number; p: MotionValue<number>; fina
   const opacity = useTransform(() => fade.get() * clear.get());
   const popScale = useTransform(pop, [0, 1], [0.8, 1]);
   return (
-    <motion.div
-      className="absolute left-1/2 top-1/2"
-      style={final ? { x, y } : { x, y, rotate, scaleX, opacity }}
-    >
-      <motion.div style={final ? undefined : { scale: popScale, opacity: pop }} className="-translate-x-1/2 -translate-y-1/2">
+    <motion.div className="absolute left-1/2 top-1/2" style={final ? { x, y } : { x, y, rotate, scaleX, opacity }}>
+      <motion.div
+        style={final ? undefined : { scale: popScale, opacity: pop }}
+        className="-translate-x-1/2 -translate-y-1/2"
+      >
         <span
           ref={(el) => {
             if (el) size.current = { w: el.offsetWidth, h: el.offsetHeight + 6 };
@@ -267,7 +280,10 @@ function TourCounter({ p, final }: { p: MotionValue<number>; final: boolean }) {
     if (n !== tour) setTour(n);
   });
   return (
-    <div data-tour="" className="relative mx-auto h-5 w-fit min-w-[220px] overflow-hidden text-center font-mono text-[12px] leading-5 tabular-nums text-ink-muted lg:text-[13px]">
+    <div
+      data-tour=""
+      className="relative mx-auto h-5 w-fit min-w-[220px] overflow-hidden text-center font-mono text-[12px] leading-5 tabular-nums text-ink-muted lg:text-[13px]"
+    >
       <AnimatePresence initial={false}>
         {tour >= 0 && (
           <motion.span
@@ -312,7 +328,10 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
        * s'efface le temps qu'un label la croise (labelGap) : aucun texte n'est jamais masqué.
        * Flèches et labels tournent dans deux calques distincts, avec la même rotation.
        */}
-      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
+      <motion.div
+        className="absolute left-1/2 top-1/2 will-change-transform"
+        style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}
+      >
         <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {ARROW_DEG.map((deg, i) => (
             <ArcArrow key={deg} deg={deg} r={r} hidden={i === BREACH_ARROW ? breachArrow : undefined} />
@@ -322,14 +341,29 @@ export function Loop({ p, final = false }: { p: MotionValue<number>; final?: boo
       {LOOP.bubbles.map((_, i) => (
         <Bubble key={i} i={i} p={p} final={final} ring={ringFrame} />
       ))}
-      <motion.div className="absolute left-1/2 top-1/2 will-change-transform" style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}>
+      <motion.div
+        className="absolute left-1/2 top-1/2 will-change-transform"
+        style={{ x: cx, y: cy, scale, opacity: final ? 1 : sharp }}
+      >
         <motion.div className="absolute left-0 top-0 will-change-transform" style={{ rotate: ringRotate }}>
           {LABEL_DEG.map((_, i) => (
-            <RingLabel key={i} i={i} r={r} rotate={rotate} counter={counter} spent={spent} onSize={onSize} final={final} />
+            <RingLabel
+              key={i}
+              i={i}
+              r={r}
+              rotate={rotate}
+              counter={counter}
+              spent={spent}
+              onSize={onSize}
+              final={final}
+            />
           ))}
         </motion.div>
       </motion.div>
-      <motion.div className="absolute left-1/2 top-1/2 w-[320px] -ml-[160px]" style={{ x: cx, y: counterY, opacity: spent }}>
+      <motion.div
+        className="absolute left-1/2 top-1/2 w-[320px] -ml-[160px]"
+        style={{ x: cx, y: counterY, opacity: spent }}
+      >
         <TourCounter p={p} final={final} />
       </motion.div>
     </motion.div>

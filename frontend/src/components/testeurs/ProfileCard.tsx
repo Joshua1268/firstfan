@@ -27,14 +27,24 @@ export function ProfileCard() {
   const reduce = useReduce();
   const start = reduce ? false : "hidden";
   return (
-    <motion.div aria-hidden="true" initial={start} animate="show" className="relative mx-auto w-full max-w-[340px] lg:max-w-[360px]">
+    <motion.div
+      aria-hidden="true"
+      initial={start}
+      animate="show"
+      className="relative mx-auto w-full max-w-[340px] lg:max-w-[360px]"
+    >
       {/* Cordon : un trait qui descend du haut de la colonne jusqu'à l'œillet de la carte. */}
       <div className="absolute -top-24 left-1/2 hidden h-24 w-px -translate-x-1/2 bg-gradient-to-b from-transparent to-line lg:block" />
       <motion.div
         data-reveal=""
         variants={{
           hidden: { y: -48, rotate: -9, opacity: 0 },
-          show: { y: 0, rotate: -3, opacity: 1, transition: { ...DROP, delay: 0.45, opacity: { duration: 0.2, delay: 0.45 } } },
+          show: {
+            y: 0,
+            rotate: -3,
+            opacity: 1,
+            transition: { ...DROP, delay: 0.45, opacity: { duration: 0.2, delay: 0.45 } },
+          },
         }}
         style={{ rotate: -3, transformOrigin: "50% 0%" }}
         className="relative rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-[0_40px_80px_-24px_rgba(0,0,0,.7),inset_0_0_0_1px_rgba(242,237,227,.05)] md:p-7"
@@ -50,7 +60,9 @@ export function ProfileCard() {
         <div className="mt-6 flex items-center gap-4">
           <JobAvatar size={64} />
           <div className="min-w-0">
-            <p className="font-display text-[30px] font-extrabold leading-none text-ink [font-variation-settings:'wdth'_75]">Awa K.</p>
+            <p className="font-display text-[30px] font-extrabold leading-none text-ink [font-variation-settings:'wdth'_75]">
+              Awa K.
+            </p>
             <p className="mt-1.5 text-[15px] leading-snug text-ink-muted">Comptable · Cocody</p>
           </div>
         </div>
@@ -77,7 +89,12 @@ export function ProfileCard() {
           data-reveal=""
           variants={{
             hidden: { scale: 1.6, rotate: -22, opacity: 0 },
-            show: { scale: 1, rotate: -10, opacity: 1, transition: { ...STAMP_SPRING, delay: 1.05, opacity: { duration: dur.instant / 1000, delay: 1.05 } } },
+            show: {
+              scale: 1,
+              rotate: -10,
+              opacity: 1,
+              transition: { ...STAMP_SPRING, delay: 1.05, opacity: { duration: dur.instant / 1000, delay: 1.05 } },
+            },
           }}
           style={{ rotate: -10 }}
           className="absolute -bottom-5 -right-2 inline-flex items-center gap-1.5 rounded-[10px] border-2 border-accent bg-bg px-3 py-1.5 font-mono text-[12px] font-medium uppercase tracking-[0.14em] text-accent md:-right-6"
@@ -89,7 +106,11 @@ export function ProfileCard() {
               className="pointer-events-none absolute inset-[-6px] rounded-[14px] border-2 border-accent"
               variants={{
                 hidden: { scale: 0.8, opacity: 0 },
-                show: { scale: [0.8, 1.4], opacity: [0.9, 0], transition: { duration: dur.medium / 1000, ease: "easeOut", delay: 1.1 } },
+                show: {
+                  scale: [0.8, 1.4],
+                  opacity: [0.9, 0],
+                  transition: { duration: dur.medium / 1000, ease: "easeOut", delay: 1.1 },
+                },
               }}
             />
           )}

@@ -51,7 +51,10 @@ const drawVariants = (i: number): Variants => ({
   show: {
     pathLength: 1,
     opacity: 1,
-    transition: { pathLength: { delay: i * 0.1 + 0.2, duration: 0.6, ease: ease.inOut }, opacity: { delay: i * 0.1 + 0.2, duration: 0.01 } },
+    transition: {
+      pathLength: { delay: i * 0.1 + 0.2, duration: 0.6, ease: ease.inOut },
+      opacity: { delay: i * 0.1 + 0.2, duration: 0.01 },
+    },
   },
 });
 
@@ -61,7 +64,11 @@ const stampVariants = (i: number): Variants => ({
   show: {
     scale: 1,
     opacity: 1,
-    transition: { ...STAMP_SPRING, delay: i * 0.1 + 0.75, opacity: { duration: dur.instant / 1000, delay: i * 0.1 + 0.75 } },
+    transition: {
+      ...STAMP_SPRING,
+      delay: i * 0.1 + 0.75,
+      opacity: { duration: dur.instant / 1000, delay: i * 0.1 + 0.75 },
+    },
   },
 });
 

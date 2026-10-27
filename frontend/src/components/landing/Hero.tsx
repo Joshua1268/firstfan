@@ -90,7 +90,10 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
       className="relative flex min-h-svh flex-col overflow-x-clip pt-16"
     >
       <div className="relative mx-auto flex w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] flex-1 flex-col px-[var(--grid-margin)] pb-6 md:justify-center md:pb-24">
-        <p data-hero-guard className="hero-lift-12 mt-8 text-balance text-center font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted md:mt-0 md:self-start md:text-left">
+        <p
+          data-hero-guard
+          className="hero-lift-12 mt-8 text-balance text-center font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted md:mt-0 md:self-start md:text-left"
+        >
           Pour les devs qui ont un MVP et zéro vrai utilisateur
         </p>
 

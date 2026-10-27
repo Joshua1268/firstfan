@@ -56,7 +56,10 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
 
   if (!desktop) {
     return (
-      <nav aria-label={NAV.label} className="absolute left-[var(--st-tl)] right-[calc(var(--st-tl)+140px)] top-[64px] z-10 flex items-center">
+      <nav
+        aria-label={NAV.label}
+        className="absolute left-[var(--st-tl)] right-[calc(var(--st-tl)+140px)] top-[64px] z-10 flex items-center"
+      >
         <ol className="flex flex-1 items-center gap-1.5">
           {NAV.items.map((item, i) => (
             <li key={item.scene} className="flex-1">
@@ -73,7 +76,11 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
               >
                 <span className="h-[3px] w-full rounded-full bg-line" />
                 {active === i && (
-                  <motion.span layoutId="stage-dot" transition={DOT} className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-accent" />
+                  <motion.span
+                    layoutId="stage-dot"
+                    transition={DOT}
+                    className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-accent"
+                  />
                 )}
               </a>
             </li>
@@ -102,7 +109,13 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
               >
                 <span className="relative grid h-6 w-2.5 place-items-center">
                   <span className="size-1.5 rounded-full bg-ghost transition-colors duration-150 group-hover:bg-ink-muted" />
-                  {active === i && <motion.span layoutId="stage-dot" transition={DOT} className="absolute inset-0 rounded-full bg-accent" />}
+                  {active === i && (
+                    <motion.span
+                      layoutId="stage-dot"
+                      transition={DOT}
+                      className="absolute inset-0 rounded-full bg-accent"
+                    />
+                  )}
                 </span>
                 <span aria-hidden="true">{item.label}</span>
               </a>

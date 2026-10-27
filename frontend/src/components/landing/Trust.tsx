@@ -81,11 +81,20 @@ function Certificate() {
 
   const hashRef = useScramble(run, () => {
     setTyping(false);
-    void stamp.start({ scale: 1, rotate: -8, opacity: 1, transition: { ...STAMP, opacity: { duration: dur.instant / 1000 } } });
+    void stamp.start({
+      scale: 1,
+      rotate: -8,
+      opacity: 1,
+      transition: { ...STAMP, opacity: { duration: dur.instant / 1000 } },
+    });
     window.setTimeout(() => {
       setLanded(true);
       void card.start({ y: [0, 3, 0], transition: { duration: 0.12, ease: "easeOut" } });
-      void ink.start({ scale: [0.7, 1.5], opacity: [0.9, 0], transition: { duration: dur.medium / 1000, ease: "easeOut" } });
+      void ink.start({
+        scale: [0.7, 1.5],
+        opacity: [0.9, 0],
+        transition: { duration: dur.medium / 1000, ease: "easeOut" },
+      });
     }, 140);
   });
 
@@ -97,7 +106,9 @@ function Certificate() {
       aria-label="Certificat d'antériorité horodaté du projet MonApp."
       className="relative rounded-[var(--radius-card)] border border-line bg-surface p-6 font-mono text-[14px] leading-[1.9] text-ink shadow-[0_40px_80px_-20px_rgba(0,0,0,.6),inset_0_0_0_1px_rgba(242,237,227,.06)] md:p-8 md:text-[15px]"
     >
-      <p className="text-[11px] uppercase tracking-[0.12em] text-ink-muted">{PRODUCT_NAME} · Preuve d&apos;antériorité</p>
+      <p className="text-[11px] uppercase tracking-[0.12em] text-ink-muted">
+        {PRODUCT_NAME} · Preuve d&apos;antériorité
+      </p>
       <dl className="mt-5 flex flex-col">
         <div className="flex flex-wrap gap-x-2">
           <dt className="text-ink-muted">Projet :</dt>
@@ -113,7 +124,9 @@ function Certificate() {
             <span ref={hashRef} data-cert-hash="" className="tabular-nums">
               {HASH}
             </span>
-            {typing && <span aria-hidden="true" className="cert-cursor ml-0.5 inline-block h-[1.1em] w-[0.6em] bg-accent" />}
+            {typing && (
+              <span aria-hidden="true" className="cert-cursor ml-0.5 inline-block h-[1.1em] w-[0.6em] bg-accent" />
+            )}
           </dd>
         </div>
       </dl>
@@ -152,8 +165,8 @@ export function Trust() {
             Protégé dès le dépôt.
           </h2>
           <p className="mt-6 max-w-[60ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
-            Ton projet est horodaté dès que tu le déposes&nbsp;: tu as une preuve d&apos;antériorité. Les testeurs s&apos;engagent à la
-            confidentialité, le contenu est protégé contre la copie, et tout est tracé.
+            Ton projet est horodaté dès que tu le déposes&nbsp;: tu as une preuve d&apos;antériorité. Les testeurs
+            s&apos;engagent à la confidentialité, le contenu est protégé contre la copie, et tout est tracé.
           </p>
         </div>
 

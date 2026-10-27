@@ -51,7 +51,15 @@ export function useStamp(p: MotionValue<number>, t: number, to = 1) {
   return { scale, opacity, inkScale, inkOpacity };
 }
 
-export function InkRing({ scale, opacity, className = "" }: { scale: MotionValue<number>; opacity: MotionValue<number>; className?: string }) {
+export function InkRing({
+  scale,
+  opacity,
+  className = "",
+}: {
+  scale: MotionValue<number>;
+  opacity: MotionValue<number>;
+  className?: string;
+}) {
   return (
     <motion.span
       aria-hidden="true"
@@ -64,8 +72,14 @@ export function InkRing({ scale, opacity, className = "" }: { scale: MotionValue
 function VerifiedBadge({ p }: { p: MotionValue<number> }) {
   const s = useStamp(p, 0.43, 0.7);
   return (
-    <motion.div className="absolute -left-7 -top-5 origin-top-left" style={{ scale: s.scale, opacity: s.opacity, rotate: -6 }}>
-      <span data-proof-badge="" className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink">
+    <motion.div
+      className="absolute -left-7 -top-5 origin-top-left"
+      style={{ scale: s.scale, opacity: s.opacity, rotate: -6 }}
+    >
+      <span
+        data-proof-badge=""
+        className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink"
+      >
         <CheckIcon size={16} strokeWidth={2.5} />
         {CARD.proof}
         <InkRing scale={s.inkScale} opacity={s.inkOpacity} />
@@ -110,7 +124,9 @@ function Polaroid({ i, p, desktop }: { i: number; p: MotionValue<number>; deskto
 
 export function FeedbackBubble({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <span className={`relative block rounded-[16px] rounded-tr-[4px] bg-ink px-3.5 py-2.5 text-[13px] font-medium leading-snug text-bg ${className}`}>
+    <span
+      className={`relative block rounded-[16px] rounded-tr-[4px] bg-ink px-3.5 py-2.5 text-[13px] font-medium leading-snug text-bg ${className}`}
+    >
       {text}
     </span>
   );
@@ -151,7 +167,9 @@ function Bubble({ i, p, desktop }: { i: number; p: MotionValue<number>; desktop:
 
 export function RatingPill({ value, className = "" }: { value: string; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold leading-none text-ink ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold leading-none text-ink ${className}`}
+    >
       <StarIcon size={14} />
       {value}
     </span>
@@ -161,7 +179,10 @@ export function RatingPill({ value, className = "" }: { value: string; className
 function RatingProof({ p }: { p: MotionValue<number> }) {
   const s = useStamp(p, KEEP_T, 0.7);
   return (
-    <motion.div className="absolute -bottom-4 -right-5 origin-bottom-right" style={{ scale: s.scale, opacity: s.opacity }}>
+    <motion.div
+      className="absolute -bottom-4 -right-5 origin-bottom-right"
+      style={{ scale: s.scale, opacity: s.opacity }}
+    >
       <RatingPill value={RATINGS.toDev.value} />
     </motion.div>
   );

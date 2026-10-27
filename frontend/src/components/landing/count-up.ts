@@ -8,7 +8,11 @@ type Opts = { duration?: number; delay?: number; onComplete?: () => void };
  * La MotionValue porte déjà la valeur du serveur (rendu serveur, sans JS, reduced-motion) : on la remet
  * à 0 au départ du comptage, sinon l'animation irait de `value` à `value`.
  */
-export function startCountUp(count: MotionValue<number>, value: number, { duration = 1.2, delay = 0, onComplete }: Opts = {}) {
+export function startCountUp(
+  count: MotionValue<number>,
+  value: number,
+  { duration = 1.2, delay = 0, onComplete }: Opts = {},
+) {
   count.set(0);
   return animate(count, [0, value], {
     duration,

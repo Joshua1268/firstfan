@@ -54,9 +54,20 @@ function CheckItem({ i, p, flash }: { i: number; p: MotionValue<number>; flash: 
   });
   return (
     <li className="flex items-center gap-2.5 text-[11.5px] leading-tight text-ink">
-      <motion.span className="relative grid size-4 flex-none place-items-center rounded-[5px] border border-ghost" style={{ scale: box }}>
+      <motion.span
+        className="relative grid size-4 flex-none place-items-center rounded-[5px] border border-ghost"
+        style={{ scale: box }}
+      >
         <motion.span className="absolute inset-[-1px] rounded-[5px] bg-accent" style={{ opacity: fill }} />
-        <svg viewBox="0 0 24 24" className="relative size-3 text-accent-ink" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          className="relative size-3 text-accent-ink"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <motion.path d="M5 12.5l4.5 4.5L19 7.5" style={{ pathLength: draw }} />
         </svg>
       </motion.span>

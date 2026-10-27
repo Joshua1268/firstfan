@@ -36,7 +36,11 @@ export default function Contact() {
         )}
       </div>
       <Actions>
-        {email ? <PrimaryLink href={`mailto:${email}`}>Écrire un e-mail</PrimaryLink> : <PrimaryLink href="/">Retour à l&apos;accueil</PrimaryLink>}
+        {email ? (
+          <PrimaryLink href={`mailto:${email}`}>Écrire un e-mail</PrimaryLink>
+        ) : (
+          <PrimaryLink href="/">Retour à l&apos;accueil</PrimaryLink>
+        )}
         <SecondaryLink href="/confidentialite">Tes données</SecondaryLink>
       </Actions>
     </PageShell>

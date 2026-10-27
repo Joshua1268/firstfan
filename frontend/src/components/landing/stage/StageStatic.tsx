@@ -75,7 +75,11 @@ function Frame({ def, animated }: { def: FrameDef; animated: boolean }) {
   return (
     <section ref={root} data-static-scene={def.id} className="relative overflow-clip lg:h-[max(640px,100svh)]">
       <StageProvider value={ctx}>
-        <div ref={visual} aria-hidden="true" className="absolute inset-x-0 top-0 h-[max(640px,100svh)] [perspective:1200px]">
+        <div
+          ref={visual}
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[max(640px,100svh)] [perspective:1200px]"
+        >
           {withRing && <Break p={ring} final={def.final} />}
           {withRing && <Loop p={ring} final={def.final} />}
           {def.id === "step4" && <Curves p={p} />}

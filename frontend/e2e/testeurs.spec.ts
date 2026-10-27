@@ -14,7 +14,9 @@ test("testers page renders in French with its own title, description and H1", as
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(H1, { ignoreCase: true });
   // L'ordre de la recherche : expertise, rémunération, flexibilité, confiance, candidature.
   const order = ["#ton-metier", "#remuneration", "#a-ton-rythme", "#confiance", "#cta-final"];
-  const tops = await Promise.all(order.map((s) => page.locator(s).evaluate((el) => el.getBoundingClientRect().top + window.scrollY)));
+  const tops = await Promise.all(
+    order.map((s) => page.locator(s).evaluate((el) => el.getBoundingClientRect().top + window.scrollY)),
+  );
   expect([...tops].sort((a, b) => a - b)).toEqual(tops);
   await expect(page.locator("#remuneration")).toContainText("Chaque test est rémunéré.");
   await expect(page.locator("#remuneration")).toContainText("Wave, Orange Money ou MTN MoMo");
@@ -59,7 +61,9 @@ test("testers page never scrolls sideways", async ({ page }) => {
 
 test("nav and footer anchors point back to the home sections, and every link works", async ({ page, request }) => {
   await page.goto("/testeurs");
-  const anchors = await page.locator("header a[href*='#'], footer a[href*='#']").evaluateAll((els) => els.map((e) => e.getAttribute("href")!));
+  const anchors = await page
+    .locator("header a[href*='#'], footer a[href*='#']")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("href")!));
   expect(anchors.length).toBeGreaterThan(0);
   for (const href of anchors) expect(href, href).toMatch(/^\/#/);
   await expect(page.locator("header nav a[href='/testeurs']").first()).toHaveAttribute("aria-current", "page");
@@ -67,7 +71,13 @@ test("nav and footer anchors point back to the home sections, and every link wor
   const ids = [...new Set(anchors.map((h) => h.slice(1)))];
   const internal = await page
     .locator("a[href]")
-    .evaluateAll((els) => [...new Set(els.map((e) => e.getAttribute("href")!).filter((h) => h.startsWith("/") && !h.startsWith("//") && !h.includes("#")))]);
+    .evaluateAll((els) => [
+      ...new Set(
+        els
+          .map((e) => e.getAttribute("href")!)
+          .filter((h) => h.startsWith("/") && !h.startsWith("//") && !h.includes("#")),
+      ),
+    ]);
   for (const href of internal) expect((await request.get(href)).status(), href).toBe(200);
   await page.goto("/");
   for (const id of ids) await expect(page.locator(id)).toHaveCount(1);
@@ -78,7 +88,13 @@ test("testers page reads fully without JavaScript", async ({ browser }, info) =>
   const page = await ctx.newPage();
   await page.goto((info.project.use.baseURL ?? "http://127.0.0.1:3100") + "/testeurs");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  for (const t of ["Personne ne connaît ton travail mieux que toi.", "Chaque test est rémunéré.", "Depuis ton téléphone, quand tu veux.", "Du sérieux, dans les deux sens.", "Ton métier compte."])
+  for (const t of [
+    "Personne ne connaît ton travail mieux que toi.",
+    "Chaque test est rémunéré.",
+    "Depuis ton téléphone, quand tu veux.",
+    "Du sérieux, dans les deux sens.",
+    "Ton métier compte.",
+  ])
     await expect(page.getByRole("heading", { name: t })).toBeVisible();
   await expect(page.getByText("Le dev valide ton test")).toBeVisible();
   await expect(page.locator("main [data-apply-cta]").first()).toBeVisible();

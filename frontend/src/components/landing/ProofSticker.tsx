@@ -7,14 +7,17 @@ import { CheckIcon, StarIcon } from "./icons";
  */
 export type ProofKind = "pill" | "check" | "rating" | "tag" | "ticket";
 
-const base = "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
+const base =
+  "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
 
 export function ProofSticker({ text, kind, className = "" }: { text: string; kind: ProofKind; className?: string }) {
   if (kind === "rating") {
     return (
       <span className={`relative inline-flex ${className}`}>
         <span aria-hidden="true" className="sticker-shadow rounded-full" />
-        <span className={`${base} relative flex size-[76px] flex-col items-center justify-center gap-0.5 rounded-full bg-ink text-bg md:size-[88px]`}>
+        <span
+          className={`${base} relative flex size-[76px] flex-col items-center justify-center gap-0.5 rounded-full bg-ink text-bg md:size-[88px]`}
+        >
           <StarIcon size={16} fill="currentColor" />
           <span className="tabular-nums">{text}</span>
         </span>

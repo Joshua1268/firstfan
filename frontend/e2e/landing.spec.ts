@@ -37,7 +37,10 @@ test("hero copy is server-rendered and its single CTA is clickable", async ({ pa
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Tes futurs clients testent ton app\./i);
   const hero = page.locator("#hero");
   await expect(hero.getByRole("link", { name: "Je suis développeur" })).toBeVisible();
-  await expect(hero.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
+  await expect(hero.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute(
+    "href",
+    "/inscription?role=dev",
+  );
   // Le côté testeur a sa propre page : plus de CTA testeur dans le hero.
   await expect(hero.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveCount(0);
   await expect(hero.locator("a[href*='role=tester']")).toHaveCount(0);
@@ -57,7 +60,8 @@ test("mobile layout", async ({ page }, info) => {
   await expect(ctas.first()).toHaveAttribute("data-camp", "dev");
   // Les autocollants mobiles sont posés sous le CTA : ils ne passent jamais devant le H1 dans l'ordre de lecture.
   const cta = (await ctas.first().boundingBox())!;
-  for (const s of await page.locator("[data-sticker]").all()) expect((await s.boundingBox())!.y).toBeGreaterThan(cta.y + cta.height);
+  for (const s of await page.locator("[data-sticker]").all())
+    expect((await s.boundingBox())!.y).toBeGreaterThan(cta.y + cta.height);
 });
 
 test("hero reads in three levels: H1, then one sentence, then one button", async ({ page }) => {
@@ -149,7 +153,10 @@ test("mobile menu moves focus in, traps Tab, closes on Escape and gives focus ba
     });
   // 5 liens dans le menu (3 sections, Connexion, le CTA dev) + le bouton de fermeture : 6 tabulations ramènent au lien de tête.
   await expect(page.locator("[data-mobile-menu] a[href]")).toHaveCount(5);
-  await expect(page.locator("[data-mobile-menu]").getByRole("link", { name: "Pour les testeurs" })).toHaveAttribute("href", "/testeurs");
+  await expect(page.locator("[data-mobile-menu]").getByRole("link", { name: "Pour les testeurs" })).toHaveAttribute(
+    "href",
+    "/testeurs",
+  );
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press("Tab");
     expect(await focusIsTrapped()).toBe(true);
@@ -178,7 +185,12 @@ test("the check sits above CLIENTS without touching FUTURS", async ({ page }) =>
     const f = futurs.getBoundingClientRect();
     const c = clients.getBoundingClientRect();
     const check = document.querySelector("#hero-title path")!.getBoundingClientRect();
-    return { baseline, futurs: { left: f.left, right: f.right }, clients: { left: c.left, right: c.right, top: c.top }, check: { left: check.left, right: check.right, top: check.top, bottom: check.bottom } };
+    return {
+      baseline,
+      futurs: { left: f.left, right: f.right },
+      clients: { left: c.left, right: c.right, top: c.top },
+      check: { left: check.left, right: check.right, top: check.top, bottom: check.bottom },
+    };
   });
   // Sous la ligne de base de FUTURS (avec une marge pour l'épaisseur du trait arrondi).
   expect(geo.check.top).toBeGreaterThanOrEqual(geo.baseline + 2);
@@ -227,13 +239,18 @@ test("jobs marquee is a static centered list with reduced motion", async ({ brow
   const pills = page.locator("[data-marquee-track] [data-pill][data-copy='0']");
   await expect(pills).toHaveCount(14);
   const vw = page.viewportSize()!.width;
-  const boxes = await pills.evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ l: r.left, r: r.right })));
+  const boxes = await pills.evaluateAll((els) =>
+    els.map((e) => e.getBoundingClientRect()).map((r) => ({ l: r.left, r: r.right })),
+  );
   for (const b of boxes) {
     expect(b.l).toBeGreaterThanOrEqual(0);
     expect(b.r).toBeLessThanOrEqual(vw);
   }
   for (const sel of ["[data-marquee-track] .marquee-list", ".marquee-band"]) {
-    const m = await page.locator(sel).first().evaluate((e) => ({ sw: e.scrollWidth, cw: e.clientWidth }));
+    const m = await page
+      .locator(sel)
+      .first()
+      .evaluate((e) => ({ sw: e.scrollWidth, cw: e.clientWidth }));
     expect(m.cw, `${sel} clientWidth`).toBeGreaterThan(0);
     expect(m.sw, `${sel} scrollWidth`).toBeLessThanOrEqual(m.cw);
   }
@@ -367,7 +384,10 @@ test("stage threshold choreographies reverse when scrolling back up", async ({ p
     page.evaluate(() => {
       const arc = document.querySelector<SVGPathElement>("[data-stage] [data-arc]")!;
       const color = document.querySelector<HTMLElement>("[data-stage] [data-card-color]")!;
-      return { dash: parseFloat(getComputedStyle(arc).strokeDashoffset), color: parseFloat(getComputedStyle(color).opacity) };
+      return {
+        dash: parseFloat(getComputedStyle(arc).strokeDashoffset),
+        color: parseFloat(getComputedStyle(color).opacity),
+      };
     });
   await scrollStageTo(page, 0.3);
   await expect(stage).toHaveAttribute("data-scene", "voices");
@@ -408,13 +428,16 @@ test("live stage scene A: a ring label never covers a visible bubble", async ({ 
         for (let a: Element | null = el; a; a = a.parentElement) o *= Number(getComputedStyle(a).opacity);
         return o;
       };
-      const labels = [...document.querySelectorAll("[data-stage] [data-ring-label]")].map((e) => e.getBoundingClientRect());
+      const labels = [...document.querySelectorAll("[data-stage] [data-ring-label]")].map((e) =>
+        e.getBoundingClientRect(),
+      );
       const out: string[] = [];
       for (const b of document.querySelectorAll("[data-stage] [data-loop-bubble]")) {
         if (shown(b) < 0.3) continue;
         const r = b.getBoundingClientRect();
         for (const l of labels)
-          if (r.left < l.right && l.left < r.right && r.top < l.bottom && l.top < r.bottom) out.push(b.textContent ?? "");
+          if (r.left < l.right && l.left < r.right && r.top < l.bottom && l.top < r.bottom)
+            out.push(b.textContent ?? "");
       }
       return out;
     });
@@ -424,8 +447,14 @@ test("live stage scene A: a ring label never covers a visible bubble", async ({ 
 
 test("server HTML has a single heading per stage scene", async ({ request }) => {
   const html = await (await request.get("/")).text();
-  for (const title of ["Et si on cassait la boucle", "Des pros de ton métier cible. Vérifiés.", "Pas des likes. Des gens qui reviennent."]) {
-    const count = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].filter((m) => m[1].replace(/<[^>]+>/g, "").includes(title)).length;
+  for (const title of [
+    "Et si on cassait la boucle",
+    "Des pros de ton métier cible. Vérifiés.",
+    "Pas des likes. Des gens qui reviennent.",
+  ]) {
+    const count = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].filter((m) =>
+      m[1].replace(/<[^>]+>/g, "").includes(title),
+    ).length;
     expect(count, title).toBe(1);
   }
 });
@@ -468,7 +497,8 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
   const noOverlap = (a: Awaited<ReturnType<typeof boxes>>, b: Awaited<ReturnType<typeof boxes>>) => {
     expect(a.length).toBeGreaterThan(0);
     expect(b.length).toBeGreaterThan(0);
-    for (const x of a) for (const y of b) if (x !== y) expect(overlaps(x.box, y.box), `${x.text} / ${y.text}`).toBe(false);
+    for (const x of a)
+      for (const y of b) if (x !== y) expect(overlaps(x.box, y.box), `${x.text} / ${y.text}`).toBe(false);
   };
   // Boucle : labels lisibles, compteur de tours dégagé.
   const labels = await boxes("loop", "[data-ring-label]");
@@ -482,7 +512,11 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
         const r = e.getBoundingClientRect();
         return { x: r.x, y: r.y, width: r.width, height: r.height };
       };
-      return { name: el.getAttribute("data-tester"), card: box(el), stamp: box(el.querySelector("[data-tester-stamp]")!) };
+      return {
+        name: el.getAttribute("data-tester"),
+        card: box(el),
+        stamp: box(el.querySelector("[data-tester-stamp]")!),
+      };
     }),
   );
   expect(testers.length).toBeGreaterThan(1);
@@ -573,7 +607,8 @@ test("live section shows only the non-zero server counters and the demo mention"
   await live.scrollIntoViewIfNeeded();
   await expect(live.locator("[data-live-counter]")).toHaveCount(nonZero);
   // Jamais de « 0 » affiché (même règle que le badge du hero).
-  for (const v of await live.locator("[data-live-counter] .sr-only").allTextContents()) expect(Number(v)).toBeGreaterThan(0);
+  for (const v of await live.locator("[data-live-counter] .sr-only").allTextContents())
+    expect(Number(v)).toBeGreaterThan(0);
   await expect(live).not.toContainText(/(?<!\d)0 (tests? en cours|apps? testées?)/);
   await expect(live).toContainText("Données de démo CADEV · mises à jour toutes les 15 s");
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
@@ -640,8 +675,14 @@ test("final CTA links and section anchors", async ({ page }) => {
   await expect(cta.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
   // Le côté testeur passe par sa page, /testeurs (CTA final, bandeau en milieu de page, nav, footer).
   await expect(cta.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute("href", "/testeurs");
-  await expect(page.locator("#pro").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute("href", "/testeurs");
-  await expect(page.locator("footer").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute("href", "/testeurs");
+  await expect(page.locator("#pro").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute(
+    "href",
+    "/testeurs",
+  );
+  await expect(page.locator("footer").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute(
+    "href",
+    "/testeurs",
+  );
   await expect(page.locator("header nav a[href='/testeurs']").first()).toHaveText("Pour les testeurs");
   // Le dev reste l'action principale du CTA final : devant le CTA testeur sur toutes les tailles.
   const [dev, pro] = await Promise.all([
@@ -650,7 +691,9 @@ test("final CTA links and section anchors", async ({ page }) => {
   ]);
   expect(dev!.x < pro!.x || dev!.y + dev!.height <= pro!.y).toBe(true);
   // Chaque ancre de la nav mène à une section qui existe.
-  for (const href of await page.locator("header nav a[href^='#']").evaluateAll((els) => els.map((e) => e.getAttribute("href")!)))
+  for (const href of await page
+    .locator("header nav a[href^='#']")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("href")!)))
     await expect(page.locator(href)).toHaveCount(1);
   for (const id of ["pro", "en-direct", "comment-ca-marche", "confiance", "entre-devs", "cta-final"])
     await expect(page.locator(`section#${id}`)).toHaveAttribute("aria-labelledby", /.+/);
@@ -659,7 +702,9 @@ test("final CTA links and section anchors", async ({ page }) => {
 test("final CTA buttons sit above the fold once the section is reached", async ({ page }, info) => {
   test.skip(!["desktop", "wide", "laptop", "laptop-sm"].includes(info.project.name));
   await page.goto("/");
-  await page.locator("#cta-final").evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: "instant" }));
+  await page
+    .locator("#cta-final")
+    .evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: "instant" }));
   await page.waitForTimeout(1600);
   const cta = await page.locator("#cta-final").getByRole("link", { name: "Je suis développeur" }).boundingBox();
   expect(cta!.y + cta!.height).toBeLessThanOrEqual(page.viewportSize()!.height);

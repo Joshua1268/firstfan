@@ -91,14 +91,19 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
 
 export function Stage() {
   // Le HTML serveur contient les deux versions (le CSS choisit) ; après l'hydratation, on démonte celle qui ne sert pas.
-  const hydrated = useSyncExternalStore(noop, () => true, () => false);
+  const hydrated = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
   const reduce = useReducedMotion() ?? false;
   const short = useMedia("(max-height: 359px)", false);
   // Repli : appareil modeste ou économie de données.
   const [lowEnd, setLowEnd] = useState(false);
   useEffect(() => {
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    const weak = (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
+    const weak =
+      (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- capacité de l'appareil, connue seulement côté client
     if (weak) setLowEnd(true);
   }, []);

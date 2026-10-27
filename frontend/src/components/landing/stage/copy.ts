@@ -1,7 +1,11 @@
 import { PRODUCT_NAME } from "@/lib/brand";
 
 /** Typographie française : espace insécable dans les guillemets et avant « ? : ! », pour ne jamais orpheliner la ponctuation. */
-const fr = (t: string) => t.replace(/« /g, "«\u00a0").replace(/ »/g, "\u00a0»").replace(/ (?=[?:!])/g, "\u00a0");
+const fr = (t: string) =>
+  t
+    .replace(/« /g, "«\u00a0")
+    .replace(/ »/g, "\u00a0»")
+    .replace(/ (?=[?:!])/g, "\u00a0");
 
 /** Textes du stage, verbatim depuis la spec §3.4 (partagés par le stage animé et le repli statique). */
 

@@ -9,7 +9,10 @@ const NUM = String.raw`\d{1,3}(?:[   .,]\d{3})+|\d+`;
 const RULES = [
   {
     rule: "amount",
-    re: new RegExp(String.raw`(?<![\p{L}\p{N}])(?:${NUM})[   ]?${CURRENCY}(?![\p{L}\p{N}])|[€$][   ]?(?:${NUM})`, "giu"),
+    re: new RegExp(
+      String.raw`(?<![\p{L}\p{N}])(?:${NUM})[   ]?${CURRENCY}(?![\p{L}\p{N}])|[€$][   ]?(?:${NUM})`,
+      "giu",
+    ),
   },
   { rule: "emoji", re: /(?![\u00a9\u00ae\u2122])\p{Extended_Pictographic}/gu },
   { rule: "arrow", re: /[\u2190-\u21ff\u27f0-\u27ff\u2900-\u297f]/gu },

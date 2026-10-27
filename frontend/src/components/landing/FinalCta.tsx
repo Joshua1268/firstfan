@@ -28,7 +28,13 @@ const BOARD: { text: string; kind: ProofKind; r: number; side: -1 | 1; m?: boole
   { text: "Le dev aussi est noté", kind: "pill", r: -2, side: 1 },
 ];
 
-const PROOFS = ["Métier vérifié", "Parcours guidé 4/4", "Capture 14:32:07", "Note du dev : 4,6 / 5", "Encore là à J30"] as const;
+const PROOFS = [
+  "Métier vérifié",
+  "Parcours guidé 4/4",
+  "Capture 14:32:07",
+  "Note du dev : 4,6 / 5",
+  "Encore là à J30",
+] as const;
 
 const RING_R = 46;
 const RING_OPEN = 0.88;
@@ -120,7 +126,12 @@ function AppCard() {
         className="absolute -right-4 -top-5 inline-flex items-center rounded-[10px] border-2 border-accent bg-bg px-3 py-1.5 font-mono text-[13px] font-medium uppercase tracking-[0.16em] text-accent"
         variants={{
           hidden: { scale: 1.6, opacity: 0, rotate: -18 },
-          show: { scale: 1, opacity: 1, rotate: -8, transition: { ...STAMP_SPRING, delay: 0.75, opacity: { duration: dur.instant / 1000, delay: 0.75 } } },
+          show: {
+            scale: 1,
+            opacity: 1,
+            rotate: -8,
+            transition: { ...STAMP_SPRING, delay: 0.75, opacity: { duration: dur.instant / 1000, delay: 0.75 } },
+          },
         }}
       >
         Validé
@@ -129,7 +140,11 @@ function AppCard() {
           className="pointer-events-none absolute inset-[-6px] rounded-[14px] border-2 border-accent"
           variants={{
             hidden: { scale: 0.8, opacity: 0 },
-            show: { scale: [0.8, 1.4], opacity: [0.9, 0], transition: { duration: dur.medium / 1000, ease: "easeOut", delay: 0.8 } },
+            show: {
+              scale: [0.8, 1.4],
+              opacity: [0.9, 0],
+              transition: { duration: dur.medium / 1000, ease: "easeOut", delay: 0.8 },
+            },
           }}
         />
       </motion.span>
@@ -145,7 +160,13 @@ function boardVariants(side: -1 | 1, i: number, r: number): Variants {
       y: 0,
       opacity: 1,
       rotate: r,
-      transition: { type: "spring", stiffness: 140, damping: 18, delay: 0.2 + i * 0.06, opacity: { duration: 0.2, delay: 0.2 + i * 0.06 } },
+      transition: {
+        type: "spring",
+        stiffness: 140,
+        damping: 18,
+        delay: 0.2 + i * 0.06,
+        opacity: { duration: 0.2, delay: 0.2 + i * 0.06 },
+      },
     },
   };
 }
@@ -155,7 +176,12 @@ function Board({ side }: { side: -1 | 1 }) {
   return (
     <ul aria-hidden="true" className="grid grid-cols-2 place-items-center gap-x-3 gap-y-6 lg:grid-cols-1 lg:gap-y-7">
       {items.map((b) => (
-        <motion.li key={b.text} data-reveal="" variants={boardVariants(side, b.i, b.r)} className={b.m ? "" : "hidden lg:block"}>
+        <motion.li
+          key={b.text}
+          data-reveal=""
+          variants={boardVariants(side, b.i, b.r)}
+          className={b.m ? "" : "hidden lg:block"}
+        >
           <ProofSticker text={b.text} kind={b.kind} />
         </motion.li>
       ))}
@@ -184,7 +210,12 @@ function MagneticCta() {
   };
   return (
     // tabIndex -1 : Motion rend focusable tout élément avec whileTap ; le seul arrêt de tabulation est le lien.
-    <motion.span tabIndex={-1} style={on ? { x: sx, y: sy } : undefined} whileTap={reduce ? undefined : { scale: 0.97 }} className="flex w-full md:inline-flex md:w-auto">
+    <motion.span
+      tabIndex={-1}
+      style={on ? { x: sx, y: sy } : undefined}
+      whileTap={reduce ? undefined : { scale: 0.97 }}
+      className="flex w-full md:inline-flex md:w-auto"
+    >
       <Link
         href="/inscription?role=dev"
         prefetch={false}
@@ -212,7 +243,15 @@ function ProCta() {
 }
 
 /** Les CTA montent en spring 260/22. */
-function CtaRise({ delay, className = "flex", children }: { delay: number; className?: string; children: React.ReactNode }) {
+function CtaRise({
+  delay,
+  className = "flex",
+  children,
+}: {
+  delay: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
     <motion.div
       data-reveal=""

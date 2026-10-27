@@ -35,7 +35,12 @@ const TOKENS: Tok[] = [
 const TOK_CLS = { tag: "text-ink-muted", attr: "text-ink", str: "text-accent/80", app: "text-ink" } as const;
 
 const THREADS = [
-  { text: fr("Webhooks mobile money en local, vous faites comment ?"), tag: "#paiement", stack: "Flutter", replies: 12 },
+  {
+    text: fr("Webhooks mobile money en local, vous faites comment ?"),
+    tag: "#paiement",
+    stack: "Flutter",
+    replies: 12,
+  },
   {
     text: fr("Mes 3 restauratrices ont toutes bloqué sur le même écran. Quelqu'un a déjà géré l'offline sur Next ?"),
     tag: "#ux",
@@ -127,7 +132,12 @@ function Snippet() {
         {copied ? "Copié" : ""}
       </p>
       {/* Seul défilement horizontal autorisé de la page (§3.9 mobile). */}
-      <div className="overflow-x-auto px-5 py-6 md:px-6 md:py-8" tabIndex={0} role="region" aria-label="Snippet d'usage">
+      <div
+        className="overflow-x-auto px-5 py-6 md:px-6 md:py-8"
+        tabIndex={0}
+        role="region"
+        aria-label="Snippet d'usage"
+      >
         <pre className="relative inline-block overflow-hidden align-top font-mono text-[13px] leading-[1.7] md:text-[14px]">
           <code data-snippet="">
             {TOKENS.map((tok) =>
@@ -202,10 +212,13 @@ function Threads() {
     THREADS.forEach((_, i) => {
       timers.push(window.setTimeout(() => setTyping(i), i * 700));
       timers.push(
-        window.setTimeout(() => {
-          setTyping(null);
-          setShown(i + 1);
-        }, i * 700 + 500),
+        window.setTimeout(
+          () => {
+            setTyping(null);
+            setShown(i + 1);
+          },
+          i * 700 + 500,
+        ),
       );
     });
     return () => timers.forEach((t) => window.clearTimeout(t));
@@ -232,7 +245,9 @@ function Threads() {
               <CodeAvatar size={40} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-pill border border-line px-2 py-0.5 font-mono text-[11px] leading-[1.4] text-ink-muted">{th.stack}</span>
+                  <span className="rounded-pill border border-line px-2 py-0.5 font-mono text-[11px] leading-[1.4] text-ink-muted">
+                    {th.stack}
+                  </span>
                   <span className="font-mono text-[12px] text-accent">{th.tag}</span>
                 </div>
                 <p className="mt-2 text-[15px] leading-snug text-ink">{th.text}</p>
@@ -260,7 +275,8 @@ export function DevExchange() {
           </h2>
           <p className="mt-6 max-w-[60ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
             Colle le script&nbsp;: on mesure l&apos;usage réel à <abbr title="7 jours après le test">J7</abbr> et à{" "}
-            <abbr title="30 jours après le test">J30</abbr>, sans données perso inutiles. Et quand tu bloques, la communauté est là.
+            <abbr title="30 jours après le test">J30</abbr>, sans données perso inutiles. Et quand tu bloques, la
+            communauté est là.
           </p>
         </div>
 
@@ -277,7 +293,9 @@ export function DevExchange() {
             </Link>
           </div>
           <div className="lg:col-span-5">
-            <p className="mb-4 font-mono text-[12px] uppercase tracking-[0.12em] text-ink-muted">Aperçu de l&apos;espace devs</p>
+            <p className="mb-4 font-mono text-[12px] uppercase tracking-[0.12em] text-ink-muted">
+              Aperçu de l&apos;espace devs
+            </p>
             <Threads />
           </div>
         </div>

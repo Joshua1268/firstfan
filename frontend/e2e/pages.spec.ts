@@ -3,12 +3,16 @@ import { scan } from "./helpers";
 
 /** Toutes les URL internes (hors ancres) des liens de la page, avec leur nombre d'occurrences. */
 async function internalHrefs(page: import("@playwright/test").Page) {
-  return page.locator("a[href]").evaluateAll((els) =>
-    [...new Set(els.map((e) => e.getAttribute("href")!).filter((h) => h.startsWith("/") && !h.startsWith("//")))],
-  );
+  return page
+    .locator("a[href]")
+    .evaluateAll((els) => [
+      ...new Set(els.map((e) => e.getAttribute("href")!).filter((h) => h.startsWith("/") && !h.startsWith("//"))),
+    ]);
 }
 
-test("the API rewrite keeps Django's trailing slash: /api/health/ answers 200 JSON through Next", async ({ request }) => {
+test("the API rewrite keeps Django's trailing slash: /api/health/ answers 200 JSON through Next", async ({
+  request,
+}) => {
   const res = await request.get("/api/health/", { maxRedirects: 0 });
   expect(res.status()).toBe(200);
   expect(res.headers()["content-type"]).toContain("application/json");
@@ -22,7 +26,12 @@ test("public stats answer through the same origin, with and without trailing sla
   for (const path of ["/api/public/stats", "/api/public/stats/"]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status(), path).toBe(200);
-    expect(Object.keys(await res.json()).sort()).toEqual(["apps_tested", "demo", "tests_in_progress", "verified_testers"]);
+    expect(Object.keys(await res.json()).sort()).toEqual([
+      "apps_tested",
+      "demo",
+      "tests_in_progress",
+      "verified_testers",
+    ]);
   }
 });
 

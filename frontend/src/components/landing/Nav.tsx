@@ -91,7 +91,10 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
                   {l.label}
                 </Link>
               ) : (
-                <a href={l.href} className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
+                <a
+                  href={l.href}
+                  className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
+                >
                   {l.label}
                 </a>
               )}
@@ -100,7 +103,11 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
         </ul>
 
         <div className="hidden items-center gap-6 md:ml-auto md:flex lg:ml-0">
-          <Link prefetch={false} href="/connexion" className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
+          <Link
+            prefetch={false}
+            href="/connexion"
+            className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
+          >
             Connexion
           </Link>
           <Link
@@ -122,7 +129,16 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
           onClick={() => (open ? close() : setOpen(true))}
         >
           {/* Icône menu à deux traits, qui se croisent à l'ouverture. */}
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
             <motion.path
               d="M4 12h16"
               initial={false}

@@ -49,7 +49,12 @@ function Odometer({ value }: { value: number }) {
     <span data-odometer={value} className="inline-flex">
       {digits.map((d, i) => (
         <span key={digits.length - i} className="inline-block h-[1em] overflow-hidden">
-          <motion.span className="flex flex-col" initial={false} animate={{ y: `${-Number(d)}em` }} transition={ODOMETER}>
+          <motion.span
+            className="flex flex-col"
+            initial={false}
+            animate={{ y: `${-Number(d)}em` }}
+            transition={ODOMETER}
+          >
             {"0123456789".split("").map((n) => (
               <span key={n} className="block h-[1em]">
                 {n}
@@ -235,7 +240,9 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
           )}
 
           <div className={inline ? `md:pb-1 ${SPAN[3 - counters.length]}` : ""}>
-            <p className={`mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink ${inline ? "md:mt-0" : "md:mt-14"}`}>
+            <p
+              className={`mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink ${inline ? "md:mt-0" : "md:mt-14"}`}
+            >
               Chaque chiffre vient d&apos;un vrai test, pas d&apos;un formulaire.
             </p>
             {data?.demo && (

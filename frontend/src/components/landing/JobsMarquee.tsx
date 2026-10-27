@@ -88,7 +88,10 @@ export function JobsMarquee() {
       if (!band) return;
       // Une seule lecture de géométrie par tick : seuls les métiers entièrement dans la zone nette (hors fondu) sont éligibles.
       const area = band.getBoundingClientRect();
-      const rects = [...band.querySelectorAll<HTMLElement>("[data-pill]")].map((el) => ({ el, r: el.getBoundingClientRect() }));
+      const rects = [...band.querySelectorAll<HTMLElement>("[data-pill]")].map((el) => ({
+        el,
+        r: el.getBoundingClientRect(),
+      }));
       const within = (inset: number) =>
         rects.filter(({ r }) => r.left >= area.left + inset && r.right <= area.right - inset).map(({ el }) => el);
       // Sur petit écran la zone nette peut être vide : on retombe sur tout ce qui est entièrement dans la bande.
@@ -121,11 +124,7 @@ export function JobsMarquee() {
   }, [reduce, inView]);
 
   return (
-    <section
-      data-jobs-marquee
-      aria-label="Métiers vérifiés"
-      className="px-[var(--grid-margin)] py-6 md:py-8"
-    >
+    <section data-jobs-marquee aria-label="Métiers vérifiés" className="px-[var(--grid-margin)] py-6 md:py-8">
       <div className="mx-auto flex max-w-[var(--grid-max)] flex-col items-center gap-4 md:flex-row md:gap-8">
         <p className="flex-none font-mono text-[12px] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted">
           MÉTIERS VÉRIFIÉS SUR {PRODUCT_NAME}

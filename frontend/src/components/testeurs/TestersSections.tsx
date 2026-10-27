@@ -4,7 +4,17 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import type { ComponentType, SVGProps } from "react";
 import { spring } from "@/lib/motion-tokens";
-import { ArrowIcon, ChatIcon, CheckIcon, ClockIcon, LockIcon, PhoneIcon, ShieldIcon, SparkIcon, StarIcon } from "@/components/landing/icons";
+import {
+  ArrowIcon,
+  ChatIcon,
+  CheckIcon,
+  ClockIcon,
+  LockIcon,
+  PhoneIcon,
+  ShieldIcon,
+  SparkIcon,
+  StarIcon,
+} from "@/components/landing/icons";
 import { PhoneDemo } from "@/components/landing/ProSection";
 import { containerCls, h2Cls, Kicker, leadCls, riseVariants, useReveal } from "@/components/landing/reveal";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
@@ -78,7 +88,9 @@ export function WhyYou() {
               <span className="flex size-11 items-center justify-center rounded-full border border-line text-ink">
                 <I size={22} />
               </span>
-              <h3 className="mt-6 text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink">{title}</h3>
+              <h3 className="mt-6 text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink">
+                {title}
+              </h3>
               <p className="mt-3 text-[16px] leading-[1.6] text-ink-muted">{text}</p>
             </motion.li>
           ))}
@@ -91,16 +103,29 @@ export function WhyYou() {
 /* ---------- 2. Chaque test est rémunéré ---------- */
 
 const STEPS = [
-  { title: "Tu reçois une invitation", text: "Elle correspond à ton métier. Tu vois l'app et la durée estimée, puis tu acceptes ou tu refuses." },
-  { title: "Tu testes, guidé pas à pas", text: "Le parcours te dit quoi faire. Tes captures sont horodatées : ton travail est prouvé." },
-  { title: "Le dev valide ton test", text: "Il lit ton retour et le valide. C'est cette validation qui déclenche ton paiement." },
+  {
+    title: "Tu reçois une invitation",
+    text: "Elle correspond à ton métier. Tu vois l'app et la durée estimée, puis tu acceptes ou tu refuses.",
+  },
+  {
+    title: "Tu testes, guidé pas à pas",
+    text: "Le parcours te dit quoi faire. Tes captures sont horodatées : ton travail est prouvé.",
+  },
+  {
+    title: "Le dev valide ton test",
+    text: "Il lit ton retour et le valide. C'est cette validation qui déclenche ton paiement.",
+  },
   { title: "Tu es payé en mobile money", text: "Le paiement part sur ton compte Wave, Orange Money ou MTN MoMo." },
 ] as const;
 
 export function Payment() {
   const reveal = useReveal(0.25);
   return (
-    <section id="remuneration" aria-labelledby="remuneration-title" className="relative overflow-x-clip border-t border-line py-[var(--section-y)]">
+    <section
+      id="remuneration"
+      aria-labelledby="remuneration-title"
+      className="relative overflow-x-clip border-t border-line py-[var(--section-y)]"
+    >
       <div className={`${containerCls} grid gap-y-14 lg:grid-cols-12 lg:gap-x-[var(--grid-gutter)]`}>
         <div className="lg:col-span-6">
           <Head
@@ -150,14 +175,26 @@ export function Payment() {
 
 const FLEX: { icon: Icon; title: string; text: string }[] = [
   { icon: PhoneIcon, title: "Depuis ton téléphone", text: "Rien à installer : tout se passe dans ton navigateur." },
-  { icon: ClockIcon, title: "Entre deux clients", text: "Chaque invitation affiche sa durée estimée. Tu testes quand ça t'arrange." },
-  { icon: CheckIcon, title: "Tu choisis tes tests", text: "Tu acceptes ceux qui te parlent. Les autres, tu les refuses." },
+  {
+    icon: ClockIcon,
+    title: "Entre deux clients",
+    text: "Chaque invitation affiche sa durée estimée. Tu testes quand ça t'arrange.",
+  },
+  {
+    icon: CheckIcon,
+    title: "Tu choisis tes tests",
+    text: "Tu acceptes ceux qui te parlent. Les autres, tu les refuses.",
+  },
 ];
 
 export function Flexibility() {
   const reveal = useReveal(0.3);
   return (
-    <section id="a-ton-rythme" aria-labelledby="a-ton-rythme-title" className="border-t border-line py-[var(--section-y)]">
+    <section
+      id="a-ton-rythme"
+      aria-labelledby="a-ton-rythme-title"
+      className="border-t border-line py-[var(--section-y)]"
+    >
       <div className={`${containerCls} grid gap-y-12 lg:grid-cols-12 lg:gap-x-[var(--grid-gutter)]`}>
         <div className="lg:col-span-5">
           <Head kicker="À ton rythme" id="a-ton-rythme-title" title="Depuis ton téléphone, quand tu veux." />
@@ -219,7 +256,9 @@ export function TrustBlock() {
               <span className="flex size-11 items-center justify-center rounded-full border border-line text-ink">
                 <I size={22} />
               </span>
-              <h3 className="mt-6 text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink">{title}</h3>
+              <h3 className="mt-6 text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink">
+                {title}
+              </h3>
               <p className="mt-3 text-[16px] leading-[1.6] text-ink-muted">{text}</p>
               {link && (
                 <Link
@@ -243,7 +282,11 @@ export function TrustBlock() {
 export function Apply() {
   const reveal = useReveal(0.4);
   return (
-    <section id="cta-final" aria-labelledby="cta-final-title" className="relative overflow-hidden border-t border-line py-[var(--section-y)]">
+    <section
+      id="cta-final"
+      aria-labelledby="cta-final-title"
+      className="relative overflow-hidden border-t border-line py-[var(--section-y)]"
+    >
       <motion.div {...reveal} className={`${containerCls} flex flex-col items-center text-center`}>
         <motion.div data-reveal="" variants={rise} className="flex flex-col items-center">
           <Kicker>Candidature</Kicker>
@@ -257,7 +300,12 @@ export function Apply() {
             Propose ton profil. On vérifie ton métier, puis les invitations des devs arrivent sur ton téléphone.
           </p>
         </motion.div>
-        <motion.div data-reveal="" custom={1} variants={rise} className="mt-10 flex w-full flex-col items-center gap-4 md:w-auto">
+        <motion.div
+          data-reveal=""
+          custom={1}
+          variants={rise}
+          className="mt-10 flex w-full flex-col items-center gap-4 md:w-auto"
+        >
           <Link
             href={APPLY_HREF}
             prefetch={false}

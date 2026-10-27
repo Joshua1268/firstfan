@@ -1,6 +1,13 @@
 "use client";
 
-import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { useEffect, useRef } from "react";
 import { dur, ease, spring } from "@/lib/motion-tokens";
 import { go, useRingRadius, useStage, useThreshold } from "./context";
@@ -53,10 +60,30 @@ function BlurredRing({ r, opacity }: { r: number; opacity: MotionValue<number> |
   return (
     <motion.div
       className="absolute left-0 top-0"
-      style={{ opacity, width: size, height: size, marginLeft: -size / 2, marginTop: -size / 2, filter: "blur(4px)", willChange: "opacity" }}
+      style={{
+        opacity,
+        width: size,
+        height: size,
+        marginLeft: -size / 2,
+        marginTop: -size / 2,
+        filter: "blur(4px)",
+        willChange: "opacity",
+      }}
     >
-      <svg width={size} height={size} viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`} className="absolute inset-0">
-        <g fill="none" stroke="var(--ink)" strokeOpacity={0.4} strokeWidth={3} strokeDasharray={`${len} ${len}`} strokeDashoffset={off}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`}
+        className="absolute inset-0"
+      >
+        <g
+          fill="none"
+          stroke="var(--ink)"
+          strokeOpacity={0.4}
+          strokeWidth={3}
+          strokeDasharray={`${len} ${len}`}
+          strokeDashoffset={off}
+        >
           <path d={a} transform={`translate(${-tangent.x * SEPARATION} ${-tangent.y * SEPARATION})`} />
           <path d={b} transform={`translate(${tangent.x * SEPARATION} ${tangent.y * SEPARATION})`} />
         </g>
@@ -171,7 +198,13 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
           className="absolute left-0 top-0 overflow-visible"
           style={{ marginLeft: -size / 2, marginTop: -size / 2, opacity: final ? 1 : sharp }}
         >
-          <g fill="none" stroke="var(--ink)" strokeOpacity={0.4} strokeLinecap="round" strokeDasharray={`${len} ${len}`}>
+          <g
+            fill="none"
+            stroke="var(--ink)"
+            strokeOpacity={0.4}
+            strokeLinecap="round"
+            strokeDasharray={`${len} ${len}`}
+          >
             <motion.g style={{ x: aX, y: aY }}>
               <motion.path data-arc="a" d={a} strokeWidth={2} style={{ strokeDashoffset: dash, opacity: thin }} />
               <motion.path d={a} strokeWidth={3} style={{ strokeDashoffset: dash, opacity: thick }} />
@@ -207,10 +240,16 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   );
 }
 
-function Shard({ s, burst, opacity }: { s: (typeof SHARDS)[number]; burst: MotionValue<number>; opacity: MotionValue<number> }) {
+function Shard({
+  s,
+  burst,
+  opacity,
+}: {
+  s: (typeof SHARDS)[number];
+  burst: MotionValue<number>;
+  opacity: MotionValue<number>;
+}) {
   const x = useTransform(burst, (v) => s.x * v);
   const y = useTransform(burst, (v) => s.y * v);
-  return (
-    <motion.rect x={-3} y={-1} width={6} height={2} fill="var(--ink)" style={{ x, y, rotate: s.r, opacity }} />
-  );
+  return <motion.rect x={-3} y={-1} width={6} height={2} fill="var(--ink)" style={{ x, y, rotate: s.r, opacity }} />;
 }

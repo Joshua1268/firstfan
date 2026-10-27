@@ -6,7 +6,15 @@ import type { HeroBadge } from "@/lib/hero-badge";
  * du tout quand il n'y a rien de réel à montrer.
  * Le point pulse en CSS à partir de 1300 ms (classe `live-dot`, figée en reduced-motion).
  */
-export function LiveBadge({ badge, demo, className = "" }: { badge: HeroBadge | null; demo: boolean; className?: string }) {
+export function LiveBadge({
+  badge,
+  demo,
+  className = "",
+}: {
+  badge: HeroBadge | null;
+  demo: boolean;
+  className?: string;
+}) {
   if (badge === null) return null;
   return (
     <div data-live-badge className={`flex flex-col items-center gap-1.5 whitespace-nowrap md:items-start ${className}`}>
@@ -16,7 +24,11 @@ export function LiveBadge({ badge, demo, className = "" }: { badge: HeroBadge | 
           <span className="tabular-nums">{badge.value}</span> {badge.label}
         </span>
       </p>
-      {demo && <p className="font-mono text-[11px] uppercase leading-none tracking-[0.12em] text-ink-muted">Données de démo CADEV</p>}
+      {demo && (
+        <p className="font-mono text-[11px] uppercase leading-none tracking-[0.12em] text-ink-muted">
+          Données de démo CADEV
+        </p>
+      )}
     </div>
   );
 }

@@ -59,16 +59,23 @@ export function PageShell({
       <footer className="border-t border-line py-10 text-[14px] leading-[1.6] text-ink-muted">
         <div className={`${containerCls} flex flex-col gap-4 md:flex-row md:items-center md:justify-between`}>
           <p>
-            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Projet CADEV 2026 · Groupe Côte d&apos;Ivoire
+            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Projet CADEV 2026 · Groupe Côte
+            d&apos;Ivoire
           </p>
           <ul className="flex flex-wrap gap-x-6">
             <li>
-              <Link href="/confidentialite" className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink">
+              <Link
+                href="/confidentialite"
+                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
+              >
                 Confidentialité
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
+              >
                 Contact
               </Link>
             </li>
