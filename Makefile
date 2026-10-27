@@ -4,8 +4,9 @@ FRONTEND = docker compose run --rm --no-deps frontend
 
 .PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back fmt fmt-back check
 
+# -V: fresh node_modules volume after a dependency change.
 up:
-	docker compose up -d --build
+	docker compose up -d --build -V
 
 down:
 	docker compose down
