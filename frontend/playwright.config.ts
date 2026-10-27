@@ -65,11 +65,10 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "docker compose up backend",
-      cwd: "..",
+      // Django comes from Docker only: fail fast instead of starting it here.
+      command: "echo 'Django is not running on 8010: run make up first.' && exit 1",
       url: "http://127.0.0.1:8010/api/health/",
       reuseExistingServer: true,
-      timeout: 60_000,
     },
     {
       command: "pnpm build && pnpm start -p 3100",
