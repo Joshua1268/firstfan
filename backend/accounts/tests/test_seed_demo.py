@@ -16,7 +16,6 @@ def test_seed_demo_makes_public_stats_non_zero_and_is_idempotent(db, settings):
     assert TesterProfile.objects.count() == len(DEMO_TESTERS)
     stats = get_public_stats()
     assert stats["verified_testers"] == VERIFIED > 0
-    # Pas de campagne dans le modèle : rien n'est simulé.
     assert stats["tests_in_progress"] == 0 and stats["apps_tested"] == 0
     assert not User.objects.get(username="demo-testeur-01").has_usable_password()
 

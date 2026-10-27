@@ -4,7 +4,7 @@ from django.core.cache import cache
 
 @pytest.fixture(autouse=True)
 def _clear_throttle_cache():
-    """Les compteurs de débit de DRF vivent dans le cache : chaque test repart de zéro."""
+    # DRF throttle counters live in the cache.
     cache.clear()
     yield
     cache.clear()

@@ -1,12 +1,3 @@
-"""
-Réglages Django de FirstFan.
-
-Valeurs par défaut pensées pour le développement local (DEBUG vrai, clé de dev, tous les hôtes).
-Hors DEBUG, le démarrage échoue (ImproperlyConfigured) tant que la clé secrète, les hôtes autorisés,
-les origines CSRF et DEMO_MODE ne sont pas définis explicitement : un oubli au déploiement ne laisse
-jamais tourner un serveur ouvert. Voir `.env.example` à la racine du dépôt.
-"""
-
 import os
 from pathlib import Path
 
@@ -34,8 +25,7 @@ DEBUG = env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 
-# Mode démo : piloté par l'environnement. Vrai par défaut en développement ; hors DEBUG, il doit être
-# défini explicitement (vrai pour la démo du jury, faux en production réelle).
+# Must be set explicitly outside DEBUG: true for the demo, false in real production.
 DEMO_MODE = env_bool("DEMO_MODE", True)
 
 if not DEBUG:
@@ -50,7 +40,7 @@ if not DEBUG:
     if "DEMO_MODE" not in os.environ:
         raise ImproperlyConfigured("DEMO_MODE doit être défini explicitement quand DEBUG est faux.")
 
-    # Derrière Caddy, qui termine le TLS et transmet X-Forwarded-Proto.
+    # Caddy terminates TLS and sends X-Forwarded-Proto.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -61,15 +51,13 @@ if not DEBUG:
         )
     SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
-    # La redirection http vers https est faite par Caddy ; la sonde interne /api/health/ reste en http.
+    # Caddy redirects to https; the internal /api/health/ probe stays on http.
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = "same-origin"
 else:
     CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -114,9 +102,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django_pg8000",
@@ -128,9 +113,6 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -148,9 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/6.1/topics/i18n/
-
 LANGUAGE_CODE = "fr"
 
 TIME_ZONE = "Africa/Abidjan"
@@ -160,14 +139,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.1/howto/static-files/
-
 STATIC_URL = "static/"
 
-
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
 MAILERS = {
     "default": {
@@ -182,7 +155,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "FirstFan")
 
-# DRF : fermé par défaut. Chaque vue publique doit le déclarer (AllowAny) explicitement.
+# Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
@@ -196,9 +169,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": os.environ.get("THROTTLE_ANON", "60/min"),
         "user": os.environ.get("THROTTLE_USER", "300/min"),
-        # Compteurs publics : lus par le serveur Next (cache de 15 s), pas par chaque visiteur.
+        # Read by the Next server (15 s cache), not by each visitor.
         "public_stats": os.environ.get("THROTTLE_PUBLIC_STATS", "240/min"),
     },
-    # Caddy est l'unique proxy devant Django : l'IP client est la dernière de X-Forwarded-For.
+    # Caddy is the only proxy, so the client IP is the last X-Forwarded-For entry.
     "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),
 }

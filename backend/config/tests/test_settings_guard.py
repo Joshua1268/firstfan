@@ -1,5 +1,3 @@
-"""Garde fail-closed des réglages : hors DEBUG, un déploiement incomplet refuse de démarrer."""
-
 import os
 import subprocess
 import sys
