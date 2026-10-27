@@ -47,6 +47,8 @@ class Command(BaseCommand):
             profile, _ = TesterProfile.objects.get_or_create(user=user, defaults={"profession": profession})
             profile.profession = profession
             profile.city = city
+            profile.momo_number = f"07000000{i:02d}"
+            profile.available = True
             profile.verification = state
             profile.verified_at = (profile.verified_at or now) if verified else None
             profile.rating_avg = rating
