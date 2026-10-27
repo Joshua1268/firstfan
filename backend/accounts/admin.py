@@ -15,8 +15,8 @@ class CadevUserAdmin(UserAdmin):
 class TesterProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "profession", "verification")
     list_filter = ("verification",)
-    actions = ["marquer_verifie"]
+    actions = ["mark_verified"]
 
-    @admin.action(description="Marquer comme verifie")
-    def marquer_verifie(self, request, queryset):
+    @admin.action(description="Marquer comme vérifié")
+    def mark_verified(self, request, queryset):
         queryset.update(verification=TesterProfile.Verification.VERIFIED, verified_at=timezone.now())
