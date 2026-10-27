@@ -17,7 +17,7 @@ from .serializers import (
     SelectionSerializer,
     TesterCandidateSerializer,
 )
-from .services import create_campaign, eligible_testers, select_testers
+from .services import create_campaign, select_testers, tester_candidates
 
 
 def get_campaign_detail(pk: int, owner) -> Campaign:
@@ -56,11 +56,8 @@ class CampaignTestersView(APIView):
 
     def get(self, request, pk):
         campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
-        candidates = list(eligible_testers(campaign))
-        context = {
-            "recommended_ids": {user.pk for user in candidates[: campaign.testers_wanted]},
-            "selected_ids": set(campaign.invitations.values_list("tester_id", flat=True)),
-        }
+        candidates, recommended_ids, selected_ids = tester_candidates(campaign)
+        context = {"recommended_ids": recommended_ids, "selected_ids": selected_ids}
         return Response(TesterCandidateSerializer(candidates, many=True, context=context).data)
 
 

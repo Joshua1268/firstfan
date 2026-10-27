@@ -45,6 +45,13 @@ def eligible_testers(campaign: Campaign) -> QuerySet[User]:
     )
 
 
+def tester_candidates(campaign: Campaign) -> tuple[list[User], set[int], set[int]]:
+    candidates = list(eligible_testers(campaign))
+    recommended_ids = {user.pk for user in candidates[: campaign.testers_wanted]}
+    selected_ids = set(campaign.invitations.values_list("tester_id", flat=True))
+    return candidates, recommended_ids, selected_ids
+
+
 def select_testers(campaign: Campaign, tester_ids: list[int]) -> None:
     ids = set(tester_ids)
     with transaction.atomic():
