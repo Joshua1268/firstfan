@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SCENES, sceneAt, sceneStart } from "./scenes";
 
-describe("stage scenes (§3.4)", () => {
+describe("stage scenes", () => {
   it("maps p to the seven ranges", () => {
     expect(sceneAt(0)).toBe("loop");
     expect(sceneAt(0.159)).toBe("loop");

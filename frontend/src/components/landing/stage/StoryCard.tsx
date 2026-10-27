@@ -8,11 +8,7 @@ import { CARD } from "./copy";
 import { CARD_H, CARD_W } from "./layout";
 import { cardPose } from "./pose";
 
-/**
- * La carte de l'app : UN seul motion.div, jamais démonté, qui traverse toute l'histoire (§3.4).
- * x, y, scale et rotateY suivent `p` par jalons ; le gris et la couleur sont deux couches en fondu (pas de filter).
- * Les preuves récoltées sont ses enfants.
- */
+// One motion.div that is never unmounted and crosses the whole story; grey and color are two fading layers.
 
 type Tone = "gray" | "color";
 
@@ -20,7 +16,6 @@ function CardFace({ tone }: { tone: Tone }) {
   const c = tone === "color";
   return (
     <div className={`absolute inset-0 flex flex-col ${c ? "bg-surface" : "bg-watermark"}`}>
-      {/* Barre du navigateur */}
       <div className="flex h-[30px] flex-none items-center gap-1.5 border-b border-line px-3">
         {[0, 1, 2].map((i) => (
           <span key={i} className={`size-2 rounded-full ${c ? "bg-ink/25" : "bg-ghost/60"}`} />
@@ -122,7 +117,6 @@ export function StoryCard({ p, active = true }: { p: MotionValue<number>; active
           <CardFace tone="color" />
         </motion.div>
         <CardTest p={p} />
-        {/* Filet intérieur au-dessus des couches */}
         <div className="pointer-events-none absolute inset-0 rounded-card shadow-[inset_0_0_0_1px_rgba(242,237,227,0.06)]" />
       </div>
       <CardProofs p={p} layer="front" />

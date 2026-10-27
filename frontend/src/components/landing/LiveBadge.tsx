@@ -1,11 +1,6 @@
 import type { HeroBadge } from "@/lib/hero-badge";
 
-/**
- * Badge en direct du hero (§2, §3.2) : « [n] tests en cours », ou « [n] testeurs vérifiés » tant qu'aucun test ne
- * tourne (voir heroBadge). La valeur vient du serveur : jamais de 0 qui clignote à l'hydratation, et pas de badge
- * du tout quand il n'y a rien de réel à montrer.
- * Le point pulse en CSS à partir de 1300 ms (classe `live-dot`, figée en reduced-motion).
- */
+// The value comes from the server, so no zero flashes during hydration.
 export function LiveBadge({
   badge,
   demo,

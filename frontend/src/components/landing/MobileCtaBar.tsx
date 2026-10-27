@@ -5,11 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { spring } from "@/lib/motion-tokens";
 
-/**
- * Barre CTA collée en bas, mobile seulement (§3).
- * Visible quand le hero est sorti à 80 % ; masquée pendant le CTA final (#cta-final) et clavier ouvert.
- * Une seule action, celle du public de la page : le dev sur l'accueil, le pro sur /testeurs.
- */
+// Mobile only: shown once the hero is mostly gone, hidden over the final CTA and while the keyboard is open.
 export function MobileCtaBar({
   href = "/inscription?role=dev",
   label = "Je suis développeur",
@@ -39,7 +35,7 @@ export function MobileCtaBar({
     const finalCta = document.getElementById("cta-final");
     if (finalCta) io.observe(finalCta);
 
-    // Clavier virtuel : le visualViewport rétrécit nettement.
+    // The virtual keyboard shrinks the visual viewport.
     const vv = window.visualViewport;
     const onResize = () => vv && setKeyboard(vv.height < window.innerHeight * 0.75);
     vv?.addEventListener("resize", onResize);

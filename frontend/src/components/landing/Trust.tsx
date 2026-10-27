@@ -7,13 +7,6 @@ import { dur, spring } from "@/lib/motion-tokens";
 import { ClockIcon, ShieldIcon, StarIcon } from "./icons";
 import { containerCls, h2Cls, Kicker, riseVariants, useReveal, useReduce } from "./reveal";
 
-/**
- * Section « Confiance » (§3.8) : certificat d'antériorité à gauche, trois mini-blocs à droite.
- * À l'entrée (une fois) : le hash s'écrit en scramble (700 ms, requestAnimationFrame, curseur bloc à 1 Hz),
- * puis le tampon HORODATÉ tombe avec son anneau d'encre et le certificat encaisse le choc (y 0, 3, 0).
- * Reduced-motion et sans JS : texte complet, tampon déjà posé.
- */
-
 const HASH = "9f3a…c21e";
 const HEX = "0123456789abcdef";
 const SCRAMBLE_MS = 700;
@@ -25,7 +18,7 @@ const BLOCKS = [
   { icon: StarIcon, title: "Notation dans les deux sens" },
 ] as const;
 
-/** Hash qui se fixe de gauche à droite ; écrit dans textContent, sans re-render React par frame. */
+// Written to textContent, so there is no React render per frame.
 function useScramble(run: boolean, onDone: () => void) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -51,8 +44,7 @@ function useScramble(run: boolean, onDone: () => void) {
       cancelAnimationFrame(raf);
       el.textContent = HASH;
     };
-    // onDone est stable pour un passage donné.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onDone is stable for one run
   }, [run]);
   return ref;
 }
@@ -69,11 +61,10 @@ function Certificate() {
 
   const run = inView && !reduce;
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- démarre le curseur au début du scramble
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- start the cursor with the scramble
     if (run) setTyping(true);
   }, [run]);
 
-  // Avant l'entrée (et seulement avec JS, hors reduced-motion), le tampon attend en l'air.
   useEffect(() => {
     if (reduce) return;
     if (!inView) stamp.set({ scale: 1.6, rotate: -18, opacity: 0 });
@@ -131,7 +122,6 @@ function Certificate() {
         </div>
       </dl>
 
-      {/* Tampon rond HORODATÉ. */}
       <motion.div
         data-cert-stamp=""
         data-landed={landed || reduce ? "" : undefined}

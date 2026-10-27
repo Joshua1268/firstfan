@@ -2,29 +2,14 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 
-/**
- * Point d'entrée du stage, hors du chargement initial.
- *
- * Le serveur rend le stage complet, en ligne (live et repli statique, tout le texte ; c'est ce que lisent les
- * navigateurs sans JS). Côté client, ce HTML est gardé tel quel à l'hydratation (enveloppe en
- * dangerouslySetInnerHTML : React ne touche pas à son contenu), et le module du stage (anneau, carte, étapes,
- * scroll) est un chunk à part, demandé quand le navigateur est inactif ou quand le stage approche du viewport,
- * et jamais en reduced-motion, sur écran de moins de 360px de haut ou sur appareil modeste (repli statique).
- * Une fois chargé, il remplace le HTML serveur dans le même commit : même hauteur, même position de scroll,
- * pas de flash.
- *
- * Pas de Suspense ici : React 19 sort du flux les grosses frontières Suspense (segment caché révélé par script),
- * ce qui rendrait le stage invisible sans JS.
- */
+// The server renders the whole stage; the client keeps that HTML and swaps in the animated chunk once loaded.
+// No Suspense: React 19 would stream it out of flow, hiding the stage without JS.
 
 type StageComponent = ComponentType;
 
-/**
- * Rendu serveur synchrone. `process.env.NEXT_RUNTIME` vaut "nodejs" ou "edge" côté serveur et est remplacé par une
- * chaîne vide dans le bundle client : la branche et son require y sont supprimés à la compilation.
- */
+// NEXT_RUNTIME is empty in the client bundle, so this require is compiled out there.
 const ServerStage: StageComponent | null = process.env.NEXT_RUNTIME
-  ? // eslint-disable-next-line @typescript-eslint/no-require-imports -- rendu serveur synchrone uniquement
+  ? // eslint-disable-next-line @typescript-eslint/no-require-imports -- synchronous server render only
     (require("./StageImpl") as typeof import("./StageImpl")).Stage
   : null;
 
@@ -36,7 +21,7 @@ export function Stage() {
     let done = false;
     let idle: number | undefined;
     const io = new IntersectionObserver((e) => e.some((x) => x.isIntersecting) && load(), { rootMargin: "600px 0px" });
-    // Le repli statique suffit (et c'est lui que le CSS affiche) : on ne charge pas le stage animé.
+    // The static fallback is enough here.
     const staticOnly = window.matchMedia("(prefers-reduced-motion: reduce), (max-height: 359px)");
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
     const lowEnd =
@@ -52,7 +37,7 @@ export function Stage() {
       if (done || lowEnd || staticOnly.matches) return;
       if (root) io.observe(root);
       if ("requestIdleCallback" in window) idle = window.requestIdleCallback(load, { timeout: 1500 });
-      else setTimeout(load, 300); // annulé par le garde `done` / staticOnly dans load()
+      else setTimeout(load, 300); // load() checks `done` and staticOnly
     }
     function load() {
       if (done || staticOnly.matches) return;
@@ -60,7 +45,7 @@ export function Stage() {
       stop();
       import("./StageImpl")
         .then((m) => {
-          // Si le focus est dans le stage, on le reporte sur l'élément équivalent du stage animé.
+          // Move focus to the same element in the animated stage.
           const active = document.activeElement;
           const href =
             active instanceof HTMLAnchorElement && root?.contains(active) ? active.getAttribute("href") : null;
@@ -72,12 +57,12 @@ export function Stage() {
                 ?.focus({ preventScroll: true }),
             );
         })
-        // Chunk introuvable (réseau coupé) : le HTML serveur reste en place, lisible et navigable.
+        // Chunk failed to load: the server HTML stays.
         .catch(() => {
           done = false;
         });
     }
-    // Préférence modifiée pendant la visite : on (re)programme ou on annule le chargement.
+    // The preference may change during the visit.
     const onChange = () => (staticOnly.matches ? stop() : schedule());
     staticOnly.addEventListener("change", onChange);
     schedule();
@@ -102,6 +87,6 @@ export function Stage() {
       </div>
     );
   }
-  // Hydratation : on garde le HTML serveur sans le recréer.
+  // Keep the server HTML as is during hydration.
   return <div className="contents" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: "" }} />;
 }

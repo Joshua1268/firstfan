@@ -1,15 +1,11 @@
-/**
- * Géométrie du stage, calculée à partir de la taille du viewport sticky (§3.4, §5 grille).
- * Toutes les positions sont en px, relatives au centre du viewport du stage (x vers la droite, y vers le bas).
- * Pur et testé : aucune lecture du DOM ici.
- */
+// Stage geometry in px, relative to the center of the sticky viewport. Pure: no DOM reads.
 
 export const CARD_W = 440;
 export const CARD_H = 300;
-/** Trajectoire de la carte (§4), écrite pour un anneau de rayon 240 : on la met à l'échelle. */
+// The card path is written for a 240px ring and scaled.
 export const RING_REF_R = 240;
 export const BREACH = { x: 210, y: -150 } as const;
-/** Angle de la brèche dans le repère de l'anneau (SVG, y vers le bas), en degrés. */
+// Gap angle in degrees, SVG coordinates (y down).
 export const BREACH_DEG = (Math.atan2(BREACH.y, BREACH.x) * 180) / Math.PI;
 
 export type Pt = { x: number; y: number };
@@ -17,41 +13,31 @@ export type Pt = { x: number; y: number };
 export type StageLayout = {
   vw: number;
   vh: number;
-  /** Disposition « desktop » (>= 1024px) : texte colonnes 1 à 5, visuel colonnes 7 à 12. */
+  // From 1024px: text in columns 1 to 5, visual in 7 to 12.
   desktop: boolean;
-  /** Bord gauche et largeur du bloc texte (px absolus). */
   textLeft: number;
   textWidth: number;
-  /** Colonnes de citations de la scène C (absolu) : 1 à 4 et 9 à 12. */
+  // Scene C quote columns: 1 to 4 and 9 to 12.
   quoteLeft: { left: number; width: number };
   quoteRight: { left: number; width: number };
-  /** Centre vertical de la zone visuelle. */
   cy: number;
-  /** Centre et largeur des colonnes 7 à 12. */
   rightCx: number;
   rightW: number;
-  /** Facteur d'ajustement de la carte (scale effectif = jalon x k). */
+  // Card fit factor: actual scale is milestone scale times k.
   k: number;
-  /** Scale (avant k) de la carte en scène C, pour qu'elle tienne entre les deux citations. */
+  // Card scale in scene C, to fit between the quotes.
   voicesScale: number;
   voicesY: number;
-  /**
-   * Recul après la cassure : l'anneau ouvert glisse en (`drift`, `cy + driftY`) et passe à `recessScale`,
-   * pour rester entier et lisible à côté de la carte passée par la brèche (labels compris).
-   */
+  // After the break the ring moves by drift/driftY and scales to recessScale, staying whole next to the card.
   ring: { cx: number; cy: number; r: number; drift: number; driftY: number; recessScale: number };
-  /** Passage par la brèche, relatif au centre de l'anneau : contrôles de la courbe et arrivée. */
+  // Pass through the gap, relative to the ring center.
   pass: { c1: Pt; c2: Pt; breach: Pt; c3: Pt; end: Pt };
-  /** Graphe de l'étape 04 : centre, largeur, hauteur (viewBox 600x320 mis à l'échelle). */
+  // Step 04 graph (600x320 viewBox, scaled).
   graph: { cx: number; cy: number; w: number; h: number };
-  /** Abscisse (absolue) de la barre de navigation verticale. */
   navLeft: number;
 };
 
-/**
- * Débord horizontal de l'anneau reculé au-delà du trait (px, à scale 1) : après la cassure, seuls le trait et le
- * label du haut restent (les labels latéraux s'effacent), donc le débord se limite aux éclats et au trait.
- */
+// How far the moved-back ring overflows its stroke, in px at scale 1.
 export const RING_PAD = 12;
 
 export const GRAPH_VIEW = { w: 600, h: 320, x0: 60, y0: 270, j7: 260, j30: 580, top: 40 } as const;
@@ -71,7 +57,7 @@ function passFor(r: number, endMaxX: number): StageLayout["pass"] {
     c1: { x: 60 * s, y: -40 * s },
     c2: { x: 140 * s, y: -120 * s },
     breach: { x: BREACH.x * s, y: BREACH.y * s },
-    // `S` réfléchit c2 autour de la brèche ; le second contrôle suit l'arrivée comme dans la spec (320,-40 pour 360,40).
+    // `S` mirrors c2 around the gap; c3 follows the end point.
     c3: { x: end.x - 40 * s, y: end.y - 80 * s },
     end,
   };
@@ -80,7 +66,7 @@ function passFor(r: number, endMaxX: number): StageLayout["pass"] {
 function desktopLayout(vw: number, vh: number): StageLayout {
   const g = 24;
   const contentLeft = Math.max(48, (vw - 1320) / 2);
-  // Place réservée à gauche pour la barre de navigation du stage.
+  // Room on the left for the stage nav.
   const left = Math.max(contentLeft, 100);
   const right = vw - contentLeft;
   const col = (right - left - 11 * g) / 12;
@@ -90,17 +76,17 @@ function desktopLayout(vw: number, vh: number): StageLayout {
   const text = span(1, 5);
   const rightSpan = span(7, 12);
   const rightCx = rightSpan.left + rightSpan.width / 2 - vw / 2;
-  const cy = 32; // la nav fixe fait 64px : on centre dans ce qui reste
+  const cy = 32; // center below the 64px fixed nav
   const k = Math.min(1, rightSpan.width / (CARD_W * 1.18));
 
-  // Anneau : entre le texte et le bord, labels compris (80px de débord de chaque côté).
+  // Ring between the text and the edge, labels included (80px each side).
   const zoneL = text.left + text.width + g + 80;
   const zoneR = vw - g - 80;
   const d = clamp(Math.min(480, zoneR - zoneL, vh - 64 - 220), 260, 480);
   const ringCx = (zoneL + zoneR) / 2 - vw / 2;
   const endMaxX = vw / 2 - g - (CARD_W * k) / 2 - ringCx;
   const pass = passFor(d / 2, endMaxX);
-  // Après la cassure, l'anneau glisse entre le texte et la carte et réduit assez pour y tenir, labels compris.
+  // After the break, the ring shrinks to fit between the text and the card.
   const cardLeft = vw / 2 + ringCx + pass.end.x - (CARD_W * k) / 2;
   const zoneA = text.left + text.width + 16;
   const zoneB = cardLeft - 16;
@@ -136,18 +122,18 @@ function desktopLayout(vw: number, vh: number): StageLayout {
 function mobileLayout(vw: number, vh: number): StageLayout {
   const m = vw < 768 ? 16 : 48;
   const width = vw - 2 * m;
-  // Zone visuelle : sous la nav (64px) et la barre de segments ; le texte occupe le bas.
+  // Visual zone below the nav and the segment bar; text takes the bottom.
   const cy = -0.15 * vh;
   const cardW = Math.min(0.62 * vw, 400);
   const k = cardW / CARD_W;
   const r = clamp(Math.min(0.32 * vw, 210, (0.42 * vh) / 2), 110, 210);
-  // Après la cassure, l'anneau monte et glisse à gauche : la brèche (en haut à droite) reste visible au-dessus de la carte.
+  // After the break, the ring moves up and left so the gap stays visible above the card.
   const ring = { cx: 0, cy: cy + 6, r, drift: -0.1 * vw, driftY: -0.07 * vh, recessScale: 0.7 };
   const endMaxX = vw / 2 - m - cardW / 2;
   const voicesScale = (0.6 * vw) / cardW;
   const vTop = 64 + 44;
   const voicesY = vTop + (CARD_H * k * voicesScale) / 2 - vh / 2;
-  // La vignette (scale 0.4) se pose à gauche de l'origine : on décale le graphe pour qu'elle reste à l'écran.
+  // The thumbnail lands left of the origin, so shift the graph to keep it on screen.
   const thumb = 0.4 * CARD_W * k;
   const gw = Math.min(width - thumb * 0.8, 520);
   return {
@@ -171,10 +157,10 @@ function mobileLayout(vw: number, vh: number): StageLayout {
   };
 }
 
-/** Point de la trajectoire de passage à l'avancement t (0 à 1, extrapolé au-delà de 1 pour l'overshoot). */
+// Point on the pass path at t, extrapolated past 1 for the overshoot.
 export function passPoint(l: StageLayout["pass"], t: number): Pt {
   const p0 = { x: 0, y: 0 };
-  // Deux cubiques : M 0 0 C c1 c2 breach, puis S c3 end (son contrôle de départ est le reflet de c2).
+  // Two cubics: M 0 0 C c1 c2 breach, then S c3 end.
   const r1 = { x: 2 * l.breach.x - l.c2.x, y: 2 * l.breach.y - l.c2.y };
   const cubic = (a: Pt, b: Pt, c: Pt, d: Pt, u: number): Pt => {
     const v = 1 - u;
@@ -185,7 +171,7 @@ export function passPoint(l: StageLayout["pass"], t: number): Pt {
   };
   if (t <= 0) return p0;
   if (t >= 1) {
-    // Prolonge selon la tangente d'arrivée pour que le dépassement de l'easing reste visible.
+    // Extend along the end tangent so the easing overshoot stays visible.
     const over = t - 1;
     const tx = l.end.x - l.c3.x;
     const ty = l.end.y - l.c3.y;

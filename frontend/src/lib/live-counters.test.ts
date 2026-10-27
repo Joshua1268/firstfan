@@ -9,7 +9,7 @@ const s = (tests_in_progress: number, verified_testers: number, apps_tested: num
 });
 
 describe("liveCounters", () => {
-  it("keeps the three counters, in spec order, when all are positive", () => {
+  it("keeps the three counters, in order, when all are positive", () => {
     expect(liveCounters(s(3, 10, 2))).toEqual([
       { key: "tests_in_progress", value: 3, label: "tests en cours" },
       { key: "verified_testers", value: 10, label: "testeurs vérifiés" },

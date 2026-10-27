@@ -2,12 +2,7 @@ import type { PublicStats } from "./stats";
 
 export type HeroBadge = { value: number; label: string };
 
-/**
- * Chiffre du badge du hero, toujours réel (jamais inventé) :
- * - les tests en cours s'il y en a ;
- * - sinon les testeurs vérifiés (les campagnes n'existent pas encore, un « 0 » qui pulse ne dit rien) ;
- * - sinon rien : le badge est masqué (base vide ou API injoignable).
- */
+// Running tests, else verified testers, else nothing: the badge never shows a made-up or zero number.
 export function heroBadge(stats: PublicStats | null): HeroBadge | null {
   if (!stats) return null;
   const n = stats.tests_in_progress;

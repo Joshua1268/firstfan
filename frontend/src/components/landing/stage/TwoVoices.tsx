@@ -8,10 +8,7 @@ import { useStepValue } from "./context";
 import { VOICES } from "./copy";
 import { Kicker, STATIC_BOX, TextBox, useTextHidden } from "./SceneText";
 
-/**
- * Scène C (§3.4) : deux voix de part et d'autre de la carte (colonnes 1 à 4 et 9 à 12), la chute centrée dessous.
- * Mobile : carte en haut, citations empilées, la voix du pro d'abord.
- */
+// Scene C: one quote on each side of the card; stacked on mobile, tester first.
 
 const COLUMN = { type: "spring", stiffness: 200, damping: 28 } as const;
 

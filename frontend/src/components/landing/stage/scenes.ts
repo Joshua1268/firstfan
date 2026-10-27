@@ -1,4 +1,4 @@
-/** Découpage de `p` du stage (§3.4). */
+// Scene ranges of the stage progress `p`.
 export type SceneId = "loop" | "break" | "voices" | "step1" | "step2" | "step3" | "step4";
 
 export const SCENES: readonly { id: SceneId; start: number; end: number }[] = [

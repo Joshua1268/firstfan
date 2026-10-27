@@ -1,18 +1,17 @@
 import { PRODUCT_NAME } from "@/lib/brand";
 
-/** Typographie française : espace insécable dans les guillemets et avant « ? : ! », pour ne jamais orpheliner la ponctuation. */
+// French typography: non-breaking spaces inside quotes and before ? : !
 const fr = (t: string) =>
   t
     .replace(/« /g, "«\u00a0")
     .replace(/ »/g, "\u00a0»")
     .replace(/ (?=[?:!])/g, "\u00a0");
 
-/** Textes du stage, verbatim depuis la spec §3.4 (partagés par le stage animé et le repli statique). */
+// Shared by the animated stage and the static fallback.
 
 export const LOOP = {
   kicker: "TU CONNAIS LA BOUCLE",
   title: fr("On te dit « c'est super ». Personne ne l'utilise."),
-  /** Dans l'ordre de lecture de la boucle. */
   labels: ["Je construis", "« C'est super ! »", "Personne n'utilise", "J'abandonne"],
   tours: ["Tour 1 : Bilio", "Tour 2 : mcp-studio", "Tour 3 : ton prochain projet"],
   voice: "À l'ère de l'IA, construire, c'est facile. Trouver de vrais utilisateurs, c'est ça le vrai travail.",
@@ -76,7 +75,7 @@ export const FEEDBACK = [
   "« Ça, je l'utiliserais chaque fin de mois. »",
 ] as const;
 
-/** Pastilles de note : le mot « vers » est remplacé à l'écran par une icône flèche (gardé pour les lecteurs d'écran). */
+// "vers" is shown as an arrow icon but kept for screen readers.
 export const RATINGS = {
   toDev: { from: "Testeuse", to: "dev", value: "4,6 / 5" },
   toTester: { from: "Dev", to: "testeuse", value: "Testeuse fiable · 5 / 5" },

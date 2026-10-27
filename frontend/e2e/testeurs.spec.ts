@@ -1,8 +1,6 @@
 import { expect, test } from "./fixtures";
 import { scan } from "./helpers";
 
-/** Page du côté testeur (recherche « deux publics ») : reconnaissance, rémunération sans montant, flexibilité, confiance. */
-
 const H1 = "Ton métier fait les bonnes apps.";
 
 test("testers page renders in French with its own title, description and H1", async ({ page }) => {
@@ -12,7 +10,7 @@ test("testers page renders in French with its own title, description and H1", as
   await expect(page).toHaveTitle(/Devenir testeur rémunéré/);
   await expect(page.locator("meta[name='description']")).toHaveAttribute("content", /téléphone.*rémunéré/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(H1, { ignoreCase: true });
-  // L'ordre de la recherche : expertise, rémunération, flexibilité, confiance, candidature.
+  // Expertise, pay, flexibility, trust, then apply.
   const order = ["#ton-metier", "#remuneration", "#a-ton-rythme", "#confiance", "#cta-final"];
   const tops = await Promise.all(
     order.map((s) => page.locator(s).evaluate((el) => el.getBoundingClientRect().top + window.scrollY)),
@@ -26,14 +24,14 @@ test("testers page renders in French with its own title, description and H1", as
 test("one action, framed as an application, leads to the tester sign-up", async ({ page }) => {
   await page.goto("/testeurs");
   const ctas = page.locator("main [data-apply-cta]");
-  await expect(ctas).toHaveCount(2); // hero et candidature : la même action
+  await expect(ctas).toHaveCount(2); // same action in the hero and the apply section
   for (const c of await ctas.all()) {
     await expect(c).toHaveAttribute("href", "/inscription?role=tester");
     await expect(c).toHaveText(/Proposer mon profil/);
   }
-  // Aucune autre action pleine dans la page, et pas de bouton « dev » concurrent.
+  // No other primary action and no competing dev button.
   await expect(page.locator("main").getByRole("link", { name: "Je suis développeur" })).toHaveCount(0);
-  // Le bouton du hero est au-dessus du pli.
+  // The hero button is above the fold.
   const box = (await ctas.first().boundingBox())!;
   expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height);
   await ctas.first().click();
@@ -54,7 +52,7 @@ test("testers page never scrolls sideways", async ({ page }) => {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), id).toBe(true);
-    // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
+    // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
     expect(await page.evaluate(() => window.innerWidth), id).toBe(width);
   }
 });
@@ -67,7 +65,7 @@ test("nav and footer anchors point back to the home sections, and every link wor
   expect(anchors.length).toBeGreaterThan(0);
   for (const href of anchors) expect(href, href).toMatch(/^\/#/);
   await expect(page.locator("header nav a[href='/testeurs']").first()).toHaveAttribute("aria-current", "page");
-  // Les sections visées existent sur l'accueil.
+  // The target sections exist on the home page.
   const ids = [...new Set(anchors.map((h) => h.slice(1)))];
   const internal = await page
     .locator("a[href]")
@@ -112,7 +110,7 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
     await page.waitForTimeout(1500);
     expect(errors).toEqual([]);
     if (reducedMotion === "reduce") {
-      // Tout est posé d'emblée : la carte pro et ses étapes sont visibles sans attendre.
+      // Everything is visible at once.
       await page.locator("#remuneration").scrollIntoViewIfNeeded();
       await expect(page.getByText("Tu es payé en mobile money")).toBeVisible();
     }

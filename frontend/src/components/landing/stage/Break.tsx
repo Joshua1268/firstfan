@@ -15,14 +15,10 @@ import { LOOP } from "./copy";
 import { BREACH_DEG } from "./layout";
 import { useRecess } from "./Loop";
 
-/**
- * Scène B, moment signature (§4) : tension, cassure des arcs en temps réel, passage de la carte par la brèche
- * avec l'onde accent, puis recul de la boucle vers un calque déjà flouté.
- * Ce composant pilote aussi `pass`, `colorOn` et `shake`, lus par la carte.
- */
+// The ring breaks and the card goes through the gap. Also drives `pass`, `colorOn` and `shake`, read by the card.
 
 const CUT_DEG = 18;
-const SEPARATION = 7; // chaque moitié : 14px d'écart au total
+const SEPARATION = 7; // per half, so 14px in total
 const SHARDS = [
   { x: 34, y: -48, r: 20 },
   { x: 64, y: -14, r: -35 },
@@ -30,13 +26,12 @@ const SHARDS = [
   { x: 54, y: -40, r: -10 },
 ];
 
-/** Angle du label posé en haut à l'arrêt de l'anneau. */
 const STOP_DEG = 270;
 
 const rad = (d: number) => (d * Math.PI) / 180;
 const pt = (r: number, d: number) => `${(Math.cos(rad(d)) * r).toFixed(2)} ${(Math.sin(rad(d)) * r).toFixed(2)}`;
 
-/** Deux arcs complémentaires qui se rejoignent à la brèche : A dans le sens horaire, B dans l'autre. */
+// Two arcs meeting at the gap, drawn in opposite directions.
 export function arcPaths(r: number) {
   const b = BREACH_DEG;
   return {
@@ -52,7 +47,7 @@ const CLOSE = { type: "spring", stiffness: 500, damping: 30 } as const;
 const SPLIT = { type: "spring", stiffness: 400, damping: 20 } as const;
 const SHARD = { type: "spring", stiffness: 300, damping: 12 } as const;
 
-/** Calque déjà flouté de l'anneau ouvert : rendu une fois, on ne fait que changer son opacité. */
+// Pre-blurred layer: rendered once, only its opacity changes.
 function BlurredRing({ r, opacity }: { r: number; opacity: MotionValue<number> | number }) {
   const { a, b, len } = arcPaths(r);
   const size = 2 * r + 220;
@@ -88,7 +83,7 @@ function BlurredRing({ r, opacity }: { r: number; opacity: MotionValue<number> |
           <path d={b} transform={`translate(${tangent.x * SEPARATION} ${tangent.y * SEPARATION})`} />
         </g>
       </svg>
-      {/* Comme l'anneau net après la cassure : seul le label du haut (« Personne n'utilise ») reste. */}
+      {/* Only the top label remains, like the sharp ring after the break. */}
       <span
         className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-display text-[18px] font-semibold text-ink"
         style={{ left: size / 2 + Math.cos(rad(STOP_DEG)) * r, top: size / 2 + Math.sin(rad(STOP_DEG)) * r }}
@@ -113,12 +108,12 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
   const interacted = useRef(false);
 
   const { scale, sharp, blurred, x: ringX, y: ringY } = useRecess(p);
-  // L'onde part du point de franchissement : repère de l'anneau avant son recul.
+  // The wave starts where the card crosses, before the ring moves back.
   const cx = useTransform(() => layout.get().ring.cx);
   const reduce = useReducedMotion() ?? false;
   const { recess } = useStage();
   const cy = useTransform(() => layout.get().ring.cy);
-  // Tension : le trait passe de 2 à 3px, par fondu entre deux tracés (aucune animation de stroke-width).
+  // Thicker stroke by fading between two paths, never by animating stroke-width.
   const thick = useTransform(p, [0.16, 0.185], [0, 1], { clamp: true });
   const thin = useTransform(thick, (v) => 1 - v);
   const aX = useTransform(split, (v) => -tangent.x * SEPARATION * v);
@@ -139,13 +134,13 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
     };
   }, []);
 
-  // 1) Tension : la carte tremble au seuil 0.17.
+  // The card shakes at 0.17.
   useThreshold(p, 0.17, (above, initial) => {
     if (final || initial || instant || !above) return;
     go(shake, [0, -3, 3, -2, 2, 0], { duration: 0.26, ease: "linear" }, false);
   });
 
-  // 2) et 3) Cassure et passage de la carte, joués en temps réel au seuil 0.185 ; 5) réversibles.
+  // Break and pass play in real time at 0.185, and reverse when scrolling back.
   useThreshold(p, 0.185, (above, initial) => {
     if (final) return;
     const now = instant || initial;
@@ -154,14 +149,14 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
       go(split, 1, SPLIT, now);
       go(pass, 1, { duration: dur.slow / 1000 + 0.01, ease: ease.overshoot }, now);
       go(colorOn, 1, { duration: 0.45, ease: ease.outQuint }, now);
-      // Une fois la carte passée, la boucle recule et glisse en filigrane (l'écran se libère pour la carte).
+      // Once the card is through, the ring moves back to make room.
       go(recess, 1, { duration: 0.7, delay: 0.35, ease: ease.outQuint }, now);
       if (now) return;
       burst.set(0);
       burstOpacity.set(1);
       go(burst, 1, SHARD, false);
       go(burstOpacity, 0, { duration: 0.5, delay: 0.15, ease: "easeOut" }, false);
-      // Retour haptique : mobile, après une interaction, jamais en reduced-motion (§4).
+      // Haptic feedback on mobile, after a user interaction, never with reduced motion.
       if (!reduce && !desktop && interacted.current && "vibrate" in navigator) navigator.vibrate?.(12);
     } else {
       go(dash, 0, CLOSE, now);
@@ -176,7 +171,7 @@ export function Break({ p, final = false }: { p: MotionValue<number>; final?: bo
     }
   });
 
-  // Onde accent quand la carte franchit 45 % du trajet (à l'aller seulement).
+  // Accent wave at 45% of the way, forward only.
   const prevPass = useRef(pass.get());
   useMotionValueEvent(pass, "change", (v) => {
     const was = prevPass.current;

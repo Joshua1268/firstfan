@@ -4,18 +4,9 @@ import type { Variants } from "motion/react";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { spring } from "@/lib/motion-tokens";
 
-/**
- * Outils partagés des sections sous l'histoire (§3.5 à §3.11).
- *
- * Les entrées `whileInView` posent un état initial (opacité 0, décalage) dans le HTML serveur.
- * Sans JS, la feuille `REVEAL_NO_JS` (servie dans un <noscript>) force l'état final : le texte reste lisible.
- * En reduced-motion, `useReveal` monte directement l'état final, sans attendre l'entrée dans le viewport.
- */
+// Reveal helpers for the sections below the stage. Without JS, REVEAL_NO_JS shows the final state.
 
-/**
- * Préférence reduced-motion sans écart d'hydratation : `false` pendant l'hydratation (comme le HTML serveur),
- * puis la vraie valeur au rendu suivant. À utiliser dès qu'un élément est rendu ou non selon la préférence.
- */
+// False during hydration, like the server HTML, then the real value.
 export function useReduce() {
   return useSyncExternalStore(
     (cb) => {
@@ -35,7 +26,6 @@ export function useReveal(amount = 0.35) {
     : ({ initial: "hidden", whileInView: "show", viewport: { once: true, amount } } as const);
 }
 
-/** Entrée « carte » : y vers 0 en spring, avec un décalage par index (`custom`). */
 export function riseVariants(
   y: number,
   s: { stiffness: number; damping: number },
@@ -59,7 +49,7 @@ export function riseVariants(
 
 export const STAMP_SPRING = { type: "spring", ...spring.stamp } as const;
 
-/** Onglet affiché (les boucles et le polling s'arrêtent quand il est caché, §6 règle 7). */
+// Loops and polling stop while the tab is hidden.
 export function usePageVisible() {
   return useSyncExternalStore(
     (cb) => {

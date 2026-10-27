@@ -4,7 +4,6 @@ import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Contact · ${PRODUCT_NAME}` };
 
-/** Adresse de contact fournie au build (`NEXT_PUBLIC_CONTACT_EMAIL`). Aucune adresse personnelle dans le code. */
 function contactEmail() {
   const v = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim();
   return v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : null;

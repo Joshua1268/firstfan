@@ -12,15 +12,12 @@ import { LiveBadge } from "./LiveBadge";
 
 export type Camp = "dev" | "pro";
 
-// §3.2 : composant client chargé sans SSR ; ses emplacements sont des calques absolus ou des zones
-// de hauteur fixe déjà présentes dans le HTML, donc aucun saut de layout à l'arrivée.
+// Client only; its slots already exist in the HTML, so loading it never shifts the layout.
 const loadStickers = () => import("./Stickers").then((m) => m.Stickers);
 const Stickers = dynamic(loadStickers, { ssr: false });
-// Le tamponnage démarre à 800 ms (§2) : on lance le téléchargement du chunk dès l'évaluation du module,
-// sans attendre la fin de l'hydratation.
+// Stamping starts at 800ms: fetch the chunk now instead of waiting for hydration.
 if (typeof window !== "undefined") void loadStickers();
 
-/** Mot du H1 : sort de son masque en CSS keyframes (classe `hero-word`), avant l'hydratation. */
 function Word({ i, children }: { i: number; children: ReactNode }) {
   return (
     <span className="hero-mask" data-hero-guard>
@@ -31,14 +28,10 @@ function Word({ i, children }: { i: number; children: ReactNode }) {
   );
 }
 
-/**
- * Coche tracée à la main au-dessus de « CLIENTS » : la seule tache d'accent du titre.
- * Elle tient dans l'interligne (0.16em entre la ligne de base de FUTURS et le haut des capitales
- * de CLIENTS) et se pose sur le haut du mot, sans jamais toucher FUTURS (vérifié en e2e).
- */
+// Hand-drawn check above CLIENTS; it must never touch the line above.
 function ClientsCheck() {
   const reduce = useReducedMotion();
-  // 700 ms comptées depuis le début de la navigation (§2), pas depuis l'hydratation.
+  // 700ms from navigation start, not from hydration.
   const [delay] = useState(() => Math.max(0, 0.7 - performance.now() / 1000));
   return (
     <svg
@@ -53,9 +46,7 @@ function ClientsCheck() {
         strokeWidth={7}
         strokeLinecap="round"
         strokeLinejoin="round"
-        // Opacité coupée tant que pathLength vaut 0 : sinon les embouts ronds dessinent deux points.
-        // Même état initial au serveur et au client (pas d'écart d'hydratation) ;
-        // en reduced-motion, la coche est posée tracée tout de suite.
+        // Hidden while pathLength is 0, otherwise the round caps draw two dots.
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
         transition={
@@ -97,8 +88,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
           Pour les devs qui ont un MVP et zéro vrai utilisateur
         </p>
 
-        {/* Bloc titre : le H1 est dimensionné en unités de conteneur (jamais au-delà des colonnes 1 à 10),
-            et les autocollants « titre » sont placés en % de ce bloc, donc ils suivent toutes les largeurs. */}
+        {/* The H1 uses container units and title stickers use % of this block, so both follow every width. */}
         <div className="relative mt-3 [container-type:inline-size] md:mt-6">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
             <Stickers placement="title" camp={camp} progress={scrollYProgress} />
@@ -129,9 +119,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
           </motion.div>
         </div>
 
-        {/* Niveau 2 puis 3 : une phrase, un seul bouton. Le côté testeur a sa propre page (/testeurs). */}
         <div className="relative mt-6 md:mt-10 md:grid md:grid-cols-12 md:gap-x-[var(--grid-gutter)]">
-          {/* Autocollant « adoption » : à droite de ce bloc sur desktop, jamais sur la phrase ni sur le CTA. */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
             <Stickers placement="cta" camp={camp} progress={scrollYProgress} />
           </div>
@@ -165,12 +153,11 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
           </div>
         </div>
 
-        {/* Zone réservée (mobile et tablette) : deux autocollants sous le CTA, loin du H1. */}
+        {/* Reserved sticker zone on mobile and tablet. */}
         <div aria-hidden="true" className="relative mt-6 h-[72px] shrink-0 lg:hidden">
           <Stickers placement="bottom" camp={camp} progress={scrollYProgress} />
         </div>
 
-        {/* Pied du hero : badge en direct et indice de scroll. */}
         <div className="mt-6 flex flex-col items-center gap-5 md:pointer-events-none md:flex-row md:items-end md:justify-between md:gap-4 md:absolute md:inset-x-[var(--grid-margin)] md:bottom-8 md:mt-0">
           <LiveBadge badge={heroBadge(stats)} demo={stats?.demo ?? false} className="md:pointer-events-auto" />
           <a

@@ -7,11 +7,6 @@ import { PRODUCT_NAME } from "@/lib/brand";
 import { footerLinks, type SitePage } from "@/lib/site-links";
 import { containerCls, useReduce } from "./reveal";
 
-/**
- * Footer (§3.11) : Geist 14px, filet `--line`, et le FirstFan en très grand, en contour blanc chaud à 8 %,
- * rogné en bas. Il remonte de y 20 % à 0 par scrub à l'entrée ; statique en reduced-motion.
- */
-
 export function Footer({ page = "home" }: { page?: SitePage }) {
   const LINKS = footerLinks(page);
   const reduce = useReduce();
@@ -58,7 +53,7 @@ export function Footer({ page = "home" }: { page?: SitePage }) {
         </nav>
       </div>
 
-      {/* Le FirstFan géant, rogné en bas : décoratif (le nom est déjà dans la ligne du dessus). */}
+      {/* Decorative: the name is already in the line above. */}
       <div aria-hidden="true" className="mt-12 h-[clamp(80px,18vw,264px)] overflow-hidden md:mt-16">
         <motion.p
           style={reduce ? undefined : { y }}

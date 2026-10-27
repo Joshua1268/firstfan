@@ -25,21 +25,14 @@ type StickerDef = {
   shape: Shape;
   accent: boolean;
   d: number;
-  /** Rotation finale (degrés). */
+  // Final rotation in degrees.
   r: number;
-  /**
-   * Position desktop (>= 1280px) : `title` en % du bloc H1 (qui suit la largeur), `cta` par rapport à la
-   * colonne des CTA. `compact` recalibre la même position entre 1024 et 1279px.
-   */
+  // From 1280px; `compact` is used from 1024 to 1279px.
   desktop: { layer: "title" | "cta"; compact: Slot } & Slot;
-  /** Position mobile (2 autocollants) dans la zone réservée sous le CTA. */
   mobile?: { zone: "bottom" } & Slot;
 };
 
-// Hero allégé : 3 autocollants sur desktop, qui racontent l'histoire dans l'ordre de lecture
-// (qui teste, la preuve, l'adoption) ; un seul en accent. 2 sur mobile, posés sous le CTA pour ne jamais
-// concurrencer le H1. Les positions respectent les zones d'exclusion (aucun ne recouvre le H1, le texte ni le CTA)
-// et sont vérifiées par e2e/landing.spec.ts.
+// Positions never cover the H1, the text or the CTA; e2e tests check it.
 const STICKERS: StickerDef[] = [
   {
     n: 1,
@@ -75,18 +68,13 @@ const STICKERS: StickerDef[] = [
   },
 ];
 
-// Ordre de tamponnage : de haut en bas, dans l'ordre de lecture.
 const ORDER_DESKTOP = [1, 2, 3];
 const ORDER_MOBILE = [1, 3];
 
 const STAMP_DELAY = 0.8;
 const STAMP_STAGGER = 0.06;
 
-/**
- * Le calendrier du §2 se compte depuis le début de la navigation, pas depuis le montage
- * (ce composant arrive après l'hydratation, par next/dynamic). Si le chargement est en retard,
- * on garde l'écart de 60 ms entre deux tampons.
- */
+// Timings count from navigation start, since this component loads after hydration.
 function sinceNavigation() {
   return typeof performance === "undefined" ? 0 : performance.now() / 1000;
 }
@@ -117,7 +105,7 @@ export function Stickers({
   camp: Camp | null;
   progress: MotionValue<number>;
 }) {
-  // Tablettes (< 1024px) : disposition mobile à 2 autocollants dans la zone réservée sous le CTA.
+  // Tablets use the mobile layout.
   const desktop = useMedia("(min-width: 1024px)");
   const wide = useMedia("(min-width: 1280px)");
   const fine = useMedia("(pointer: fine)");
@@ -129,7 +117,7 @@ export function Stickers({
   const active = isLayer ? desktop : !desktop;
   const parallax = isLayer && fine && !reduce;
 
-  // Parallaxe souris : mx, my dans [-1, 1], lissés par useSpring 120/20.
+  // Mouse parallax, mx and my in [-1, 1].
   const mxRaw = useMotionValue(0);
   const myRaw = useMotionValue(0);
   const mx = useSpring(mxRaw, spring.pointer);
@@ -141,12 +129,12 @@ export function Stickers({
       mxRaw.set((e.clientX / window.innerWidth) * 2 - 1);
       myRaw.set((e.clientY / window.innerHeight) * 2 - 1);
     };
-    // La respiration commence à 1300 ms, une fois les tampons posés (§2).
+    // Starts at 1300ms, once the stickers are stamped.
     const t = window.setTimeout(
       () => window.addEventListener("pointermove", onMove, { passive: true }),
       Math.max(0, 1300 - sinceNavigation() * 1000),
     );
-    // Vernis : une écriture de variable CSS par frame, sans re-render React.
+    // Sheen: one CSS variable write per frame, no React render.
     const off = mx.on("change", (v) => root.current?.style.setProperty("--sheen-x", `${(-20 * v).toFixed(2)}%`));
     return () => {
       window.clearTimeout(t);
@@ -161,12 +149,12 @@ export function Stickers({
   const defs = STICKERS.filter((s) => (isLayer ? s.desktop.layer === placement : s.mobile?.zone === placement));
 
   return (
-    // Décoratifs pour les technologies d'assistance : ces preuves sont reprises en texte dans les sections suivantes.
+    // Decorative: the same proofs appear as text further down.
     <div ref={root} aria-hidden="true" className="absolute inset-0" style={{ ["--sheen-x" as string]: "0%" }}>
       {defs.map((def) => (
         <Sticker
           key={def.n}
-          // Sur mobile, les autocollants sont sous le CTA lime : tous à l'encre, pour ne pas lui voler l'œil.
+          // No accent on mobile, so the lime CTA keeps the focus.
           def={isLayer ? def : { ...def, accent: false }}
           slot={isLayer ? (wide ? def.desktop : def.desktop.compact) : def.mobile!}
           rank={order.indexOf(def.n)}
@@ -213,7 +201,7 @@ function Sticker({
   const [stamps, setStamps] = useState(0);
   const { d, r } = def;
 
-  // Profondeur : parallaxe souris + scroll lié (amplitude divisée par deux sur mobile).
+  // Depth: mouse parallax plus scroll.
   const x = useTransform(mx, (v) => v * d * 22);
   const y = useTransform([my, progress], ([m, p]: number[]) => m * d * 16 - p * d * 160 * amplitude);
   const rotate = useTransform([mx, progress], ([m, p]: number[]) => m * d * 3 + p * d * 6 * amplitude);
@@ -335,13 +323,13 @@ function StickerBody({ def, hovered }: { def: StickerDef; hovered: boolean }) {
           {...common}
           className={`sticker relative inline-flex items-center gap-1.5 py-2.5 pl-3.5 pr-7 text-accent-ink ${textCls}`}
         >
-          {/* Fond découpé au coin haut droit ; le rabat est un calque à part, non découpé. */}
+          {/* Body cut at the top right corner; the peel is a separate layer. */}
           <span aria-hidden="true" className="sticker-fold-bg absolute inset-0 overflow-hidden rounded-label bg-accent">
             {sheen}
           </span>
           <CheckIcon size={16} strokeWidth={2.25} className="relative" />
           <span className="relative">{def.text}</span>
-          {/* Coin plié : s'ouvre au survol (spring 400/22). */}
+          {/* Peel opens on hover. */}
           <motion.span
             aria-hidden="true"
             className="sticker-fold"

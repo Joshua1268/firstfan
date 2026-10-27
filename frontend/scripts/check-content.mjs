@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const CURRENCY = String.raw`(?:fcfa|cfa|xof|francs?|euros?|dollars?|€|\$(?!\{)|f|k)`;
 const NUM = String.raw`\d{1,3}(?:[   .,]\d{3})+|\d+`;
 
-// Après la devise, ni lettre ni chiffre : « 9f3a…c21e » (hash) ou « #0f0 » ne sont pas des montants.
+// No letter or digit after the currency, so hashes and hex colors are not amounts.
 const RULES = [
   {
     rule: "amount",
@@ -60,6 +60,5 @@ function main(targets) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  // Par défaut : tout le texte affiché (composants et pages, landing comprise).
   main(args.length > 0 ? args : ["src/components", "src/app"]);
 }

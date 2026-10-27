@@ -8,14 +8,7 @@ import { ArrowIcon, ChatIcon, CheckIcon, CopyIcon } from "./icons";
 import { containerCls, h2Cls, Kicker, useReduce } from "./reveal";
 import { CodeAvatar } from "./stage/avatars";
 
-/**
- * Section « Entre devs » (§3.9) : le snippet d'usage et l'espace d'échange.
- * - Le snippet se tape à 12 ms par caractère (plafonné à 900 ms) : un cache de la couleur du terminal
- *   recule par pas d'un caractère (transform en steps), le texte reste dans le DOM. Puis `data-app` se surligne.
- * - Copier : l'icône passe à la coche (spring 500/25), le libellé devient « Copié » 1600 ms, annoncé en aria-live.
- * - Les fils arrivent comme dans un chat : trois points « en train d'écrire » 500 ms, puis le message, à 700 ms d'écart.
- * Reduced-motion et sans JS : snippet complet, fils affichés, la copie change seulement le texte.
- */
+// The snippet text stays in the DOM while a cover reveals it; with reduced motion or no JS, all is shown.
 
 const fr = (t: string) => t.replace(/ (?=[?:!])/g, " ");
 
@@ -64,7 +57,7 @@ function Snippet() {
 
   useEffect(() => {
     if (reduce) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- l'état « à taper » n'existe qu'avec JS, hors du viewport
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the typing state only exists with JS, off screen
     setPhase((p) => (p === "idle" ? (inView ? "done" : "armed") : p === "armed" && inView ? "typing" : p));
   }, [reduce, inView]);
 
@@ -78,7 +71,7 @@ function Snippet() {
     try {
       await navigator.clipboard.writeText(SNIPPET);
     } catch {
-      // Repli (contexte non sécurisé, permission refusée) : sélection et copie classique.
+      // Fallback for insecure contexts or a denied permission.
       const area = document.createElement("textarea");
       area.value = SNIPPET;
       area.setAttribute("readonly", "");
@@ -131,7 +124,7 @@ function Snippet() {
       <p aria-live="polite" className="sr-only">
         {copied ? "Copié" : ""}
       </p>
-      {/* Seul défilement horizontal autorisé de la page (§3.9 mobile). */}
+      {/* The only horizontal scroll allowed on the page. */}
       <div
         className="overflow-x-auto px-5 py-6 md:px-6 md:py-8"
         tabIndex={0}
@@ -201,7 +194,7 @@ function Threads() {
 
   useEffect(() => {
     if (reduce || inView) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- les fils masqués n'existent qu'avec JS, hors du viewport
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hidden threads only exist with JS, off screen
     setArmed(true);
     setShown(0);
   }, [reduce, inView]);

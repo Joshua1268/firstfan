@@ -4,7 +4,7 @@ import { ArrowIcon } from "@/components/landing/icons";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
 import { ProfileCard } from "./ProfileCard";
 
-/** Mot du H1 : même sortie de masque en CSS que l'accueil (classes `hero-mask` / `hero-word`, coupées en reduced-motion). */
+// Same CSS mask reveal as the home page H1.
 function Word({ i, children }: { i: number; children: ReactNode }) {
   return (
     <span className="hero-mask">
@@ -15,10 +15,6 @@ function Word({ i, children }: { i: number; children: ReactNode }) {
   );
 }
 
-/**
- * Hero de /testeurs : même hiérarchie que l'accueil. Niveau 1 le H1, niveau 2 une phrase, niveau 3 un seul bouton,
- * présenté comme une candidature (le profil est vérifié). À droite (desktop) ou dessous (mobile) : la carte pro.
- */
 export function TestersHero() {
   return (
     <section id="hero" aria-labelledby="testeurs-title" className="relative overflow-x-clip pt-16">

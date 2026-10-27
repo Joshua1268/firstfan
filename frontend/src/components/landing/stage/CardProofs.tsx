@@ -8,22 +8,16 @@ import { go, useStage, useStepValue, useThreshold } from "./context";
 import { CARD, FEEDBACK, RATINGS, STAMPS } from "./copy";
 import { CheckIcon, StarIcon } from "../icons";
 
-/**
- * Le dossier qui s'épaissit (§3.4) : enfants de la carte, ils restent attachés à scale 0.7 en périphérie.
- * - étape 01 : badge « Métier vérifié » (0.43) ;
- * - étape 02 : polaroïds sortis de derrière la carte (4 sur desktop, 3 sur mobile), 2 restent (0.635) ;
- * - étape 03 : bulles de retour (0.66, 0.675, 0.69), puis une bulle et la pastille de note restent (0.78).
- */
+// Proofs collected by the card, rendered as its children so they move with it.
 
 const STAMP = { type: "spring", ...spring.stamp } as const;
 const POP = { type: "spring", ...spring.pop } as const;
 const POLAROID = { type: "spring", stiffness: 220, damping: 18 } as const;
-/** Rotations « aléatoires » déterministes entre -8° et 8°. */
+// Deterministic "random" rotations between -8 and 8 degrees.
 const POLAROID_ROT = [-6, 5, -3, 7];
 export const BUBBLE_T = [0.66, 0.675, 0.69] as const;
 const KEEP_T = 0.78;
 
-/** Tampon : scale 1.4 vers 1 (relatif à `to`), opacité d'entrée en 90 ms, anneau d'encre 420 ms. */
 export function useStamp(p: MotionValue<number>, t: number, to = 1) {
   const { instant } = useStage();
   const on = p.get() >= t;
@@ -96,7 +90,7 @@ function Polaroid({ i, p, desktop }: { i: number; p: MotionValue<number>; deskto
   const x = useTransform(shown, [0, 1], [-96, 0]);
   const y = useTransform(shown, [0, 1], [20, 0]);
   const scale = useTransform(trim, [0, 1], [1, kept ? 0.7 : 1]);
-  // Rangé derrière la carte, il est masqué : certains dépasseraient du bord droit.
+  // Hidden while behind the card, or some would stick out on the right.
   const opacity = useTransform(shown, [0, 0.08], [0, 1]);
   return (
     <motion.div

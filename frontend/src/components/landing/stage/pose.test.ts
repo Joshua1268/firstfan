@@ -4,7 +4,7 @@ import { cardPose } from "./pose";
 
 const l = computeLayout(1440, 900);
 
-describe("card milestones (§3.4)", () => {
+describe("card milestones", () => {
   it("sits grey and small in the ring during the loop", () => {
     const pose = cardPose(0.12, 0, 0, l);
     expect(pose).toMatchObject({ x: l.ring.cx, y: l.ring.cy, rotateY: 0 });

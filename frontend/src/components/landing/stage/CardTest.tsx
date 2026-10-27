@@ -5,20 +5,17 @@ import { dur, spring } from "@/lib/motion-tokens";
 import { go, useStage, useThreshold } from "./context";
 import { CHECKLIST } from "./copy";
 
-/**
- * Étape 02 dans la carte (§3.4, scène E) : la checklist du parcours guidé, le curseur qui suit son chemin
- * (offsetDistance de 0 à 100 % entre 0.50 et 0.62), les cases cochées aux quarts avec un flash de capture.
- */
+// Step 02 inside the card: the guided checklist, a moving cursor and capture flashes.
 
 export const TICKS = [0.53, 0.56, 0.59, 0.62] as const;
 
-/** Chemin du curseur dans le repère de la carte (440x300) : départ, puis une cible par case. */
+// Cursor path in card coordinates (440x300): start, then one target per item.
 const WAYPOINTS = [
   { x: 150, y: 150 },
-  { x: 408, y: 49 }, // Créer un compte : l'avatar du compte
-  { x: 226, y: 85 }, // Ajouter un client
-  { x: 84, y: 266 }, // Envoyer une facture
-  { x: 214, y: 182 }, // Relancer un impayé
+  { x: 408, y: 49 }, // create an account
+  { x: 226, y: 85 }, // add a client
+  { x: 84, y: 266 }, // send an invoice
+  { x: 214, y: 182 }, // chase an unpaid invoice
 ];
 
 function cursorAt(v: number) {
@@ -27,7 +24,7 @@ function cursorAt(v: number) {
   const t = d - i;
   const a = WAYPOINTS[i];
   const b = WAYPOINTS[i + 1];
-  // Arc léger : contrôle décalé perpendiculairement au segment.
+  // Slight arc: control point offset perpendicular to the segment.
   const mx = (a.x + b.x) / 2 - (b.y - a.y) * 0.18;
   const my = (a.y + b.y) / 2 + (b.x - a.x) * 0.18;
   const u = 1 - t;
@@ -100,7 +97,6 @@ export function CardTest({ p }: { p: MotionValue<number> }) {
         className="absolute left-0 top-0 -ml-2 -mt-2 size-4 rounded-full border-[1.5px] border-ink bg-ink/10"
         style={{ x: cx, y: cy, opacity: cursorOpacity }}
       />
-      {/* Flash de capture */}
       <motion.div className="pointer-events-none absolute inset-0 bg-ink" style={{ opacity: flash }} />
     </>
   );

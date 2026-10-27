@@ -8,15 +8,11 @@ import { ArrowIcon, CheckIcon } from "./icons";
 import { ProofSticker, type ProofKind } from "./ProofSticker";
 import { containerCls, STAMP_SPRING, useMediaQuery, useReveal, useReduce } from "./reveal";
 
-/**
- * CTA final (§3.10) : plein écran noir, titre énorme, anneau ouvert de la boucle en filigrane (brèche vers
- * les CTA), la carte de l'app avec son dossier de preuves, et la planche des autocollants du hero.
- * La barre CTA mobile se masque ici (#cta-final, voir MobileCtaBar). Reduced-motion : tout est posé.
- */
+// The mobile CTA bar hides over this section (#cta-final).
 
 const WORDS = ["Arrête", "de", "recommencer", "la", "boucle."] as const;
 
-/** Les autocollants du hero, rangés : la planche des preuves récoltées. `m` : gardés sur mobile. */
+// `m`: kept on mobile.
 const BOARD: { text: string; kind: ProofKind; r: number; side: -1 | 1; m?: boolean }[] = [
   { text: "Comptable vérifiée", kind: "check", r: -4, side: -1, m: true },
   { text: "14 captures horodatées", kind: "ticket", r: 3, side: -1 },
@@ -38,7 +34,7 @@ const PROOFS = [
 
 const RING_R = 46;
 const RING_OPEN = 0.88;
-// Le tracé d'un cercle SVG part de 3 h dans le sens horaire : on le tourne pour centrer la brèche en bas, vers les CTA.
+// An SVG circle starts at 3 o'clock: rotate it so the gap faces the CTAs.
 const RING_ROTATE = 90 + ((1 - RING_OPEN) * 360) / 2;
 
 function Ring() {
@@ -71,10 +67,7 @@ function Ring() {
   );
 }
 
-/**
- * Titre : chaque mot sort de son masque en CSS (60 ms d'écart) quand le bloc entre dans le viewport.
- * Sur desktop, il tient sur deux lignes pleine largeur : les CTA restent ainsi au-dessus du pli (1440x900).
- */
+// Two lines on desktop so the CTAs stay above the fold.
 function Title() {
   const reduce = useReduce();
   const ref = useRef<HTMLHeadingElement>(null);
@@ -82,7 +75,7 @@ function Title() {
   const [state, setState] = useState<"idle" | "armed" | "play">("idle");
   useEffect(() => {
     if (reduce) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- le masque n'est posé qu'avec JS, hors du viewport
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the mask only exists with JS, off screen
     setState((s) => (s === "idle" ? (inView ? "idle" : "armed") : s === "armed" && inView ? "play" : s));
   }, [reduce, inView]);
   return (
@@ -120,7 +113,6 @@ function AppCard() {
           </li>
         ))}
       </ul>
-      {/* Dernier tampon VALIDÉ, avec son anneau d'encre. */}
       <motion.span
         data-reveal=""
         className="absolute -right-4 -top-5 inline-flex items-center rounded-[10px] border-2 border-accent bg-bg px-3 py-1.5 font-mono text-[13px] font-medium uppercase tracking-[0.16em] text-accent"
@@ -189,7 +181,7 @@ function Board({ side }: { side: -1 | 1 }) {
   );
 }
 
-/** CTA plein : magnétisme léger (±6 px, spring 150/15) sur pointeur fin, press à scale 0.97. */
+// Light magnetic pull on fine pointers.
 function MagneticCta() {
   const fine = useMediaQuery("(pointer: fine)");
   const reduce = useReduce();
@@ -209,7 +201,7 @@ function MagneticCta() {
     y.set(0);
   };
   return (
-    // tabIndex -1 : Motion rend focusable tout élément avec whileTap ; le seul arrêt de tabulation est le lien.
+    // Motion makes whileTap elements focusable; only the link should be a tab stop.
     <motion.span
       tabIndex={-1}
       style={on ? { x: sx, y: sy } : undefined}
@@ -242,7 +234,6 @@ function ProCta() {
   );
 }
 
-/** Les CTA montent en spring 260/22. */
 function CtaRise({
   delay,
   className = "flex",
@@ -301,7 +292,7 @@ export function FinalCta() {
         </motion.div>
 
         <motion.div {...ctas} className="mt-12 flex w-full flex-col gap-3 md:mt-14 md:w-auto md:flex-row lg:mt-10">
-          {/* Le dev reste l'action principale, devant sur toutes les tailles ; le pro est renvoyé vers sa page. */}
+          {/* The dev action stays first; testers are sent to their own page. */}
           <CtaRise delay={0}>
             <MagneticCta />
           </CtaRise>

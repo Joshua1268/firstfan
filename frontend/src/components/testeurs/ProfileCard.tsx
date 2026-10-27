@@ -7,13 +7,7 @@ import { CheckIcon, StarIcon } from "@/components/landing/icons";
 import { JobAvatar } from "@/components/landing/stage/avatars";
 import { STAMP_SPRING, useReduce } from "@/components/landing/reveal";
 
-/**
- * Signature de la page testeurs : la carte pro d'un testeur vérifié, épinglée comme un badge de salon.
- * Elle dit d'abord « ton métier est reconnu » (tampon MÉTIER VÉRIFIÉ), puis ce que le profil gagne à chaque test.
- * Entrée : la carte descend au bout de son cordon (spring douce), puis le tampon tombe dessus.
- * Reduced-motion : tout est posé. Sans JS : `data-reveal` force l'état final (feuille REVEAL_NO_JS).
- * Décorative pour les technologies d'assistance : le même contenu est dit en texte dans la page.
- */
+// Decorative badge card: the same content is written as text on the page.
 
 const ROWS = [
   { label: "Tests validés", value: "12" },
@@ -33,7 +27,7 @@ export function ProfileCard() {
       animate="show"
       className="relative mx-auto w-full max-w-[340px] lg:max-w-[360px]"
     >
-      {/* Cordon : un trait qui descend du haut de la colonne jusqu'à l'œillet de la carte. */}
+      {/* Lanyard */}
       <div className="absolute -top-24 left-1/2 hidden h-24 w-px -translate-x-1/2 bg-gradient-to-b from-transparent to-line lg:block" />
       <motion.div
         data-reveal=""
@@ -49,7 +43,6 @@ export function ProfileCard() {
         style={{ rotate: -3, transformOrigin: "50% 0%" }}
         className="relative rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-[0_40px_80px_-24px_rgba(0,0,0,.7),inset_0_0_0_1px_rgba(242,237,227,.05)] md:p-7"
       >
-        {/* Œillet. */}
         <span className="absolute left-1/2 top-3 h-2.5 w-12 -translate-x-1/2 rounded-pill border border-line bg-bg" />
 
         <div className="mt-4 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
@@ -84,7 +77,7 @@ export function ProfileCard() {
           Invitations réservées aux comptables
         </p>
 
-        {/* Tampon : tombe sur la carte une fois qu'elle est posée, avec son anneau d'encre. */}
+        {/* Stamp drops once the card has landed. */}
         <motion.span
           data-reveal=""
           variants={{

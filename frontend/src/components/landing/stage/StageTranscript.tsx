@@ -15,12 +15,7 @@ import {
   type Step,
 } from "./copy";
 
-/**
- * Transcription du stage pour les lecteurs d'écran (visuellement masquée).
- * Le stage animé n'affiche qu'une scène à la fois ; ici, les sept scènes se lisent dans l'ordre,
- * avec le contenu des visuels (labels de la boucle, testeurs, checklist, retours, notes, graphe).
- * Le texte visible du stage est aria-hidden pour ne pas être lu deux fois ; seuls ses liens restent exposés.
- */
+// Visually hidden transcript of all seven scenes for screen readers.
 
 function StepBlock({ step, children }: { step: Step; children: React.ReactNode }) {
   return (

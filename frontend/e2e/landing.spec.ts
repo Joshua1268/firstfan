@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, pinCores, test } from "./fixtures";
 import { overlaps, scan, scrollStageTo, waitForLiveStage } from "./helpers";
 
-/** Boîtes visibles de tout ce qu'aucun autocollant ne doit recouvrir. */
+// Visible boxes that no sticker may cover.
 async function guardedBoxes(page: Page) {
   return page
     .locator("[data-hero-guard], [data-hero-cta], [data-live-badge], #hero a[href='#boucle']")
@@ -17,7 +17,7 @@ async function guardedBoxes(page: Page) {
 async function expectNoStickerOverlap(page: Page) {
   const guarded = await guardedBoxes(page);
   expect(guarded.length).toBeGreaterThan(8);
-  // Une seule lecture du DOM pour tous les autocollants (rapide même sous charge).
+  // One DOM read for all stickers.
   const stickers = await page.locator("[data-sticker]").evaluateAll((els) =>
     els.map((el) => {
       const r = el.getBoundingClientRect();
@@ -41,7 +41,7 @@ test("hero copy is server-rendered and its single CTA is clickable", async ({ pa
     "href",
     "/inscription?role=dev",
   );
-  // Le côté testeur a sa propre page : plus de CTA testeur dans le hero.
+  // Testers have their own page, so no tester CTA in the hero.
   await expect(hero.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveCount(0);
   await expect(hero.locator("a[href*='role=tester']")).toHaveCount(0);
 });
@@ -51,14 +51,14 @@ test("mobile layout", async ({ page }, info) => {
   await page.goto("/");
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
+  // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
   expect(await page.evaluate(() => window.innerWidth)).toBe(375);
   const h1 = await page.getByRole("heading", { level: 1 }).boundingBox();
   for (const s of await page.locator("[data-sticker]").all()) expect(overlaps(await s.boundingBox(), h1)).toBe(false);
   const ctas = page.locator("[data-hero-cta]:visible");
   await expect(ctas).toHaveCount(1);
   await expect(ctas.first()).toHaveAttribute("data-camp", "dev");
-  // Les autocollants mobiles sont posés sous le CTA : ils ne passent jamais devant le H1 dans l'ordre de lecture.
+  // Mobile stickers sit below the CTA, never before the H1 in reading order.
   const cta = (await ctas.first().boundingBox())!;
   for (const s of await page.locator("[data-sticker]").all())
     expect((await s.boundingBox())!.y).toBeGreaterThan(cta.y + cta.height);
@@ -68,7 +68,7 @@ test("hero reads in three levels: H1, then one sentence, then one button", async
   await page.goto("/");
   const hero = page.locator("#hero");
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(1100); // fin de l'entrée CSS (560 ms + 420 ms)
+  await page.waitForTimeout(1100); // end of the CSS entrance
   await expect(hero.locator("[data-hero-cta]:visible")).toHaveCount(1);
   const [h1, lead, cta] = await Promise.all([
     hero.getByRole("heading", { level: 1 }).boundingBox(),
@@ -77,13 +77,13 @@ test("hero reads in three levels: H1, then one sentence, then one button", async
   ]);
   expect(h1!.y + h1!.height).toBeLessThanOrEqual(lead!.y);
   expect(lead!.y + lead!.height).toBeLessThanOrEqual(cta!.y);
-  // La phrase tient en peu de lignes (deux sur desktop) : elle se lit d'un coup d'œil.
+  // The sentence fits in a few lines.
   const lines = await hero.getByText("Des pros vérifiés du métier que tu vises").evaluate((el) => {
     const lh = parseFloat(getComputedStyle(el).lineHeight);
     return Math.round(el.getBoundingClientRect().height / lh);
   });
   expect(lines).toBeLessThanOrEqual(page.viewportSize()!.width >= 1280 ? 2 : page.viewportSize()!.width >= 768 ? 3 : 4);
-  // Le bouton est au-dessus du pli.
+  // The button is above the fold.
   expect(cta!.y + cta!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
 });
 
@@ -95,11 +95,11 @@ test("rendered page has no forbidden content", async ({ page }) => {
 test("stickers never cover the hero text or the CTAs, and the page never scrolls sideways", async ({ page }, info) => {
   await page.goto("/");
   await expect(page.locator("[data-sticker]")).toHaveCount(smallScreen(info.project.name) ? 2 : 3);
-  // Un seul autocollant lime sur desktop (aucun sur mobile, où il serait collé au CTA lime).
+  // One lime sticker on desktop, none on mobile.
   await expect(page.locator("[data-sticker][data-accent='true']")).toHaveCount(smallScreen(info.project.name) ? 0 : 1);
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  // Chrome mobile élargit la fenêtre de mise en page (page dézoomée) si un élément déborde : innerWidth le trahit.
+  // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
   expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize()!.width);
   for (const s of await page.locator("[data-sticker]").all()) {
     const box = (await s.boundingBox())!;
@@ -151,7 +151,7 @@ test("mobile menu moves focus in, traps Tab, closes on Escape and gives focus ba
       const el = document.activeElement;
       return !!el && (el.closest("[data-mobile-menu]") !== null || el.getAttribute("aria-label") === "Fermer le menu");
     });
-  // 5 liens dans le menu (3 sections, Connexion, le CTA dev) + le bouton de fermeture : 6 tabulations ramènent au lien de tête.
+  // 5 menu links plus the close button: 6 tabs come back to the first link.
   await expect(page.locator("[data-mobile-menu] a[href]")).toHaveCount(5);
   await expect(page.locator("[data-mobile-menu]").getByRole("link", { name: "Pour les testeurs" })).toHaveAttribute(
     "href",
@@ -176,7 +176,7 @@ test("the check sits above CLIENTS without touching FUTURS", async ({ page }) =>
     const words = [...document.querySelectorAll<HTMLElement>(".hero-word")];
     const futurs = words.find((w) => w.textContent === "futurs")!;
     const clients = words.find((w) => w.textContent === "clients")!;
-    // Ligne de base de FUTURS : sonde inline-block de hauteur nulle, alignée sur la ligne de base.
+    // Zero-height inline-block probe on the FUTURS baseline.
     const probe = document.createElement("span");
     probe.style.cssText = "display:inline-block;width:0;height:0;vertical-align:baseline";
     futurs.appendChild(probe);
@@ -192,9 +192,9 @@ test("the check sits above CLIENTS without touching FUTURS", async ({ page }) =>
       check: { left: check.left, right: check.right, top: check.top, bottom: check.bottom },
     };
   });
-  // Sous la ligne de base de FUTURS (avec une marge pour l'épaisseur du trait arrondi).
+  // Below the FUTURS baseline, with room for the round stroke.
   expect(geo.check.top).toBeGreaterThanOrEqual(geo.baseline + 2);
-  // Au-dessus du mot CLIENTS : centre horizontal dans le mot, bas du tracé au niveau du haut des lettres.
+  // Above CLIENTS: centered in the word, bottom at the top of the letters.
   const center = (geo.check.left + geo.check.right) / 2;
   expect(center).toBeGreaterThan(geo.clients.left);
   expect(center).toBeLessThan(geo.clients.right);
@@ -221,7 +221,7 @@ test("jobs marquee lists verified jobs", async ({ page }) => {
   await expect(band.getByText("MÉTIERS VÉRIFIÉS SUR")).toBeVisible();
   await expect(band.getByText("Comptable").first()).toBeVisible();
   await expect(band.getByText("Métier vérifié par CV, LinkedIn ou justificatif.")).toBeVisible();
-  // Le contenu doublé est décoratif : les lecteurs d'écran lisent la liste une seule fois.
+  // The doubled content is decorative: screen readers read the list once.
   await expect(band.getByRole("listitem")).toHaveCount(14);
   await expect(page.locator("[data-marquee-track]")).toHaveCSS("animation-name", "marquee");
 });
@@ -235,7 +235,7 @@ test("jobs marquee is a static centered list with reduced motion", async ({ brow
   await expect(track).toHaveCSS("flex-wrap", "wrap");
   await expect(track).toHaveCSS("justify-content", "center");
   await expect(page.locator("[data-marquee-track] [aria-hidden='true'][data-marquee-copy]")).toBeHidden();
-  // Les 14 métiers sont dans le viewport, sans débordement horizontal.
+  // All 14 jobs fit in the viewport without overflow.
   const pills = page.locator("[data-marquee-track] [data-pill][data-copy='0']");
   await expect(pills).toHaveCount(14);
   const vw = page.viewportSize()!.width;
@@ -272,7 +272,7 @@ test("jobs marquee stamps a visible job", async ({ page }) => {
     return r.left >= b.left && r.right <= b.right;
   });
   expect(inside).toBe(true);
-  // Le tampon retombe après 1200 ms.
+  // The stamp goes away after 1200ms.
   await expect(stamped).toHaveCount(0, { timeout: 3000 });
 });
 
@@ -298,7 +298,7 @@ test("stage scenes advance with scroll", async ({ page }) => {
   await expect(stage).toHaveAttribute("data-scene", "step4");
 });
 
-/** Bloque le chunk du stage animé (reconnu à son contenu) ; renvoie la liste des chunks du stage demandés. */
+// Blocks the live stage chunk and returns the stage chunks requested.
 async function blockStageChunk(page: import("@playwright/test").Page) {
   const hits: string[] = [];
   await page.route("**/_next/static/chunks/*.js", async (route) => {
@@ -321,7 +321,7 @@ test("before the live stage loads, step links are real anchors that work", async
   await page.waitForTimeout(2500);
   expect(hits.length).toBeGreaterThan(0);
   await expect(page.locator("[data-stage-loaded]")).toHaveCount(0);
-  // Aucun bouton inerte : les crans sont des liens vers une cible du stage.
+  // Steps are links to a stage target, not inert buttons.
   await expect(page.locator(".stage-live nav button")).toHaveCount(0);
   const step2 = page.locator(".stage-live nav a[aria-label='Étape 02']").first();
   const href = (await step2.getAttribute("href"))!;
@@ -391,12 +391,12 @@ test("stage threshold choreographies reverse when scrolling back up", async ({ p
     });
   await scrollStageTo(page, 0.3);
   await expect(stage).toHaveAttribute("data-scene", "voices");
-  // Après la cassure : arcs raccourcis, carte en couleur.
+  // After the break: shorter arcs, card in color.
   await expect.poll(async () => (await read()).dash).toBeGreaterThan(5);
   await expect.poll(async () => (await read()).color).toBeGreaterThan(0.95);
   await scrollStageTo(page, 0.1);
   await expect(stage).toHaveAttribute("data-scene", "loop");
-  // Sous 0.185 : les arcs se referment et la carte redevient grise.
+  // Below 0.185: arcs close and the card turns grey again.
   await expect.poll(async () => (await read()).dash, { timeout: 8000 }).toBeLessThan(0.5);
   await expect.poll(async () => (await read()).color, { timeout: 8000 }).toBeLessThan(0.05);
 });
@@ -467,7 +467,7 @@ test("hydrated page keeps a single heading per stage scene", async ({ page }) =>
 
 test("screen readers get every stage scene in reading order", async ({ page }) => {
   await page.goto("/");
-  // La transcription est montée après l'hydratation.
+  // The transcript mounts after hydration.
   await expect(page.locator("[data-stage-transcript]")).toBeAttached();
   const tree = await page.locator("[data-stage]").ariaSnapshot();
   const order = [
@@ -500,12 +500,12 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
     for (const x of a)
       for (const y of b) if (x !== y) expect(overlaps(x.box, y.box), `${x.text} / ${y.text}`).toBe(false);
   };
-  // Boucle : labels lisibles, compteur de tours dégagé.
+  // Loop: labels readable, turn counter clear.
   const labels = await boxes("loop", "[data-ring-label]");
   const bubbles = await boxes("loop", "[data-loop-bubble]");
   noOverlap(labels, bubbles);
   noOverlap(await boxes("loop", "[data-tour]"), bubbles);
-  // Étape 01 : aucun tampon n'est sous une carte testeur posée au-dessus (Awa est devant, puis l'ordre du DOM).
+  // Step 01: no stamp sits under a tester card above it.
   const testers = await page.locator('[data-static-scene="step1"] [data-tester]').evaluateAll((els) =>
     els.map((el) => {
       const box = (e: Element) => {
@@ -526,12 +526,12 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
       if (o !== t && above) expect(overlaps(t.stamp, o.card), `${t.name} / ${o.name}`).toBe(false);
     }),
   );
-  // Étape 03 : les pastilles ne couvrent ni le badge du dossier, ni la note du dev, ni l'autre pastille.
+  // Step 03: chips cover neither the proof badge, the dev rating nor each other.
   const pills = await boxes("step3", "[data-rating-pill]");
   noOverlap(pills, await boxes("step3", "[data-proof-badge]"));
   noOverlap(pills, await boxes("step3", "[data-avatar-label]"));
   noOverlap(pills, pills);
-  // Étape 04 : les deux autocollants posés, sans se recouvrir.
+  // Step 04: both stickers placed without overlapping.
   const stickers = await boxes("step4", "[data-curve-sticker]");
   expect(stickers).toHaveLength(2);
   noOverlap(stickers, stickers);
@@ -539,14 +539,14 @@ test("reduced-motion fallback keeps the required text uncovered", async ({ brows
   await context.close();
 });
 
-// ---------- Sections sous l'histoire (§3.5 à §3.11, Task 7) ----------
+// ---------- Sections below the stage ----------
 
 test("reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   for (const t of ["Tu connais la boucle", "Et si on cassait la boucle ?", "Des pros de ton métier cible. Vérifiés."])
     await expect(page.getByText(t, { exact: false }).first()).toBeVisible();
-  // États finaux figés : écran « Mission validée » du téléphone, tampon HORODATÉ, snippet complet.
+  // Final states: approved mission screen, stamp, full snippet.
   const pro = page.locator("#pro");
   await pro.scrollIntoViewIfNeeded();
   await expect(pro.locator("[data-phone-screen='done']")).toBeVisible();
@@ -575,7 +575,7 @@ test("no js", async ({ browser }, info) => {
   ] as const) {
     await expect(page.locator(sel)).toContainText(text);
   }
-  // Sans JS, rien ne reste masqué par un état initial d'animation.
+  // Without JS, nothing stays hidden by an initial animation state.
   for (const t of ["Trois promesses. Deux gagnants.", "Protégé dès le dépôt.", "Arrête de recommencer la boucle."])
     await expect(page.getByRole("heading", { name: t })).toBeVisible();
   await expect(page.getByText("Webhooks mobile money en local, vous faites comment ?")).toBeVisible();
@@ -584,12 +584,12 @@ test("no js", async ({ browser }, info) => {
 
 test("api down", { tag: "@api-down" }, async ({ page }) => {
   await page.route("**/api/public/stats/**", (r) => r.abort());
-  // Le polling vise la route Next sans barre finale.
+  // Polling uses the Next route without a trailing slash.
   await page.route("**/api/public/stats", (r) => r.abort());
   const res = await page.goto("/");
   expect(res?.status()).toBe(200);
   await expect(page.locator("[data-live-counter]")).toHaveCount(0);
-  // La section garde son texte, sans chiffre inventé.
+  // The section keeps its text, with no made-up number.
   await expect(page.locator("#en-direct")).toContainText("Chaque chiffre vient d'un vrai test, pas d'un formulaire.");
   await expect(page.locator("[data-live-badge]")).toHaveCount(0);
 });
@@ -606,7 +606,7 @@ test("live section shows only the non-zero server counters and the demo mention"
   const live = page.locator("#en-direct");
   await live.scrollIntoViewIfNeeded();
   await expect(live.locator("[data-live-counter]")).toHaveCount(nonZero);
-  // Jamais de « 0 » affiché (même règle que le badge du hero).
+  // Never shows a zero.
   for (const v of await live.locator("[data-live-counter] .sr-only").allTextContents())
     expect(Number(v)).toBeGreaterThan(0);
   await expect(live).not.toContainText(/(?<!\d)0 (tests? en cours|apps? testées?)/);
@@ -614,8 +614,7 @@ test("live section shows only the non-zero server counters and the demo mention"
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
 });
 
-// Le passage de 0 à la valeur est fixé au niveau unitaire (count-up.test.ts), le choix des compteurs affichés
-// aussi (live-counters.test.ts) : l'e2e ne contrôle pas la valeur rendue côté serveur. Ici : valeur finale juste, et rien n'est animé en reduced-motion.
+// Count-up and counter selection have unit tests; here, only the final value and no animation with reduced motion.
 for (const reducedMotion of ["reduce", "no-preference"] as const) {
   test(`live counters show the server value (reduced motion: ${reducedMotion})`, async ({ browser }, info) => {
     const context = await browser.newContext({ ...info.project.use, reducedMotion });
@@ -626,7 +625,7 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
     const read = () =>
       counters.evaluateAll((els) =>
         els.map((el) => ({
-          // Odomètre : chaque colonne contient 0 à 9, on lit donc la valeur qu'il affiche.
+          // Each odometer column holds 0 to 9, so read the displayed value.
           shown:
             el.querySelector("[data-odometer]")?.getAttribute("data-odometer") ??
             el.querySelector("[aria-hidden='true']")!.textContent!,
@@ -634,7 +633,7 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
         })),
       );
     if (reducedMotion === "reduce") {
-      // Tout de suite, sans attendre de comptage.
+      // Right away, without counting.
       for (const c of await read()) expect(c.shown).toBe(c.server);
     }
     await expect.poll(async () => (await read()).every((c) => c.shown === c.server), { timeout: 5000 }).toBe(true);
@@ -645,12 +644,12 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
 test("live section polls the public stats through the same origin", async ({ page }) => {
   await page.clock.install();
   const polled: string[] = [];
-  // Toute requête compte (même un 503 d'un amont lent) : on vérifie que le navigateur interroge la même origine.
+  // Any request counts, even a 503: we check the browser calls the same origin.
   page.on("request", (r) => {
     if (new URL(r.url()).pathname.startsWith("/api/public/stats")) polled.push(r.url());
   });
   await page.goto("/");
-  // L'intervalle n'existe qu'après l'hydratation : on attend que le polling soit armé avant d'avancer l'horloge.
+  // Wait for polling to start (after hydration) before moving the clock.
   await expect(page.locator("#en-direct[data-live-polling]")).toHaveCount(1, { timeout: 20_000 });
   await page.clock.runFor(16_000);
   await expect.poll(() => polled.length).toBeGreaterThan(0);
@@ -673,7 +672,7 @@ test("final CTA links and section anchors", async ({ page }) => {
   await page.goto("/");
   const cta = page.locator("#cta-final");
   await expect(cta.getByRole("link", { name: "Je suis développeur" })).toHaveAttribute("href", "/inscription?role=dev");
-  // Le côté testeur passe par sa page, /testeurs (CTA final, bandeau en milieu de page, nav, footer).
+  // Testers are sent to /testeurs.
   await expect(cta.getByRole("link", { name: "Je teste et je suis rémunéré" })).toHaveAttribute("href", "/testeurs");
   await expect(page.locator("#pro").getByRole("link", { name: "Devenir testeur" })).toHaveAttribute(
     "href",
@@ -684,13 +683,13 @@ test("final CTA links and section anchors", async ({ page }) => {
     "/testeurs",
   );
   await expect(page.locator("header nav a[href='/testeurs']").first()).toHaveText("Pour les testeurs");
-  // Le dev reste l'action principale du CTA final : devant le CTA testeur sur toutes les tailles.
+  // The dev CTA comes before the tester CTA at every size.
   const [dev, pro] = await Promise.all([
     cta.getByRole("link", { name: "Je suis développeur" }).boundingBox(),
     cta.getByRole("link", { name: "Je teste et je suis rémunéré" }).boundingBox(),
   ]);
   expect(dev!.x < pro!.x || dev!.y + dev!.height <= pro!.y).toBe(true);
-  // Chaque ancre de la nav mène à une section qui existe.
+  // Every nav anchor leads to an existing section.
   for (const href of await page
     .locator("header nav a[href^='#']")
     .evaluateAll((els) => els.map((e) => e.getAttribute("href")!)))

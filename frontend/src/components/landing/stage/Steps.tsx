@@ -11,12 +11,7 @@ import { CARD_H, CARD_W, type StageLayout } from "./layout";
 import { stepCenter } from "./pose";
 import { CodeAvatar, JobAvatar } from "./avatars";
 
-/**
- * Calques hors carte des étapes 01 et 03 (§3.4, scènes D et F) :
- * - les cartes testeurs en éventail, tamponnées, puis Awa qui s'ancre à la carte de l'app ;
- * - les avatars dev et Awa, et les pastilles de note qui volent dans les deux sens.
- * L'étape 02 se joue dans la carte (CardTest, CardProofs).
- */
+// Layers outside the card for steps 01 (tester cards) and 03 (two-way ratings). Step 02 lives in the card.
 
 const SETTLE = { type: "spring", ...spring.settle } as const;
 const STAMP = { type: "spring", ...spring.stamp } as const;
@@ -26,25 +21,23 @@ const STAMP_T = [0.37, 0.385, 0.4];
 const FAN_ROT = [-4, 1.5, -2.5];
 const TESTER_SCALE_MOBILE = 0.8;
 
-/** Position (centre) de la carte testeur `slot` dans le repère du stage. */
 function testerSpot(l: StageLayout, v: number, slot: number, count: number) {
   const c = stepCenter(l, v);
   if (l.desktop) {
     const cardLeft = c.x - (CARD_W * l.k) / 2;
-    // Écart vertical : la carte (96px x scale) plus le tampon qui dépasse en haut, sans toucher la carte voisine.
+    // Card height plus the stamp sticking out, so neighbours never touch.
     const gap = 126;
-    // Jamais sous le bloc texte (colonnes 1 à 5) : sur les petits laptops, l'éventail se resserre contre la carte.
+    // Never under the text block: on small laptops the fan tightens against the card.
     const half = 110 * Math.max(0.82, l.k) + 10;
     const minX = l.textLeft + l.textWidth + 12 + half - l.vw / 2;
     return { x: Math.max(minX, cardLeft - 86 + (slot === 1 ? -26 : 0)), y: c.y + (slot - (count - 1) / 2) * gap };
   }
-  // Espacement d'au moins la hauteur d'une carte testeur (96px x scale) plus le tampon qui dépasse.
   const bottom = c.y + (CARD_H * l.k) / 2;
   const gap = 96 * TESTER_SCALE_MOBILE + 30;
   return { x: (slot === 0 ? -1 : 1) * 10, y: bottom + 34 + slot * gap };
 }
 
-/** Coin haut gauche de la carte de l'app à l'étape 01, où Awa vient s'ancrer. */
+// Top left corner of the app card at step 01, where Awa docks.
 function anchorSpot(l: StageLayout, v: number) {
   const c = stepCenter(l, v);
   return { x: c.x - (CARD_W * l.k) / 2 + 70, y: c.y - (CARD_H * l.k) / 2 + 20 };
@@ -120,7 +113,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-semibold leading-tight text-ink">{t.name}</p>
           <p className="truncate text-[12.5px] leading-tight text-ink-muted">{t.job}</p>
-          {/* Note et mention sur une seule ligne : la mention est une pastille courte, jamais renvoyée à la ligne. */}
+          {/* Rating and tag stay on one line. */}
           <p className="mt-1 flex items-center gap-1.5 whitespace-nowrap font-mono text-[11.5px] leading-none tabular-nums text-ink">
             {t.rating}
             {"tag" in t && (
@@ -130,7 +123,6 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
             )}
           </p>
         </div>
-        {/* Emplacement du tampon MÉTIER VÉRIFIÉ */}
         <motion.span
           data-tester-stamp=""
           className="absolute -top-3 right-2 rounded-[6px] border-[1.5px] border-accent px-1.5 py-1 font-mono text-[9.5px] font-medium uppercase leading-none tracking-[0.08em] text-accent"
@@ -146,7 +138,7 @@ function TesterCard({ index, slot, count, p }: { index: number; slot: number; co
 
 export function Testers({ p }: { p: MotionValue<number> }) {
   const { desktop } = useStage();
-  // Mobile : deux testeurs (Awa, Grâce), empilés sous la carte.
+  // Mobile: two testers stacked below the card.
   const order = desktop ? [0, 1, 2] : [0, 2];
   return (
     <>
@@ -157,7 +149,7 @@ export function Testers({ p }: { p: MotionValue<number> }) {
   );
 }
 
-/* ---------- Étape 03 : notation dans les deux sens ---------- */
+/* ---------- Step 03: two-way ratings ---------- */
 
 function avatarSpots(l: StageLayout, v: number) {
   const c = stepCenter(l, v);
@@ -170,7 +162,7 @@ function avatarSpots(l: StageLayout, v: number) {
       awa: { x: Math.min(lim, c.x + halfW + 56), y: c.y + halfH * 0.35 },
     };
   }
-  // Mobile : avatars au-dessus de la carte, assez haut pour ne pas toucher le badge du dossier.
+  // Mobile: avatars above the card, clear of the proof badge.
   const y = c.y - halfH - 50;
   return { dev: { x: -l.vw * 0.3, y }, awa: { x: l.vw * 0.3, y } };
 }
@@ -178,13 +170,13 @@ function avatarSpots(l: StageLayout, v: number) {
 const ARC = { duration: 0.72, ease: ease.arc };
 const PILL_SCALE = [1, 1.15, 1];
 
-/** Keyframes en 3 points (0, 0.5, 1), interpolés sans créer de fonction à chaque frame. */
+// 3-point keyframes interpolated without allocating per frame.
 function lerp3(k: readonly number[], t: number) {
   return t <= 0.5 ? k[0] + (k[1] - k[0]) * (t / 0.5) : k[1] + (k[2] - k[1]) * ((t - 0.5) / 0.5);
 }
 const RETURN = { type: "spring", stiffness: 400, damping: 34 } as const;
 
-/** Vol d'une pastille d'un avatar à l'autre : keyframes x/y en 3 points, rotate [-10, 6, 0], scale [1, 1.15, 1]. */
+// A rating chip flying from one avatar to the other.
 function useFlight(
   p: MotionValue<number>,
   progress: MotionValue<number>,
@@ -204,9 +196,9 @@ function useFlight(
     const clampX = (x: number) => Math.max(-lim, Math.min(lim, x));
     const t = progress.get();
     const xs = [clampX(a.x), (a.x + b.x) / 2, clampX(b.x)];
-    // Mobile : les deux pastilles ne tiennent pas sur une ligne ; celle qui va vers Awa se pose une rangée plus haut.
+    // Mobile: both chips do not fit on one line, so the one going to Awa uses the row above,
     const land = !l.desktop && to === "awa" ? b.y - lift - 36 : b.y - lift;
-    // Elle en part aussi une rangée plus haut : au départ comme à l'arrivée, les deux pastilles ne se touchent pas.
+    // at departure and arrival alike.
     const start = !l.desktop && from === "dev" ? a.y - lift - 36 : a.y - lift;
     const ys = [start, Math.min(a.y, b.y) - lift - (l.desktop ? 150 : 24), land];
     return { x: lerp3(xs, t), y: lerp3(ys, t) };
@@ -239,7 +231,7 @@ function Pill({
   );
 }
 
-/** Pastille de note : « De vers À : note », le mot « vers » remplacé par une flèche SVG. */
+// "From to To: rating", with "vers" shown as an SVG arrow.
 export function DirectedRating({
   r,
   strong = false,
@@ -260,7 +252,7 @@ export function DirectedRating({
 }
 
 function Odometer({ value }: { value: MotionValue<number> }) {
-  // 4,5 vers 4,6 : seule la décimale roule.
+  // 4.5 to 4.6: only the decimal rolls.
   const y = useTransform(value, [0, 1], ["0em", "-1.2em"]);
   return (
     <span className="inline-flex h-[1.2em] overflow-hidden leading-[1.2em] tabular-nums">
@@ -301,7 +293,7 @@ export function Ratings({ p }: { p: MotionValue<number> }) {
         toTester.set(1);
         return;
       }
-      // À l'arrivée : tampon sur la pastille ; 400 ms après, la pastille inverse part.
+      // On arrival, stamp the chip, then send the reverse chip 400ms later.
       later(720, () => {
         a.stamp.set(1.4);
         go(a.stamp, 1, STAMP, false);

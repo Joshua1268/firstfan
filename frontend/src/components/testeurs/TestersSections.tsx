@@ -19,13 +19,6 @@ import { PhoneDemo } from "@/components/landing/ProSection";
 import { containerCls, h2Cls, Kicker, leadCls, riseVariants, useReveal } from "@/components/landing/reveal";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
 
-/**
- * Sections de /testeurs, dans l'ordre recommandé par la recherche (docs/recherche/2026-10-24-deux-publics.md) :
- * reconnaissance de l'expertise, rémunération (comment et quand, sans aucun montant), flexibilité, confiance,
- * puis un seul appel à proposer son profil. Entrées `whileInView` partagées avec l'accueil (`useReveal`) :
- * état final direct en reduced-motion, forcé sans JS par la feuille REVEAL_NO_JS.
- */
-
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
 
 const rise = riseVariants(20, spring.soft, 0.07);
@@ -45,7 +38,7 @@ function Head({ kicker, title, id, lead }: { kicker: string; title: string; id: 
   );
 }
 
-/* ---------- 1. Ton métier compte ---------- */
+/* ---------- Expertise ---------- */
 
 const IMPACT: { icon: Icon; title: string; text: string }[] = [
   {
@@ -100,7 +93,7 @@ export function WhyYou() {
   );
 }
 
-/* ---------- 2. Chaque test est rémunéré ---------- */
+/* ---------- Paid tests ---------- */
 
 const STEPS = [
   {
@@ -134,7 +127,7 @@ export function Payment() {
             title="Chaque test est rémunéré."
             lead="Tu es payé pour le test complet, pas au bug trouvé. L'argent part une fois que le dev a validé ton travail."
           />
-          {/* Étapes réelles, dans l'ordre : la numérotation porte une information. */}
+          {/* Real ordered steps, so numbering carries meaning. */}
           <motion.ol {...reveal} className="mt-12 flex flex-col">
             {STEPS.map((s, i) => (
               <motion.li
@@ -171,7 +164,7 @@ export function Payment() {
   );
 }
 
-/* ---------- 3. Quand tu veux ---------- */
+/* ---------- Flexibility ---------- */
 
 const FLEX: { icon: Icon; title: string; text: string }[] = [
   { icon: PhoneIcon, title: "Depuis ton téléphone", text: "Rien à installer : tout se passe dans ton navigateur." },
@@ -217,7 +210,7 @@ export function Flexibility() {
   );
 }
 
-/* ---------- 4. Confiance ---------- */
+/* ---------- Trust ---------- */
 
 const TRUST: { icon: Icon; title: string; text: string; link?: { href: string; label: string } }[] = [
   {
@@ -277,7 +270,7 @@ export function TrustBlock() {
   );
 }
 
-/* ---------- 5. Candidature ---------- */
+/* ---------- Apply ---------- */
 
 export function Apply() {
   const reveal = useReveal(0.4);

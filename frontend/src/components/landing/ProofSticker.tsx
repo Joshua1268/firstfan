@@ -1,10 +1,6 @@
 import { CheckIcon, StarIcon } from "./icons";
 
-/**
- * Autocollant statique (sections basses, §3.5 et §3.10) : même vocabulaire que ceux du hero,
- * sans parallaxe. Décoratif : son info est reprise en texte dans la section.
- * L'ombre est un calque figé (`sticker-shadow`), jamais animée.
- */
+// Static, decorative sticker: its content is repeated as text in the section.
 export type ProofKind = "pill" | "check" | "rating" | "tag" | "ticket";
 
 const base =

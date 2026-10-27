@@ -24,18 +24,10 @@ import {
 import type { SceneId } from "./scenes";
 import { TwoVoices } from "./TwoVoices";
 
-/**
- * Bloc texte d'une scène (§3.4) : colonnes 1 à 5 sur desktop, bas de l'écran sur mobile.
- * Il ne change qu'une fois par plage ; rien ne bouge pendant qu'on le lit. Tout est du vrai texte :
- * les visuels sont aria-hidden, leur contenu est repris ici en texte pour les lecteurs d'écran.
- */
+// Changes once per scene range, so nothing moves while it is read.
 
-/**
- * Stage animé : le texte visible n'existe que pour la scène courante ; les lecteurs d'écran lisent à la place
- * la transcription complète (StageTranscript). Le texte visible est donc aria-hidden, sauf les liens (CTA).
- */
+// In the animated stage, screen readers read StageTranscript, so visible text is aria-hidden except links.
 export const HideText = createContext(false);
-/** `aria-hidden` à poser sur un élément de texte du stage animé. */
 export function useTextHidden(): true | undefined {
   return useContext(HideText) || undefined;
 }
@@ -53,10 +45,7 @@ export function Kicker({ children }: { children: React.ReactNode }) {
 
 const TITLE =
   "font-display text-[26px] font-extrabold leading-[1.02] tracking-[-0.01em] text-ink [font-variation-settings:'wdth'_75] text-balance md:text-[34px] lg:text-[clamp(34px,3.9vw,58px)] lg:leading-[0.95]";
-/**
- * Titre de scène. Dans le stage animé, le texte visible est aria-hidden et doublé par la transcription : il est
- * alors rendu en paragraphe, pour que la page n'expose qu'un seul plan de titres (transcription ou repli statique).
- */
+// A paragraph in the animated stage, so the page exposes a single heading outline.
 function SceneTitle({ children }: { children: React.ReactNode }) {
   const hidden = useTextHidden();
   if (hidden)
@@ -70,9 +59,8 @@ function SceneTitle({ children }: { children: React.ReactNode }) {
 
 const LINE = "text-[15px] leading-[1.5] lg:text-[clamp(16px,1.25vw,19px)]";
 
-/** Position du bloc texte : colonnes 1 à 5 (desktop), bas de l'écran (mobile). */
 const LIVE_BOX = "absolute left-[var(--st-tl)] w-[var(--st-tw)] top-[57%] lg:top-[calc(50%+32px)] lg:-translate-y-1/2";
-/** Repli statique : sur mobile, le texte passe dans le flux sous le visuel (le bloc s'allonge s'il le faut). */
+// Static fallback on mobile: the text flows below the visual.
 export const STATIC_BOX =
   "relative ml-[var(--st-tl)] w-[var(--st-tw)] pt-[57svh] pb-24 lg:absolute lg:ml-0 lg:pt-0 lg:pb-0 lg:left-[var(--st-tl)] lg:top-[calc(50%+32px)] lg:-translate-y-1/2";
 export const TextBox = createContext(LIVE_BOX);
@@ -139,7 +127,7 @@ function LoopText() {
 }
 
 function BreakText({ p }: { p: MotionValue<number> }) {
-  // Seuil 0.19 : le titre sort du masque (105 % vers 0, 640 ms, out-expo) ; 0.20 : la ligne monte.
+  // The title rises out of its mask at 0.19, the line at 0.20.
   const title = useStepValue(
     p,
     0.19,
@@ -176,8 +164,7 @@ function BreakText({ p }: { p: MotionValue<number> }) {
 }
 
 function Step4Ctas({ p }: { p: MotionValue<number> }) {
-  // Stage animé sur mobile : le cadre fait 100svh et la barre CTA collée porte déjà les deux CTA ; ceux de la
-  // scène tomberaient sous la barre. Ils restent dans le repli statique (texte dans le flux) et sur desktop.
+  // On mobile the sticky CTA bar already holds the CTAs, and these would fall under it.
   const live = useTextHidden();
   const rise = useStepValue(
     p,
@@ -277,7 +264,6 @@ export function SceneContent({ id, p }: { id: SceneId; p: MotionValue<number> })
 const ENTER = { duration: dur.base / 1000, ease: ease.outQuint };
 const EXIT = { duration: dur.fast / 1000, ease: [0.4, 0, 1, 1] as const };
 
-/** Texte du stage animé : AnimatePresence mode="wait" sur l'index de scène (sortie 180 ms, entrée 320 ms). */
 export function SceneTextLive({ id, p }: { id: SceneId; p: MotionValue<number> }) {
   return (
     <AnimatePresence mode="wait" initial={false}>

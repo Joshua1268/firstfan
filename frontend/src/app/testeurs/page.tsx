@@ -15,7 +15,6 @@ export const metadata: Metadata = {
     "Comptable, restauratrice, livreur, commerçante : teste depuis ton téléphone des apps faites pour ton métier. Métier vérifié, chaque test rémunéré en mobile money après validation.",
 };
 
-// Page du côté testeur (recherche « deux publics ») : reconnaissance, rémunération sans montant, flexibilité, confiance.
 export default function Testeurs() {
   return (
     <>

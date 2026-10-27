@@ -9,16 +9,10 @@ import { go, useLayoutValue, useStage, useThreshold } from "./context";
 import { CURVES } from "./copy";
 import { GRAPH_VIEW as G } from "./layout";
 
-/**
- * Étape 04, le duel des courbes (§4, « Final du stage ») : la courbe verte est la boucle redressée.
- * Grise pointillée tracée par un clipPath qui avance (0.84 à 0.92), verte en pathLength (0.86 à 0.97),
- * autocollants tamponnés à J7 (0.90) et J30 (0.96), libellé gris barré.
- */
+// Step 04: the grey curve drops, the green one (the straightened loop) stays high.
 
 const yAt = (ratio: number) => G.y0 - ratio * (G.y0 - G.top);
-/** Les « c'est super » : chute à 4 % à J7. */
 const GHOST_D = `M ${G.x0} ${G.top} C 110 ${G.top} 170 250 ${G.j7} ${yAt(0.04)} C 380 ${yAt(0.025)} 480 ${yAt(0.02)} ${G.j30} ${yAt(0.02)}`;
-/** Tes testeurs vérifiés : ils restent. */
 const J7 = { x: G.j7, y: yAt(0.86) };
 const J30 = { x: G.j30, y: yAt(0.76) };
 const GREEN_D = `M ${G.x0} ${G.top} C 140 ${G.top + 4} 200 ${J7.y - 6} ${J7.x} ${J7.y} C 380 ${J7.y + 12} 480 ${J30.y - 4} ${J30.x} ${J30.y}`;
@@ -38,7 +32,7 @@ function Sticker({
   p: MotionValue<number>;
   t: number;
   align: "center" | "end";
-  /** Sous la courbe : sur un graphe étroit, J7 passe dessous pour ne pas toucher J30. */
+  // On a narrow graph, J7 goes below the curve so it never touches J30.
   below?: boolean;
 }) {
   const s = useStamp(p, t);
@@ -64,7 +58,7 @@ function Sticker({
 
 export function Curves({ p }: { p: MotionValue<number> }) {
   const { layout, instant } = useStage();
-  // Graphe étroit (mobile, petit desktop) : J7 passe sous la courbe, J30 reste dessus, libellé vert au-dessus de J30.
+  // Narrow graph (mobile, small desktop).
   const narrow = useLayoutValue((l) => l.graph.w < 520);
   const clip = useId().replace(/:/g, "");
   const x = useTransform(() => layout.get().graph.cx - layout.get().graph.w / 2);
@@ -94,7 +88,6 @@ export function Curves({ p }: { p: MotionValue<number> }) {
             <motion.rect y={-20} width={G.w} height={G.h + 40} style={{ x: reveal }} />
           </clipPath>
         </defs>
-        {/* Axes */}
         <path
           d={`M ${G.x0} ${G.top - 10} V ${G.y0} H ${G.j30 + 8}`}
           fill="none"
@@ -129,7 +122,6 @@ export function Curves({ p }: { p: MotionValue<number> }) {
           style={{ scale: pulse, opacity: dot, transformBox: "fill-box", transformOrigin: "center" }}
         />
       </svg>
-      {/* Axe X */}
       {CURVES.axis.map((label, i) => {
         const gx = [G.x0, G.j7, G.j30][i];
         return (
@@ -143,7 +135,6 @@ export function Curves({ p }: { p: MotionValue<number> }) {
           </span>
         );
       })}
-      {/* Libellés des courbes */}
       <motion.span
         data-curve-label=""
         className="absolute whitespace-nowrap text-[12px] font-medium text-ink-muted lg:text-[13px]"
