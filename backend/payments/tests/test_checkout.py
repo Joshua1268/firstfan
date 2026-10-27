@@ -95,6 +95,14 @@ def test_confirm_rejects_changed_selection(dev_client, campaign, selected):
     assert simulate(dev_client, reference, "paid").status_code == 200
 
 
+def test_confirm_rejects_non_draft_campaign(dev_client, campaign, selected):
+    reference = checkout(dev_client, campaign).json()["reference"]
+    Campaign.objects.filter(pk=campaign.pk).update(status=Campaign.Status.OPEN)
+    assert simulate(dev_client, reference, "paid").status_code == 409
+    assert Payment.objects.get().status == "pending"
+    assert set(campaign.invitations.values_list("status", flat=True)) == {"selected"}
+
+
 def test_failed_payment_keeps_draft(dev_client, campaign, selected):
     reference = checkout(dev_client, campaign).json()["reference"]
     assert simulate(dev_client, reference, "failed").status_code == 200

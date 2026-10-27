@@ -37,6 +37,8 @@ def confirm_payment(payment: Payment) -> None:
         if payment.status != Payment.Status.PENDING:
             raise Conflict("Ce paiement a échoué : relance le paiement depuis la campagne.")
         campaign = Campaign.objects.select_for_update().get(pk=payment.campaign_id)
+        if campaign.status != Campaign.Status.DRAFT:
+            raise Conflict("Cette campagne est déjà payée.")
         selected = campaign.invitations.filter(status=Invitation.Status.SELECTED)
         if payment.amount_xof != selected.count() * settings.PRICE_PER_TESTER_XOF:
             raise Conflict("La sélection a changé : relance le paiement depuis la campagne.")
