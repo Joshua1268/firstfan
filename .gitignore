@@ -3,7 +3,6 @@ node_modules/
 .next/
 media/
 .env
-.superpowers/
 __pycache__/
 *.pyc
 .pytest_cache/
