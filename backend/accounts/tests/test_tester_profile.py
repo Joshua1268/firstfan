@@ -107,6 +107,15 @@ def test_proof_stored_under_random_name(tester_client, tester_user):
     assert name.startswith("proofs/") and name.endswith(".pdf") and "Diplome" not in name
 
 
+def test_proof_replace_deletes_old_file(tester_client, tester_user):
+    patch_multipart(tester_client, {"proof": SimpleUploadedFile("a.pdf", PDF)})
+    old = TesterProfile.objects.get(user=tester_user).proof
+    patch_multipart(tester_client, {"proof": SimpleUploadedFile("b.pdf", PDF)})
+    new = TesterProfile.objects.get(user=tester_user).proof
+    assert new.name != old.name
+    assert not old.storage.exists(old.name) and new.storage.exists(new.name)
+
+
 def test_tester_without_profile_gets_404(client, db):
     user = User.objects.create_user("solo@x.ci", "solo@x.ci", "Sol1de-pass!", role=User.Role.TESTER)
     client.force_login(user)

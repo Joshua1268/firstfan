@@ -81,3 +81,10 @@ class TesterProfileSerializer(serializers.ModelSerializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.messages) from e
         return f
+
+    def update(self, profile, validated_data):
+        old = profile.proof.name if "proof" in validated_data else None
+        profile = super().update(profile, validated_data)
+        if old and old != profile.proof.name:
+            profile.proof.storage.delete(old)
+        return profile
