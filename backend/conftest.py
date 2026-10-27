@@ -13,6 +13,11 @@ def _clear_throttle_cache():
     cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def _fast_password_hasher(settings):
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
 def client_for(user: User) -> Client:
     c = Client()
     c.force_login(user)
