@@ -114,8 +114,9 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source="tester_profile.city")
     rating_avg = serializers.SerializerMethodField()
     completed_tests = serializers.IntegerField()
-    recommended = serializers.SerializerMethodField()
-    selected = serializers.SerializerMethodField()
+    recommended = serializers.BooleanField(read_only=True)
+    selected = serializers.BooleanField(read_only=True)
+    reason = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
@@ -129,6 +130,7 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
             "completed_tests",
             "recommended",
             "selected",
+            "reason",
         ]
 
     def get_last_initial(self, user: User) -> str:
@@ -137,12 +139,6 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
     def get_rating_avg(self, user: User) -> float | None:
         rating = user.tester_profile.rating_avg
         return float(rating) if rating is not None else None
-
-    def get_recommended(self, user: User) -> bool:
-        return user.pk in self.context["recommended_ids"]
-
-    def get_selected(self, user: User) -> bool:
-        return user.pk in self.context["selected_ids"]
 
 
 class SelectionSerializer(serializers.Serializer):

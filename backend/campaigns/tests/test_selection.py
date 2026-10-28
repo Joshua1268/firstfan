@@ -39,7 +39,7 @@ def test_testers_endpoint(dev_client, campaign):
     second = make_tester("b@x.ci", rating_avg="4.50")
     third = make_tester("c@x.ci")
     Invitation.objects.create(campaign=campaign, tester=third)
-    rows = dev_client.get(f"/api/campaigns/{campaign.pk}/testers/").json()
+    rows = dev_client.get(f"/api/campaigns/{campaign.pk}/testers/").json()["candidates"]
     assert [r["id"] for r in rows] == [first.pk, second.pk, third.pk]
     assert rows[0] == {
         "id": first.pk,
@@ -51,6 +51,7 @@ def test_testers_endpoint(dev_client, campaign):
         "completed_tests": 0,
         "recommended": True,
         "selected": False,
+        "reason": "Profil Comptable vérifié, note 4,9, aucun test validé",
     }
     assert [(r["recommended"], r["selected"]) for r in rows[1:]] == [(True, False), (False, True)]
     assert rows[2]["rating_avg"] is None

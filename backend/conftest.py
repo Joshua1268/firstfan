@@ -21,6 +21,13 @@ def _fast_password_hasher(settings):
     settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 
+@pytest.fixture(autouse=True)
+def _no_ai_keys(settings):
+    # Tests never reach a real AI provider, even with keys in the environment.
+    settings.GROQ_API_KEY = ""
+    settings.MISTRAL_API_KEY = ""
+
+
 def client_for(user: User) -> Client:
     c = Client()
     c.force_login(user)
