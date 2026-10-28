@@ -1,4 +1,5 @@
 import { SpaceTitle } from "@/ui/AppShell";
+
 export default function DevHome() {
   return (
     <div className="flex flex-col gap-10">

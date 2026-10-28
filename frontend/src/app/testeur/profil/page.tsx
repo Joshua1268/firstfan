@@ -1,7 +1,7 @@
-import { SpaceTitle } from "@/ui/AppShell";
 import type { Metadata } from "next";
 import { TesterProfileForm } from "@/features/accounts/TesterProfileForm";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { SpaceTitle } from "@/ui/AppShell";
 
 export const metadata: Metadata = { title: `Mon profil testeur · ${PRODUCT_NAME}` };
 
