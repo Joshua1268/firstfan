@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "projects",
     "campaigns",
     "payments",
+    "tracking",
 ]
 
 MIDDLEWARE = [
@@ -191,6 +192,7 @@ REST_FRAMEWORK = {
         # Read by the Next server (15 s cache), not by each visitor.
         "public_stats": os.environ.get("THROTTLE_PUBLIC_STATS", "240/min"),
         "login": os.environ.get("THROTTLE_LOGIN", "10/min"),
+        "track": os.environ.get("THROTTLE_TRACK", "120/min"),
     },
     # Caddy is the only proxy, so the client IP is the last X-Forwarded-For entry.
     "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),
