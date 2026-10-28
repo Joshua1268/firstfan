@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { useApi } from "@/lib/use-api";
 import { SpaceTitle } from "@/ui/AppShell";
+import { BackLink } from "@/ui/BackLink";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { Loading } from "@/ui/Loading";
 import { NotFoundNotice } from "@/ui/NotFoundNotice";
@@ -23,20 +23,15 @@ export function ProjectOverview({ projectId, children }: { projectId: number; ch
   return (
     <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-3">
-        <Link
-          href="/dev"
-          className="inline-flex min-h-11 items-center self-start text-[15px] text-ink-muted hover:text-ink"
-        >
-          Tes projets
-        </Link>
+        <BackLink href="/dev">Tes projets</BackLink>
         <SpaceTitle>{project.name}</SpaceTitle>
         <a
           href={project.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 max-w-full items-center self-start truncate text-[16px] text-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 max-w-full items-center self-start text-[16px] text-accent underline-offset-4 hover:underline"
         >
-          {project.url}
+          <span className="truncate">{project.url}</span>
         </a>
         <p className="max-w-[60ch] whitespace-pre-line text-[16px] leading-[1.6] text-ink-muted">
           {project.description}
