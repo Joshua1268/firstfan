@@ -11,7 +11,11 @@ const eslintConfig = defineConfig([
     rules: {
       "no-restricted-imports": [
         "error",
-        { patterns: [{ group: ["@/features/*"], message: "ui/ and lib/ never import from features/." }] },
+        {
+          patterns: [
+            { group: ["@/features/*", "**/features/**"], message: "ui/ and lib/ never import from features/." },
+          ],
+        },
       ],
     },
   },
