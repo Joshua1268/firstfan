@@ -5,6 +5,7 @@ import type { TesterCandidate } from "../types";
 const rating = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 // The real checkbox is invisible and covers the whole card, so the tap target is the card.
+// Its bottom scroll margin keeps a focused card clear of the sticky pay bar.
 export function TesterCard({
   tester,
   checked,
@@ -33,7 +34,7 @@ export function TesterCard({
         onChange={onToggle}
         aria-labelledby={`${id}-name`}
         aria-describedby={`${id}-details`}
-        className="absolute inset-0 size-full cursor-pointer appearance-none rounded-[var(--radius-card)] focus:outline-none disabled:cursor-not-allowed"
+        className="absolute inset-0 size-full scroll-mb-60 cursor-pointer appearance-none rounded-[var(--radius-card)] focus:outline-none disabled:cursor-not-allowed"
       />
       <span
         aria-hidden="true"
