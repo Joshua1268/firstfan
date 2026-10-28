@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useApi } from "@/lib/use-api";
+import { SpaceTitle } from "@/ui/AppShell";
+import { BackLink } from "@/ui/BackLink";
 import { Button } from "@/ui/Button";
 import { PrinterIcon } from "@/ui/icons";
 import { LoadFailed } from "@/ui/LoadFailed";
@@ -20,17 +21,13 @@ export function CertificatePrint({ projectId }: { projectId: number }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center print:hidden">
-        <Button type="button" onClick={() => window.print()}>
+      <div className="flex flex-col gap-4 print:hidden">
+        <BackLink href={`/dev/projets/${projectId}`}>Retour au projet</BackLink>
+        <SpaceTitle>Certificat d&apos;antériorité</SpaceTitle>
+        <Button type="button" onClick={() => window.print()} className="md:self-start">
           <PrinterIcon size={20} />
           Imprimer
         </Button>
-        <Link
-          href={`/dev/projets/${projectId}`}
-          className="inline-flex min-h-11 items-center justify-center text-[15px] text-ink-muted hover:text-ink"
-        >
-          Retour au projet
-        </Link>
       </div>
       <article className="rounded-[var(--radius-card)] bg-[#fbfaf7] p-6 text-[#111] md:p-12 print:rounded-none print:p-0">
         <pre className="whitespace-pre-wrap font-mono [overflow-wrap:anywhere] text-[13px] leading-[1.8] md:text-[14px]">

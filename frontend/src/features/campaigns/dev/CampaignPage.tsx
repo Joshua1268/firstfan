@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { formatXof } from "@/lib/money";
 import { useApi } from "@/lib/use-api";
 import { SpaceTitle } from "@/ui/AppShell";
+import { BackLink } from "@/ui/BackLink";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { Loading } from "@/ui/Loading";
 import { NotFoundNotice } from "@/ui/NotFoundNotice";
@@ -24,12 +24,7 @@ export function CampaignPage({ campaignId }: { campaignId: number }) {
   return (
     <div className="flex flex-col gap-10">
       <header className="flex flex-col items-start gap-3">
-        <Link
-          href={`/dev/projets/${campaign.project.id}`}
-          className="inline-flex min-h-11 items-center text-[15px] text-ink-muted hover:text-ink"
-        >
-          {campaign.project.name}
-        </Link>
+        <BackLink href={`/dev/projets/${campaign.project.id}`}>{campaign.project.name}</BackLink>
         <SpaceTitle>{campaign.target_profession}</SpaceTitle>
         <div className="flex flex-wrap items-center gap-3">
           <StatusPill tone={status.tone}>{status.label}</StatusPill>
