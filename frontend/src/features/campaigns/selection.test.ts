@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rankingLabel, selectionCount, toggleTester } from "./selection";
+import { rankedByAi, rankingLabel, selectionCount, toggleTester } from "./selection";
 
 describe("toggleTester", () => {
   it("adds a tester that is not selected", () => {
@@ -39,5 +39,13 @@ describe("rankingLabel", () => {
 
   it("falls back to the rating otherwise", () => {
     expect(rankingLabel("rules")).toBe("Classement par note");
+  });
+});
+
+describe("rankedByAi", () => {
+  it("is true only for the AI providers", () => {
+    expect(rankedByAi("groq")).toBe(true);
+    expect(rankedByAi("mistral")).toBe(true);
+    expect(rankedByAi("rules")).toBe(false);
   });
 });

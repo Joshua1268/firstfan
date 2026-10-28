@@ -10,6 +10,10 @@ export function selectionCount(chosen: number, wanted: number): string {
 }
 
 // source is "groq", "mistral" or "rules".
+export function rankedByAi(source: string): boolean {
+  return source === "groq" || source === "mistral";
+}
+
 export function rankingLabel(source: string): string {
-  return source === "groq" || source === "mistral" ? "Classement par IA" : "Classement par note";
+  return rankedByAi(source) ? "Classement par IA" : "Classement par note";
 }
