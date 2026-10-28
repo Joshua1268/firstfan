@@ -8,3 +8,8 @@ export function toggleTester(selected: number[], id: number, max: number): numbe
 export function selectionCount(chosen: number, wanted: number): string {
   return `${chosen} sur ${wanted}`;
 }
+
+// source is "groq", "mistral" or "rules".
+export function rankingLabel(source: string): string {
+  return source === "groq" || source === "mistral" ? "Classement par IA" : "Classement par note";
+}
