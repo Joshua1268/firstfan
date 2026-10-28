@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Geist, JetBrains_Mono } from "next/font/google";
-import { Providers } from "@/components/providers";
+import { Providers } from "./providers";
 import { PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 

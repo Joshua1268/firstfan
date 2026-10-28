@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { CheckIcon } from "@/components/landing/icons";
-import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/components/site/PageShell";
+import { CheckIcon } from "@/ui/icons";
+import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Inscription · ${PRODUCT_NAME}` };

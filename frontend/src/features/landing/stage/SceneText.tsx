@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useTransform, type MotionValue } from "motion/
 import Link from "next/link";
 import { createContext, useContext } from "react";
 import { dur, ease } from "@/lib/motion-tokens";
-import { ArrowIcon } from "../icons";
+import { ArrowIcon } from "@/ui/icons";
 import { useStepValue } from "./context";
 import {
   BREAK,

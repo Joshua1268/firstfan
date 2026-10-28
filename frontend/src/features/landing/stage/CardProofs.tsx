@@ -6,7 +6,7 @@ import { dur, spring } from "@/lib/motion-tokens";
 import { TICKS } from "./CardTest";
 import { go, useStage, useStepValue, useThreshold } from "./context";
 import { CARD, FEEDBACK, RATINGS, STAMPS } from "./copy";
-import { CheckIcon, StarIcon } from "../icons";
+import { CheckIcon, StarIcon } from "@/ui/icons";
 
 // Proofs collected by the card, rendered as its children so they move with it.
 

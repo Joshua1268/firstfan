@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowIcon } from "@/components/landing/icons";
+import { ArrowIcon } from "@/ui/icons";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
 import { ProfileCard } from "./ProfileCard";
 

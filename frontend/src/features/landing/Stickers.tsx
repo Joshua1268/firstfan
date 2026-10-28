@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { dur, spring } from "@/lib/motion-tokens";
 import type { Camp } from "./Hero";
-import { CheckIcon, StarIcon } from "./icons";
+import { CheckIcon, StarIcon } from "@/ui/icons";
 
 type Shape = "pill-check" | "circle-star" | "folded-check" | "seal" | "pill" | "tag" | "ticket" | "stamp";
 type Placement = "title" | "cta" | "bottom";

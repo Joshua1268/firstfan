@@ -16,7 +16,7 @@ import {
   ShieldIcon,
   SparkIcon,
   StarIcon,
-} from "./icons";
+} from "@/ui/icons";
 import { ProofSticker, type ProofKind } from "./ProofSticker";
 import {
   containerCls,

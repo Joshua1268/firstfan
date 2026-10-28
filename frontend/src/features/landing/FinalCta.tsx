@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion, useInView, useMotionValue, useSpring, type Variants } from "motion/react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { dur, ease, spring } from "@/lib/motion-tokens";
-import { ArrowIcon, CheckIcon } from "./icons";
+import { ArrowIcon, CheckIcon } from "@/ui/icons";
 import { ProofSticker, type ProofKind } from "./ProofSticker";
 import { containerCls, STAMP_SPRING, useMediaQuery, useReveal, useReduce } from "./reveal";
 

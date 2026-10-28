@@ -3,9 +3,9 @@
 import { motion } from "motion/react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, spring } from "@/lib/motion-tokens";
-import { CheckIcon, StarIcon } from "@/components/landing/icons";
-import { JobAvatar } from "@/components/landing/stage/avatars";
-import { STAMP_SPRING, useReduce } from "@/components/landing/reveal";
+import { CheckIcon, StarIcon } from "@/ui/icons";
+import { JobAvatar } from "@/features/landing/stage/avatars";
+import { STAMP_SPRING, useReduce } from "@/features/landing/reveal";
 
 // Decorative badge card: the same content is written as text on the page.
 

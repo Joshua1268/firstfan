@@ -6,7 +6,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import { useRef, useState, type ReactNode } from "react";
 import type { PublicStats } from "@/lib/stats";
 import { ease } from "@/lib/motion-tokens";
-import { ArrowIcon, ChevronIcon } from "./icons";
+import { ArrowIcon, ChevronIcon } from "@/ui/icons";
 import { heroBadge } from "@/lib/hero-badge";
 import { LiveBadge } from "./LiveBadge";
 

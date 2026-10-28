@@ -1,4 +1,4 @@
-import { CheckIcon, StarIcon } from "./icons";
+import { CheckIcon, StarIcon } from "@/ui/icons";
 
 // Static, decorative sticker: its content is repeated as text in the section.
 export type ProofKind = "pill" | "check" | "rating" | "tag" | "ticket";

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowIcon } from "@/components/landing/icons";
+import { ArrowIcon } from "@/ui/icons";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 // Same classes as reveal.tsx, whose client constants a server component cannot import.
