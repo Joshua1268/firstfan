@@ -11,6 +11,8 @@ import { StatusPill } from "@/ui/StatusPill";
 import { getCampaign } from "../api";
 import { CAMPAIGN_STATUS } from "../status";
 import type { CampaignDetail } from "../types";
+import { InvitationList } from "./InvitationList";
+import { TesterPicker } from "./TesterPicker";
 
 export function CampaignPage({ campaignId }: { campaignId: number }) {
   const { data: campaign, error, reload } = useApi(() => getCampaign(campaignId));
@@ -51,7 +53,11 @@ export function CampaignPage({ campaignId }: { campaignId: number }) {
         <PriceSummary campaign={campaign} />
       </div>
 
-      {/* Blocks that depend on the status (tester choice, payment, live follow-up) come here. */}
+      {campaign.status === "draft" ? (
+        <TesterPicker campaign={campaign} />
+      ) : (
+        <InvitationList invitations={campaign.invitations} />
+      )}
     </div>
   );
 }
