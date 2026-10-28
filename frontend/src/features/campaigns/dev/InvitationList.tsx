@@ -23,7 +23,7 @@ export function InvitationList({ invitations }: { invitations: InvitationRow[] }
                 {invitation.tester.first_name}
               </span>
               <span className="text-[14px] text-ink-muted">
-                {invitation.steps_done} sur {invitation.steps_total} étapes
+                {invitation.steps_done} sur {invitation.steps_total} étape{invitation.steps_total > 1 ? "s" : ""}
               </span>
               <span className="ml-auto">
                 <StatusPill tone={status.tone}>{status.label}</StatusPill>
