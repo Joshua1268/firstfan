@@ -7,12 +7,13 @@ import { formatXof } from "@/lib/money";
 import { useApi } from "@/lib/use-api";
 import { Button } from "@/ui/Button";
 import { FormAlert } from "@/ui/FormAlert";
+import { SparkIcon, StarIcon } from "@/ui/icons";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { Loading } from "@/ui/Loading";
 import { getTesterCandidates, selectTesters, startCheckout } from "../api";
-import { selectionCount, toggleTester } from "../selection";
+import { rankedByAi, rankingLabel, selectionCount, toggleTester } from "../selection";
 import type { CampaignDetail, TesterCandidate } from "../types";
-import { TesterCard } from "./TesterCard";
+import { CandidateCard } from "./CandidateCard";
 
 export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
   const { data, error, reload } = useApi(() => getTesterCandidates(campaign.id));
@@ -44,8 +45,18 @@ export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
           nouveaux profils sont vérifiés chaque semaine.
         </p>
       ) : (
-        // The rules ranking writes its reason from the stats the card already shows.
-        <PickerForm campaign={campaign} candidates={data.candidates} showReasons={data.source !== "rules"} />
+        <>
+          <p className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted">
+            {rankedByAi(data.source) ? (
+              <SparkIcon size={16} className="text-accent" />
+            ) : (
+              <StarIcon size={16} className="text-accent" />
+            )}
+            {rankingLabel(data.source)}
+          </p>
+          {/* The rules ranking writes its reason from the stats the card already shows. */}
+          <PickerForm campaign={campaign} candidates={data.candidates} showReasons={data.source !== "rules"} />
+        </>
       )}
     </section>
   );
@@ -86,7 +97,7 @@ function PickerForm({
           const checked = selected.includes(tester.id);
           return (
             <li key={tester.id}>
-              <TesterCard
+              <CandidateCard
                 tester={tester}
                 checked={checked}
                 showReason={showReasons}

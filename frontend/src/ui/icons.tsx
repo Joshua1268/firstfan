@@ -173,3 +173,11 @@ export function PrinterIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function CloseIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Svg>
+  );
+}

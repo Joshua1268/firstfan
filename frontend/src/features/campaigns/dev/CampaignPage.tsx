@@ -12,6 +12,7 @@ import { getCampaign } from "../api";
 import { CAMPAIGN_STATUS } from "../status";
 import type { CampaignDetail } from "../types";
 import { InvitationList } from "./InvitationList";
+import { LiveBoard } from "./LiveBoard";
 import { TesterPicker } from "./TesterPicker";
 
 export function CampaignPage({ campaignId }: { campaignId: number }) {
@@ -53,11 +54,9 @@ export function CampaignPage({ campaignId }: { campaignId: number }) {
         <PriceSummary campaign={campaign} />
       </div>
 
-      {campaign.status === "draft" ? (
-        <TesterPicker campaign={campaign} />
-      ) : (
-        <InvitationList invitations={campaign.invitations} />
-      )}
+      {campaign.status === "draft" && <TesterPicker campaign={campaign} />}
+      {campaign.status === "open" && <LiveBoard campaign={campaign} />}
+      {campaign.status === "closed" && <InvitationList invitations={campaign.invitations} />}
     </div>
   );
 }

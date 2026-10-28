@@ -57,10 +57,10 @@ const SUMMARIES: Record<
     text: (i) => `Rémunération créditée (${formatXof(i.reward_xof)}) : tu peux la retirer dans Mes gains.`,
   },
   rejected: {
-    title: "Test refusé",
+    title: "Test rejeté",
     icon: <LockIcon size={24} />,
     done: false,
-    text: () => "Test refusé par le dev.",
+    text: () => "Test rejeté par le dev.",
   },
   declined: {
     title: "Invitation refusée",

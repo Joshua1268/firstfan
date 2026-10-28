@@ -1,4 +1,4 @@
-import type { CampaignStatus, InvitationStatus } from "./types";
+import type { CampaignStatus, InvitationStatus, WouldPay } from "./types";
 
 export const CAMPAIGN_STATUS: Record<CampaignStatus, { label: string; tone: "waiting" | "success" | "danger" }> = {
   draft: { label: "Brouillon", tone: "waiting" },
@@ -24,5 +24,7 @@ export const TESTER_STATUS: Record<InvitationStatus, { label: string; tone: "wai
   declined: { label: "Refusée", tone: "danger" },
   submitted: { label: "Test envoyé", tone: "waiting" },
   validated: { label: "Validé", tone: "success" },
-  rejected: { label: "Refusé", tone: "danger" },
+  rejected: { label: "Rejeté", tone: "danger" },
 };
+
+export const WOULD_PAY_LABEL: Record<WouldPay, string> = { yes: "Oui", maybe: "Peut-être", no: "Non" };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { selectionCount, toggleTester } from "./selection";
+import { rankedByAi, rankingLabel, selectionCount, toggleTester } from "./selection";
 
 describe("toggleTester", () => {
   it("adds a tester that is not selected", () => {
@@ -28,5 +28,24 @@ describe("toggleTester", () => {
 describe("selectionCount", () => {
   it("reads as chosen out of wanted", () => {
     expect(selectionCount(2, 3)).toBe("2 sur 3");
+  });
+});
+
+describe("rankingLabel", () => {
+  it("names the AI when a model ranked the testers", () => {
+    expect(rankingLabel("groq")).toBe("Classement par IA");
+    expect(rankingLabel("mistral")).toBe("Classement par IA");
+  });
+
+  it("falls back to the rating otherwise", () => {
+    expect(rankingLabel("rules")).toBe("Classement par note");
+  });
+});
+
+describe("rankedByAi", () => {
+  it("is true only for the AI providers", () => {
+    expect(rankedByAi("groq")).toBe(true);
+    expect(rankedByAi("mistral")).toBe(true);
+    expect(rankedByAi("rules")).toBe(false);
   });
 });
