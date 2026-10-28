@@ -23,6 +23,13 @@ export function asApiError(e: unknown): ApiError {
     : new ApiError(0, { detail: "Connexion impossible. Vérifie ton réseau et réessaie." });
 }
 
+// Message shown above a form: the API's reason, or a generic one when no field explains the error.
+export function formMessage(error: ApiError | undefined): string | null {
+  if (!error) return null;
+  if (error.detail) return error.detail;
+  return Object.keys(error.fields).length > 0 ? null : "Une erreur est survenue. Réessaie dans un instant.";
+}
+
 function readCsrfCookie(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
