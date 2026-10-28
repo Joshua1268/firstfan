@@ -151,6 +151,8 @@ USE_TZ = True
 
 
 STATIC_URL = "static/"
+# Filled by collectstatic in production and served by Caddy.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 MAILERS = {

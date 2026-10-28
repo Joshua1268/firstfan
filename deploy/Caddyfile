@@ -1,0 +1,34 @@
+# Automatic HTTPS for {$DOMAIN} (Let's Encrypt; local certificate for localhost).
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Uploads are private: Django serves them only after an access check.
+	handle /media/* {
+		respond 404
+	}
+
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+
+	@backend path /api/* /admin /admin/* /t.js
+	handle @backend {
+		# Uploads are capped at 5 MB by Django; this stops larger bodies early.
+		request_body {
+			max_size 10MB
+		}
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
