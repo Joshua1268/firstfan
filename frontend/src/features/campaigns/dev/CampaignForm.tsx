@@ -15,7 +15,7 @@ import { StepsEditor } from "./StepsEditor";
 
 export function CampaignForm({ projectId }: { projectId: number }) {
   const router = useRouter();
-  const { data: professions } = useApi(getProfessions);
+  const { data: professions, error: professionsError, reload: reloadProfessions } = useApi(getProfessions);
   const [profession, setProfession] = useState("");
   const [testers, setTesters] = useState("3");
   const [steps, setSteps] = useState([""]);
@@ -27,8 +27,9 @@ export function CampaignForm({ projectId }: { projectId: number }) {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!canSubmit(steps)) {
-      setError(new ApiError(400, { steps: [`Remplis chaque étape (${MAX_STEP_LENGTH} caractères au plus).`] }));
+    const missing = checkFields(profession, testers, steps);
+    if (Object.keys(missing).length > 0) {
+      setError(new ApiError(400, missing));
       return;
     }
     setBusy(true);
@@ -53,7 +54,13 @@ export function CampaignForm({ projectId }: { projectId: number }) {
         <Field
           label="Métier ciblé"
           error={fieldError("target_profession")}
-          hint="Seuls des testeurs vérifiés de ce métier seront invités."
+          hint={
+            professionsError ? (
+              <ProfessionsFailed onRetry={reloadProfessions} />
+            ) : (
+              "Seuls des testeurs vérifiés de ce métier seront invités."
+            )
+          }
         >
           {(control) => (
             <select
@@ -64,7 +71,11 @@ export function CampaignForm({ projectId }: { projectId: number }) {
               className={controlCls}
             >
               <option value="" disabled>
-                {professions ? "Choisis un métier" : "Chargement des métiers..."}
+                {professions
+                  ? "Choisis un métier"
+                  : professionsError
+                    ? "Métiers indisponibles"
+                    : "Chargement des métiers..."}
               </option>
               {professions?.map((p) => (
                 <option key={p} value={p}>
@@ -95,5 +106,30 @@ export function CampaignForm({ projectId }: { projectId: number }) {
         Créer la campagne
       </Button>
     </form>
+  );
+}
+
+// Same rules as the API, checked here so every empty field shows on the first submit.
+function checkFields(profession: string, testers: string, steps: string[]): Record<string, string[]> {
+  const missing: Record<string, string[]> = {};
+  if (!profession) missing.target_profession = ["Choisis un métier."];
+  const count = Number(testers);
+  if (!Number.isInteger(count) || count < 1 || count > 10) missing.testers_wanted = ["Entre un nombre de 1 à 10."];
+  if (!canSubmit(steps)) missing.steps = [`Remplis chaque étape (${MAX_STEP_LENGTH} caractères au plus).`];
+  return missing;
+}
+
+function ProfessionsFailed({ onRetry }: { onRetry: () => void }) {
+  return (
+    <span className="flex flex-wrap items-center gap-x-2">
+      Impossible de charger les métiers.
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex min-h-11 items-center font-medium text-accent underline underline-offset-4"
+      >
+        Réessayer
+      </button>
+    </span>
   );
 }
