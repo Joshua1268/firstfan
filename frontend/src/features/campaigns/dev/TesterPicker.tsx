@@ -87,18 +87,21 @@ function PickerForm({ campaign, candidates }: { campaign: CampaignDetail; candid
           );
         })}
       </ul>
-      <div className="sticky bottom-4 flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5 md:flex-row md:items-center md:justify-between">
-        <p aria-live="polite" className="flex flex-wrap items-baseline gap-x-3 text-[15px] text-ink-muted">
-          <span className="font-display text-[24px] font-extrabold text-ink">
-            {selectionCount(selected.length, campaign.testers_wanted)}
-          </span>
-          testeurs choisis · {formatXof(selected.length * campaign.price_per_tester_xof)}
-        </p>
-        <Button onClick={pay} busy={busy} disabled={selected.length === 0}>
-          Payer et envoyer les invitations
-        </Button>
+      {/* The error sits in the sticky bar: below a long list it would be off screen. */}
+      <div className="sticky bottom-4 flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <FormAlert message={error && pickerMessage(error)} />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p aria-live="polite" className="flex flex-wrap items-baseline gap-x-3 text-[15px] text-ink-muted">
+            <span className="font-display text-[24px] font-extrabold text-ink">
+              {selectionCount(selected.length, campaign.testers_wanted)}
+            </span>
+            testeurs choisis · {formatXof(selected.length * campaign.price_per_tester_xof)}
+          </p>
+          <Button onClick={pay} busy={busy} disabled={selected.length === 0}>
+            Payer et envoyer les invitations
+          </Button>
+        </div>
       </div>
-      <FormAlert message={error && pickerMessage(error)} />
     </div>
   );
 }

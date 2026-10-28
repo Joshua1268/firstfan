@@ -160,7 +160,17 @@ test("a cancelled payment keeps the campaign in draft", async ({ page }, testInf
   await createDraftCampaign(page, 1);
 
   await page.getByRole("checkbox", { name: tester }).check();
-  await page.getByRole("button", { name: "Payer et envoyer les invitations" }).click();
+  const pay = page.getByRole("button", { name: "Payer et envoyer les invitations" });
+
+  // The list can be long: a refused selection must show next to the pay button.
+  const refused = { tester_ids: ["Testeur non disponible pour cette campagne."] };
+  await page.route("**/api/campaigns/*/selection/", (route) => route.fulfill({ status: 400, json: refused }));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await pay.click();
+  await expect(page.getByText("Testeur non disponible pour cette campagne.")).toBeInViewport();
+  await page.unroute("**/api/campaigns/*/selection/");
+
+  await pay.click();
   await expect(page).toHaveURL(/\/paiement\/simule\/[\w-]+$/);
   await page.getByRole("button", { name: "Annuler" }).click();
 
