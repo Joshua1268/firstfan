@@ -66,7 +66,7 @@ export function SimulatedCheckout({ reference }: { reference: string }) {
         <dd className="pt-2 font-mono text-[12px] text-ink-muted [overflow-wrap:anywhere]">Réf. {payment.reference}</dd>
       </dl>
       {payment.status === "pending" ? (
-        <div className="flex flex-col gap-3 md:flex-row-reverse md:justify-end">
+        <div className="flex flex-col gap-3 md:flex-row">
           <Button onClick={() => finish("paid")} busy={busy}>
             Confirmer le paiement
           </Button>
