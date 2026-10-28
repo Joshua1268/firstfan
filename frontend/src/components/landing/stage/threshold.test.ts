@@ -8,7 +8,7 @@ describe("threshold tracker (useThreshold)", () => {
     expect(t.update(0.15)).toBeNull();
     expect(t.update(0.19)).toBe(true);
     expect(t.update(0.3)).toBeNull();
-    // Retour vers le haut : la micro-chorégraphie s'inverse.
+    // Scrolling back reverses it.
     expect(t.update(0.1)).toBe(false);
     expect(t.update(0.12)).toBeNull();
     expect(t.update(0.185)).toBe(true);

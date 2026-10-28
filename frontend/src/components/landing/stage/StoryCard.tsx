@@ -8,11 +8,7 @@ import { CARD } from "./copy";
 import { CARD_H, CARD_W } from "./layout";
 import { cardPose } from "./pose";
 
-/**
- * La carte de l'app : UN seul motion.div, jamais démonté, qui traverse toute l'histoire (§3.4).
- * x, y, scale et rotateY suivent `p` par jalons ; le gris et la couleur sont deux couches en fondu (pas de filter).
- * Les preuves récoltées sont ses enfants.
- */
+// One motion.div that is never unmounted and crosses the whole story; grey and color are two fading layers.
 
 type Tone = "gray" | "color";
 
@@ -20,12 +16,13 @@ function CardFace({ tone }: { tone: Tone }) {
   const c = tone === "color";
   return (
     <div className={`absolute inset-0 flex flex-col ${c ? "bg-surface" : "bg-watermark"}`}>
-      {/* Barre du navigateur */}
       <div className="flex h-[30px] flex-none items-center gap-1.5 border-b border-line px-3">
         {[0, 1, 2].map((i) => (
           <span key={i} className={`size-2 rounded-full ${c ? "bg-ink/25" : "bg-ghost/60"}`} />
         ))}
-        <span className={`ml-3 flex h-[18px] flex-1 items-center rounded-full px-3 font-mono text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/60 text-ghost"}`}>
+        <span
+          className={`ml-3 flex h-[18px] flex-1 items-center rounded-full px-3 font-mono text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/60 text-ghost"}`}
+        >
           {CARD.url}
         </span>
       </div>
@@ -40,12 +37,19 @@ function CardFace({ tone }: { tone: Tone }) {
         </div>
         <ul className="mt-1.5 w-[228px]">
           {CARD.clients.map((cl) => (
-            <li key={cl.name} className={`flex h-[38px] items-center justify-between border-b text-[12px] ${c ? "border-line text-ink" : "border-ghost/30 text-ghost"}`}>
+            <li
+              key={cl.name}
+              className={`flex h-[38px] items-center justify-between border-b text-[12px] ${c ? "border-line text-ink" : "border-ghost/30 text-ghost"}`}
+            >
               <span className="flex items-center gap-2">
                 <span className={`size-5 rounded-full ${c ? "bg-ink/10" : "bg-ghost/30"}`} />
                 {cl.name}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/50 text-ghost"}`}>{cl.status}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] ${c ? "bg-bg text-ink-muted" : "bg-bg/50 text-ghost"}`}
+              >
+                {cl.status}
+              </span>
             </li>
           ))}
         </ul>
@@ -113,7 +117,6 @@ export function StoryCard({ p, active = true }: { p: MotionValue<number>; active
           <CardFace tone="color" />
         </motion.div>
         <CardTest p={p} />
-        {/* Filet intérieur au-dessus des couches */}
         <div className="pointer-events-none absolute inset-0 rounded-card shadow-[inset_0_0_0_1px_rgba(242,237,227,0.06)]" />
       </div>
       <CardProofs p={p} layer="front" />

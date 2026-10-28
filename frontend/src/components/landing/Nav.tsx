@@ -12,7 +12,7 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
   const cta = PAGE_CTA[page];
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
-  // §3.1 : fond lié au scroll sur 40px ; en reduced-motion, il change d'un coup.
+  // Background follows the first 40px of scroll; it switches at once with reduced motion.
   const bgSmooth = useTransform(scrollY, [0, 40], [0, 1]);
   const bgStep = useTransform(scrollY, (v) => (v > 40 ? 1 : 0));
   const bgOpacity = reduce ? bgStep : bgSmooth;
@@ -20,8 +20,7 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
   const menuId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  // Après fermeture par Échap ou par le bouton, le focus revient sur le bouton ;
-  // après un clic sur un lien, on laisse la navigation gérer le focus.
+  // Focus goes back to the button, except after a link click.
   const returnFocus = useRef(false);
   const close = useCallback((restoreFocus = true) => {
     returnFocus.current = restoreFocus;
@@ -34,7 +33,6 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
       returnFocus.current = false;
       return;
     }
-    // À l'ouverture : focus sur le lien de tête du menu.
     menuRef.current?.querySelector<HTMLElement>("a[href]")?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -43,7 +41,7 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
         return;
       }
       if (e.key !== "Tab") return;
-      // Piège du focus : le bouton (pour refermer) puis les liens du menu, en boucle.
+      // Focus trap: the button, then the menu links.
       const items = [buttonRef.current, ...(menuRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? [])].filter(
         (el): el is HTMLElement => el !== null,
       );
@@ -77,7 +75,7 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
           {PRODUCT_NAME}
         </Link>
 
-        {/* Liens de section dès 1024px : dans le flux entre 1024 et 1279px (aucun chevauchement), centrés au-delà. */}
+        {/* In the flow from 1024 to 1279px so nothing overlaps, centered above. */}
         <ul className="hidden items-center gap-6 lg:flex xl:absolute xl:left-1/2 xl:-translate-x-1/2 xl:gap-8">
           {LINKS.map((l) => (
             <li key={l.href}>
@@ -91,7 +89,10 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
                   {l.label}
                 </Link>
               ) : (
-                <a href={l.href} className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
+                <a
+                  href={l.href}
+                  className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
+                >
                   {l.label}
                 </a>
               )}
@@ -100,7 +101,11 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
         </ul>
 
         <div className="hidden items-center gap-6 md:ml-auto md:flex lg:ml-0">
-          <Link prefetch={false} href="/connexion" className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink">
+          <Link
+            prefetch={false}
+            href="/connexion"
+            className="text-[15px] font-medium text-ink-muted transition-colors duration-150 hover:text-ink"
+          >
             Connexion
           </Link>
           <Link
@@ -121,8 +126,16 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           onClick={() => (open ? close() : setOpen(true))}
         >
-          {/* Icône menu à deux traits, qui se croisent à l'ouverture. */}
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
             <motion.path
               d="M4 12h16"
               initial={false}

@@ -16,7 +16,7 @@ export function useMedia(query: string, server: boolean) {
   );
 }
 
-/** Variables CSS lues par les blocs texte (positions des colonnes, carte de la scène C, barre de nav). */
+// CSS variables read by the text blocks.
 function writeVars(el: HTMLElement, l: StageLayout) {
   const px = (v: number) => `${Math.round(v * 10) / 10}px`;
   const vars: Record<string, string> = {
@@ -33,10 +33,7 @@ function writeVars(el: HTMLElement, l: StageLayout) {
   for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
 }
 
-/**
- * Mesure le cadre du stage au montage et au resize (debounce 150 ms, §4) et pousse la géométrie
- * dans une MotionValue : aucun re-render React, les transforms se recalculent seuls.
- */
+// Measures the stage on mount and resize into a MotionValue, so there is no React render.
 export function useStageLayout(
   ref: RefObject<HTMLElement | null>,
   layout: MotionValue<StageLayout>,

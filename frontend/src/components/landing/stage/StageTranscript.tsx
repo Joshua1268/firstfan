@@ -1,11 +1,21 @@
-import { BREAK, CHECKLIST, CURVES, FEEDBACK, LOOP, RATINGS, STAMPS, STEP1, STEP2, STEP3, STEP4, TESTERS, VOICES, type Step } from "./copy";
+import {
+  BREAK,
+  CHECKLIST,
+  CURVES,
+  FEEDBACK,
+  LOOP,
+  RATINGS,
+  STAMPS,
+  STEP1,
+  STEP2,
+  STEP3,
+  STEP4,
+  TESTERS,
+  VOICES,
+  type Step,
+} from "./copy";
 
-/**
- * Transcription du stage pour les lecteurs d'écran (visuellement masquée).
- * Le stage animé n'affiche qu'une scène à la fois ; ici, les sept scènes se lisent dans l'ordre,
- * avec le contenu des visuels (labels de la boucle, testeurs, checklist, retours, notes, graphe).
- * Le texte visible du stage est aria-hidden pour ne pas être lu deux fois ; seuls ses liens restent exposés.
- */
+// Visually hidden transcript of all seven scenes for screen readers.
 
 function StepBlock({ step, children }: { step: Step; children: React.ReactNode }) {
   return (
@@ -58,7 +68,9 @@ export function StageTranscript() {
       <StepBlock step={STEP1}>
         <ul>
           {TESTERS.map((t) => (
-            <li key={t.name}>{[t.name, t.job, t.rating, "tag" in t ? t.tag : null, "Métier vérifié"].filter(Boolean).join(" · ")}</li>
+            <li key={t.name}>
+              {[t.name, t.job, t.rating, "tag" in t ? t.tag : null, "Métier vérifié"].filter(Boolean).join(" · ")}
+            </li>
           ))}
         </ul>
       </StepBlock>
@@ -86,7 +98,8 @@ export function StageTranscript() {
       </StepBlock>
       <StepBlock step={STEP4}>
         <p>
-          {CURVES.ghost} : la courbe chute presque à zéro dès {CURVES.axis[1]}. {CURVES.green} : {CURVES.j7}, {CURVES.j30}.
+          {CURVES.ghost} : la courbe chute presque à zéro dès {CURVES.axis[1]}. {CURVES.green} : {CURVES.j7},{" "}
+          {CURVES.j30}.
         </p>
       </StepBlock>
     </div>

@@ -1,4 +1,4 @@
-/** Avatars illustrés au trait (§3.4 : pas de photo). Décoratifs : le nom voisin porte le sens. */
+// Decorative line avatars: the nearby name carries the meaning.
 
 type Props = { size?: number; className?: string };
 
@@ -23,7 +23,6 @@ function Frame({ size = 40, className = "", children }: Props & { children: Reac
   );
 }
 
-/** Le dev : un visage et un chevron de code. */
 export function CodeAvatar(props: Props) {
   return (
     <Frame {...props}>
@@ -34,7 +33,6 @@ export function CodeAvatar(props: Props) {
   );
 }
 
-/** Le pro : un visage, un foulard noué et un carnet de comptes. */
 export function JobAvatar(props: Props) {
   return (
     <Frame {...props}>

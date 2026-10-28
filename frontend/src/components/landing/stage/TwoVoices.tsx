@@ -8,10 +8,7 @@ import { useStepValue } from "./context";
 import { VOICES } from "./copy";
 import { Kicker, STATIC_BOX, TextBox, useTextHidden } from "./SceneText";
 
-/**
- * Scène C (§3.4) : deux voix de part et d'autre de la carte (colonnes 1 à 4 et 9 à 12), la chute centrée dessous.
- * Mobile : carte en haut, citations empilées, la voix du pro d'abord.
- */
+// Scene C: one quote on each side of the card; stacked on mobile, tester first.
 
 const COLUMN = { type: "spring", stiffness: 200, damping: 28 } as const;
 
@@ -22,9 +19,7 @@ function Quote({ who, side, p }: { who: "dev" | "pro"; side: "left" | "right"; p
   const x = useTransform(enter, [0, 1], [side === "left" ? -40 : 40, 0]);
   const opacity = useTransform(() => enter.get() * fade.get());
   const position =
-    side === "left"
-      ? "lg:left-[var(--st-ql)] lg:w-[var(--st-qlw)]"
-      : "lg:left-[var(--st-qr)] lg:w-[var(--st-qrw)]";
+    side === "left" ? "lg:left-[var(--st-ql)] lg:w-[var(--st-qlw)]" : "lg:left-[var(--st-qr)] lg:w-[var(--st-qrw)]";
   return (
     <motion.figure
       aria-hidden={useTextHidden()}
@@ -53,7 +48,9 @@ export function TwoVoices({ p }: { p: MotionValue<number> }) {
   return (
     <div
       className={`flex flex-col gap-5 ${
-        isStatic ? "relative px-[var(--st-tl)] pb-24 pt-[calc(50svh+var(--st-vy)+var(--st-vh)+16px)]" : "absolute inset-x-[var(--st-tl)] top-[calc(50%+var(--st-vy)+var(--st-vh)+16px)]"
+        isStatic
+          ? "relative px-[var(--st-tl)] pb-24 pt-[calc(50svh+var(--st-vy)+var(--st-vh)+16px)]"
+          : "absolute inset-x-[var(--st-tl)] top-[calc(50%+var(--st-vy)+var(--st-vh)+16px)]"
       } lg:static lg:p-0`}
     >
       <div className="order-0 lg:absolute lg:left-1/2 lg:top-[calc(50%+var(--st-vy)-var(--st-vh)-56px)] lg:-translate-x-1/2 lg:whitespace-nowrap">

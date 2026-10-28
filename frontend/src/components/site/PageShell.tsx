@@ -3,16 +3,12 @@ import type { ReactNode } from "react";
 import { ArrowIcon } from "@/components/landing/icons";
 import { PRODUCT_NAME } from "@/lib/brand";
 
-// Mêmes classes que `reveal.tsx` (module client : ses constantes ne sont pas lisibles depuis un composant serveur).
+// Same classes as reveal.tsx, whose client constants a server component cannot import.
 const containerCls = "mx-auto w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] px-[var(--grid-margin)]";
 const kickerCls =
   "font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted";
 
-/**
- * Coque des pages hors landing (inscription, connexion, confidentialité, contact, 404) : même système visuel
- * (§5), rendu serveur sans JavaScript propre. Seuls translateY est animé à l'entrée (classes `hero-lift-*`,
- * coupées en reduced-motion) ; le texte est lisible dès le HTML serveur.
- */
+// Shell of the simple pages; server rendered, readable without JS.
 export function PageShell({
   kicker,
   title,
@@ -59,16 +55,23 @@ export function PageShell({
       <footer className="border-t border-line py-10 text-[14px] leading-[1.6] text-ink-muted">
         <div className={`${containerCls} flex flex-col gap-4 md:flex-row md:items-center md:justify-between`}>
           <p>
-            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Projet CADEV 2026 · Groupe Côte d&apos;Ivoire
+            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Projet CADEV 2026 · Groupe Côte
+            d&apos;Ivoire
           </p>
           <ul className="flex flex-wrap gap-x-6">
             <li>
-              <Link href="/confidentialite" className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink">
+              <Link
+                href="/confidentialite"
+                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
+              >
                 Confidentialité
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
+              >
                 Contact
               </Link>
             </li>
@@ -82,7 +85,6 @@ export function PageShell({
 const btnBase =
   "group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-pill px-7 text-[16px] font-semibold leading-none transition-colors duration-150 md:w-auto";
 
-/** Bouton plein (une seule action principale par page). */
 export function PrimaryLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link href={href} className={`${btnBase} bg-accent text-accent-ink hover:bg-accent-press active:bg-accent-press`}>
@@ -92,7 +94,6 @@ export function PrimaryLink({ href, children }: { href: string; children: ReactN
   );
 }
 
-/** Bouton contour, secondaire. */
 export function SecondaryLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link href={href} className={`${btnBase} border border-ink/70 text-ink hover:border-ink hover:bg-ink/[0.07]`}>
@@ -105,7 +106,6 @@ export function Actions({ children }: { children: ReactNode }) {
   return <div className="hero-lift-16 mt-10 flex flex-col gap-3 md:mt-12 md:flex-row md:flex-wrap">{children}</div>;
 }
 
-/** Carte de texte (rayon 20px, surface), pour les listes et les rubriques. */
 export function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-[var(--radius-card)] border border-line bg-surface/60 p-6 md:p-8">

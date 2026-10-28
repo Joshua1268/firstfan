@@ -7,21 +7,13 @@ import { useStage } from "./context";
 import { NAV } from "./copy";
 import { sceneIndexAt, sceneStart, type SceneId } from "./scenes";
 
-/**
- * Navigation du stage (§3.4) : 5 crans (Boucle, 01 à 04) et le lien « Passer l'histoire » vers #pro.
- * Desktop : barre verticale à gauche ; mobile : 5 segments en haut. Pastille active en layoutId, spring 500/38.
- */
+// Five stops: vertical bar on desktop, segments on top on mobile.
 
 const DOT = { type: "spring", stiffness: 500, damping: 38 } as const;
 
-/** Ancre d'un cran : une cible invisible posée dans le stage au début de sa plage (voir StageAnchors). */
 export const anchorId = (scene: SceneId) => `histoire-${scene}`;
 
-/**
- * Cibles des crans, dans la section du stage (480vh / 360vh) : chaque cible est à `start x (hauteur - 100vh)`, la
- * position de scroll où le stage montre la scène. Les crans sont donc de vrais liens d'ancre, qui marchent avant le
- * chargement du stage animé ; une fois chargé, le clic fait un scroll doux à la place.
- */
+// Real anchor targets, so stops work before the animated stage loads; then a click scrolls smoothly.
 export function StageAnchors() {
   return (
     <>
@@ -41,7 +33,7 @@ export function StageAnchors() {
   );
 }
 
-/** Cran actif : la boucle, la cassure et les deux voix appartiennent au cran « Boucle ». */
+// The loop, the break and the two voices all belong to the first stop.
 function notchAt(p: number) {
   return Math.max(0, sceneIndexAt(p) - 2);
 }
@@ -56,7 +48,10 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
 
   if (!desktop) {
     return (
-      <nav aria-label={NAV.label} className="absolute left-[var(--st-tl)] right-[calc(var(--st-tl)+140px)] top-[64px] z-10 flex items-center">
+      <nav
+        aria-label={NAV.label}
+        className="absolute left-[var(--st-tl)] right-[calc(var(--st-tl)+140px)] top-[64px] z-10 flex items-center"
+      >
         <ol className="flex flex-1 items-center gap-1.5">
           {NAV.items.map((item, i) => (
             <li key={item.scene} className="flex-1">
@@ -73,7 +68,11 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
               >
                 <span className="h-[3px] w-full rounded-full bg-line" />
                 {active === i && (
-                  <motion.span layoutId="stage-dot" transition={DOT} className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-accent" />
+                  <motion.span
+                    layoutId="stage-dot"
+                    transition={DOT}
+                    className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-accent"
+                  />
                 )}
               </a>
             </li>
@@ -102,7 +101,13 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
               >
                 <span className="relative grid h-6 w-2.5 place-items-center">
                   <span className="size-1.5 rounded-full bg-ghost transition-colors duration-150 group-hover:bg-ink-muted" />
-                  {active === i && <motion.span layoutId="stage-dot" transition={DOT} className="absolute inset-0 rounded-full bg-accent" />}
+                  {active === i && (
+                    <motion.span
+                      layoutId="stage-dot"
+                      transition={DOT}
+                      className="absolute inset-0 rounded-full bg-accent"
+                    />
+                  )}
                 </span>
                 <span aria-hidden="true">{item.label}</span>
               </a>
@@ -114,7 +119,7 @@ export function StageNav({ p, onJump }: { p: MotionValue<number>; onJump?: (scen
   );
 }
 
-/** « Passer l'histoire » : en tête du stage dans l'ordre de tabulation ; en haut à droite sur mobile, en bas à gauche sur desktop. */
+// First in tab order.
 export function SkipStory() {
   return (
     <a

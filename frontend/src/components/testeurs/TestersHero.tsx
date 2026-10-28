@@ -4,7 +4,7 @@ import { ArrowIcon } from "@/components/landing/icons";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
 import { ProfileCard } from "./ProfileCard";
 
-/** Mot du H1 : même sortie de masque en CSS que l'accueil (classes `hero-mask` / `hero-word`, coupées en reduced-motion). */
+// Same CSS mask reveal as the home page H1.
 function Word({ i, children }: { i: number; children: ReactNode }) {
   return (
     <span className="hero-mask">
@@ -15,10 +15,6 @@ function Word({ i, children }: { i: number; children: ReactNode }) {
   );
 }
 
-/**
- * Hero de /testeurs : même hiérarchie que l'accueil. Niveau 1 le H1, niveau 2 une phrase, niveau 3 un seul bouton,
- * présenté comme une candidature (le profil est vérifié). À droite (desktop) ou dessous (mobile) : la carte pro.
- */
 export function TestersHero() {
   return (
     <section id="hero" aria-labelledby="testeurs-title" className="relative overflow-x-clip pt-16">
@@ -45,8 +41,8 @@ export function TestersHero() {
           </div>
 
           <p className="hero-lift-12 mt-7 max-w-[34ch] text-balance text-[clamp(18px,1.7vw,24px)] leading-[1.4] text-ink md:mt-10 md:max-w-[40ch]">
-            Des devs construisent des outils pour ton travail. Tu les testes, tu leur dis ce qui coince, et chaque test est
-            rémunéré.
+            Des devs construisent des outils pour ton travail. Tu les testes, tu leur dis ce qui coince, et chaque test
+            est rémunéré.
           </p>
 
           <div className="hero-lift-16 mt-7 flex flex-col gap-3 md:mt-9 md:flex-row md:items-center md:gap-6">
@@ -59,7 +55,9 @@ export function TestersHero() {
               {APPLY_LABEL}
               <ArrowIcon size={20} className="transition-transform duration-150 group-hover:translate-x-0.5" />
             </Link>
-            <p className="text-center text-[14px] leading-snug text-ink-muted md:text-left">Gratuit. Ton métier est vérifié une seule fois.</p>
+            <p className="text-center text-[14px] leading-snug text-ink-muted md:text-left">
+              Gratuit. Ton métier est vérifié une seule fois.
+            </p>
           </div>
         </div>
 

@@ -9,47 +9,39 @@ import { liveCounters, liveSummary } from "@/lib/live-counters";
 import type { PublicStats } from "@/lib/stats";
 import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useReduce } from "./reveal";
 
-/**
- * Section « En direct » (§3.6).
- * - Valeurs initiales rendues côté serveur ; si l'API ne répond pas (`stats` null), la section garde son texte
- *   sans aucun compteur (jamais de chiffre inventé).
- * - Même règle que le badge du hero (`liveCounters`) : un compteur à zéro n'est jamais affiché ; si tous valent
- *   zéro, la rangée de compteurs disparaît.
- * - Polling toutes les 15 s, en pause quand l'onglet est caché. La requête part du navigateur vers la même
- *   origine (`/api/public/stats`, route Next qui relit Django côté serveur) : aucun CORS à ouvrir côté Django.
- * - À l'entrée dans le viewport (une fois) : comptage de 0 à la valeur (MotionValue rendue par motion, sans re-render React).
- *   Ensuite, odomètre : seuls les chiffres qui changent roulent, et seulement sur un changement réel.
- * - Reduced-motion : valeurs finales, mises à jour en texte simple.
- */
+// Server-rendered counters, polled every 15s while visible. They count up once, then roll like an odometer.
 
 const POLL_MS = 15_000;
 const SUMMARY_EVERY_MS = 60_000;
 
-/** Colonnes occupées dans la rangée de 3 (desktop). */
 const SPAN: Record<number, string> = { 1: "md:col-span-1", 2: "md:col-span-2" };
 
-/** Grille selon le nombre de compteurs non nuls (1 à 3) : la rangée reste pleine et alignée à gauche. */
+// The row stays full whatever the number of non-zero counters.
 const GRID: Record<number, string> = {
   1: "grid-cols-1",
   2: "grid-cols-2",
   3: "grid-cols-2 md:grid-cols-3 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1",
 };
 
-/** Heure locale d'Abidjan (UTC), au format 14:32. */
 function hhmm(d: Date) {
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Abidjan" });
 }
 
 const ODOMETER = { type: "spring", ...spring.odometer } as const;
 
-/** Une colonne de 0 à 9 par chiffre, en translateY. */
+// One 0-9 column per digit, moved with translateY.
 function Odometer({ value }: { value: number }) {
   const digits = String(value).split("");
   return (
     <span data-odometer={value} className="inline-flex">
       {digits.map((d, i) => (
         <span key={digits.length - i} className="inline-block h-[1em] overflow-hidden">
-          <motion.span className="flex flex-col" initial={false} animate={{ y: `${-Number(d)}em` }} transition={ODOMETER}>
+          <motion.span
+            className="flex flex-col"
+            initial={false}
+            animate={{ y: `${-Number(d)}em` }}
+            transition={ODOMETER}
+          >
             {"0123456789".split("").map((n) => (
               <span key={n} className="block h-[1em]">
                 {n}
@@ -75,29 +67,26 @@ function Counter({
   countUp: boolean;
   reduce: boolean;
 }) {
-  // Valeur affichée en mode texte : une MotionValue que motion écrit seul dans le DOM (React ne gère pas ce nœud).
+  // Motion writes this value to the DOM itself, without a React render.
   const count = useMotionValue(value);
   const shown = useTransform(count, (v) => Math.round(v));
   const [odo, setOdo] = useState(false);
   const [changes, setChanges] = useState(0);
   const [seen, setSeen] = useState(value);
-  // Changement réel : soulignement accent (scaleX 0 vers 1 puis opacité 1 vers 0, 600 ms). État dérivé au rendu.
+  // A real change flashes an accent underline.
   if (seen !== value) {
     setSeen(value);
     if (!reduce) setChanges((c) => c + 1);
   }
 
-  // Comptage dès l'entrée dans le viewport, puis bascule en odomètre.
   useEffect(() => {
     if (!countUp || reduce || odo) return;
-    // Repart de 0 (la MotionValue porte la valeur du serveur jusqu'ici), puis compte jusqu'à la valeur.
     const controls = startCountUp(count, value, { delay: index * 0.12, onComplete: () => setOdo(true) });
     return () => controls.stop();
-    // La valeur de départ est celle du serveur : on ne relance pas le comptage quand elle change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- count up once from the server value, not on every poll
   }, [countUp, reduce]);
 
-  // Mode texte (reduced-motion, ou avant l'odomètre) : la valeur suit les mises à jour du polling.
+  // Text mode (reduced motion, or before the odometer) follows the polled value.
   useEffect(() => {
     if (reduce || !countUp) count.set(value);
   }, [value, reduce, countUp, count]);
@@ -125,9 +114,7 @@ function Counter({
   );
 }
 
-// TODO(plan-campagnes) : remplacer ces trois cartes statiques par le fil d'événements anonymisés (§3.6 :
-// métier et commune, jamais de nom ni de montant ; entrée x -16 vers 0, `layout` spring 400/35, 3 éléments
-// au maximum) quand les événements de campagne existeront.
+// TODO: replace these static cards with the anonymized campaign event feed once it exists.
 const STEPS = [
   { n: "01", title: "Une app est déposée", text: "Elle est horodatée dès le dépôt." },
   { n: "02", title: "Des pros vérifiés la testent", text: "Parcours guidé, preuves à l'appui." },
@@ -146,11 +133,11 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
   const lastAnnounce = useRef(0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- heure de réception des valeurs du serveur, connue côté client
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the clock is only known on the client
     setLastUpdate(new Date());
   }, []);
 
-  // Polling (pas de SSE dans ce plan) : seulement si le serveur a pu lire l'API, et jamais onglet caché.
+  // Poll only if the server could read the API, and never in a hidden tab.
   useEffect(() => {
     if (!stats || !visible) return;
     let alive = true;
@@ -176,7 +163,7 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
       }
     };
     const id = window.setInterval(poll, POLL_MS);
-    // Repère pour les tests e2e : le polling est armé (après l'hydratation).
+    // Marker for e2e tests.
     const el = root.current;
     el?.setAttribute("data-live-polling", "");
     return () => {
@@ -186,7 +173,7 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
     };
   }, [stats, visible]);
 
-  // Résumé pour les lecteurs d'écran : au plus une fois par minute.
+  // Screen reader summary, at most once a minute.
   useEffect(() => {
     if (!data) return;
     const now = Date.now();
@@ -220,8 +207,7 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
           En ce moment sur {PRODUCT_NAME}
         </h2>
 
-        {/* Avec 1 ou 2 compteurs, la phrase prend les colonnes libres de la même rangée (desktop) : la rangée reste
-            pleine sur 3 colonnes, sans trou. Avec 3 compteurs, elle passe dessous. */}
+        {/* With 1 or 2 counters, the sentence fills the free columns of the row. */}
         <div className={inline ? "md:mt-14 md:grid md:grid-cols-3 md:items-end md:gap-x-[var(--grid-gutter)]" : ""}>
           {counters.length > 0 && (
             <div
@@ -235,7 +221,9 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
           )}
 
           <div className={inline ? `md:pb-1 ${SPAN[3 - counters.length]}` : ""}>
-            <p className={`mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink ${inline ? "md:mt-0" : "md:mt-14"}`}>
+            <p
+              className={`mt-10 max-w-[46ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink ${inline ? "md:mt-0" : "md:mt-14"}`}
+            >
               Chaque chiffre vient d&apos;un vrai test, pas d&apos;un formulaire.
             </p>
             {data?.demo && (

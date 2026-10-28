@@ -1,20 +1,19 @@
 import { CheckIcon, StarIcon } from "./icons";
 
-/**
- * Autocollant statique (sections basses, §3.5 et §3.10) : même vocabulaire que ceux du hero,
- * sans parallaxe. Décoratif : son info est reprise en texte dans la section.
- * L'ombre est un calque figé (`sticker-shadow`), jamais animée.
- */
+// Static, decorative sticker: its content is repeated as text in the section.
 export type ProofKind = "pill" | "check" | "rating" | "tag" | "ticket";
 
-const base = "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
+const base =
+  "font-sans text-[length:var(--text-sticker)] font-semibold leading-[var(--leading-sticker)] whitespace-nowrap";
 
 export function ProofSticker({ text, kind, className = "" }: { text: string; kind: ProofKind; className?: string }) {
   if (kind === "rating") {
     return (
       <span className={`relative inline-flex ${className}`}>
         <span aria-hidden="true" className="sticker-shadow rounded-full" />
-        <span className={`${base} relative flex size-[76px] flex-col items-center justify-center gap-0.5 rounded-full bg-ink text-bg md:size-[88px]`}>
+        <span
+          className={`${base} relative flex size-[76px] flex-col items-center justify-center gap-0.5 rounded-full bg-ink text-bg md:size-[88px]`}
+        >
           <StarIcon size={16} fill="currentColor" />
           <span className="tabular-nums">{text}</span>
         </span>

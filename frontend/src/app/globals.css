@@ -111,10 +111,7 @@ body {
   line-height: var(--leading-body);
 }
 
-/*
- * Aucun défilement horizontal (§5). Le clip est posé sur main et footer, pas sur body : sur body, il serait
- * propagé au viewport, et Chrome mobile élargirait quand même la fenêtre de mise en page (page dézoomée).
- */
+/* No horizontal scroll. Clipped on main and footer, not body: on body, mobile Chrome would still zoom out. */
 main,
 footer {
   overflow-x: clip;
@@ -125,10 +122,7 @@ footer {
   outline-offset: 3px;
 }
 
-/*
- * Grain fixe (§5) : PNG précalculé, aucun feTurbulence en direct. Tuile de 128px en 4 niveaux de gris (4 Ko,
- * sous le budget de 6 Ko) : une tuile 256px en 8 bits pesait 65 Ko et retardait le LCP mobile.
- */
+/* Fixed grain: a small precomputed PNG tile, no live feTurbulence. */
 body::before {
   content: "";
   position: fixed;
@@ -140,15 +134,15 @@ body::before {
   opacity: 0.035;
 }
 
-/* ---------- Hero (§2, §3.2) ---------- */
+/* ---------- Hero ---------- */
 
-/* Mots du H1 : sortie de masque en CSS, avant l'hydratation. Le texte reste à opacité 1. */
+/* H1 words rise out of a mask in CSS, before hydration. */
 .hero-mask {
   display: inline-block;
   overflow: clip;
   overflow-clip-margin: 0;
   vertical-align: top;
-  /* Les capitales d'Archivo dépassent l'interligne 0.86 : on agrandit la boîte sans bouger la ligne. */
+  /* Archivo capitals overflow the 0.86 line height: grow the box without moving the line. */
   padding-block: 0.08em 0.02em;
   margin-block: -0.08em -0.02em;
 }
@@ -183,7 +177,7 @@ body::before {
   }
 }
 
-/* Point en direct : pulse en pseudo-élément toutes les 1,6 s à partir de 1300 ms. */
+/* Live dot: pulses every 1.6s from 1300ms. */
 .live-dot {
   position: relative;
   display: inline-block;
@@ -213,7 +207,7 @@ body::before {
   }
 }
 
-/* Autocollants : ombre statique portée par un calque (on anime son opacité et son scale, jamais box-shadow). */
+/* Sticker shadow on its own layer: animate opacity and scale, never box-shadow. */
 .sticker-shadow {
   position: absolute;
   inset: 0;
@@ -224,7 +218,7 @@ body::before {
   user-select: none;
   -webkit-user-select: none;
 }
-/* Vernis : un calque de dégradé qui glisse en translateX (compositor), jamais de background-position animé. */
+/* Sheen: a gradient layer moved with translateX, never an animated background-position. */
 .sticker-sheen {
   position: absolute;
   inset: 0;
@@ -240,7 +234,7 @@ body::before {
   left: -100%;
   width: 300%;
   background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 46%, transparent 62%);
-  /* --sheen-x : de -20 % à 20 % de la largeur du calque (soit background-position 20 % à 80 %), écrit par la parallaxe souris. */
+  /* --sheen-x goes from -20% to 20%, set by the mouse parallax. */
   transform: translateX(var(--sheen-x, 0%));
 }
 .sticker:has(.sticker-fold) {
@@ -257,7 +251,7 @@ body::before {
   height: 16px;
   transform-origin: 0% 0%;
 }
-/* Rabat et son ombre : deux triangles figés qui tournent avec le coin (aucun filtre sur un calque animé). */
+/* Peel and its shadow: two static triangles turning with the corner. */
 .sticker-fold::before,
 .sticker-fold::after {
   content: "";
@@ -272,11 +266,12 @@ body::before {
 .sticker-fold::after {
   background: linear-gradient(45deg, var(--accent-press) 50%, transparent 50%);
 }
-/* Badge dentelé : bord festonné par masque radial. */
+/* Scalloped badge edge. */
 .sticker-seal {
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50.0 0.0L55.8 5.9L62.9 1.7L67.0 8.9L75.0 6.7L77.1 14.7L85.4 14.6L85.3 22.9L93.3 25.0L91.1 33.0L98.3 37.1L94.1 44.2L100.0 50.0L94.1 55.8L98.3 62.9L91.1 67.0L93.3 75.0L85.3 77.1L85.4 85.4L77.1 85.3L75.0 93.3L67.0 91.1L62.9 98.3L55.8 94.1L50.0 100.0L44.2 94.1L37.1 98.3L33.0 91.1L25.0 93.3L22.9 85.3L14.6 85.4L14.7 77.1L6.7 75.0L8.9 67.0L1.7 62.9L5.9 55.8L0.0 50.0L5.9 44.2L1.7 37.1L8.9 33.0L6.7 25.0L14.7 22.9L14.6 14.6L22.9 14.7L25.0 6.7L33.0 8.9L37.1 1.7L44.2 5.9Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50.0 0.0L55.8 5.9L62.9 1.7L67.0 8.9L75.0 6.7L77.1 14.7L85.4 14.6L85.3 22.9L93.3 25.0L91.1 33.0L98.3 37.1L94.1 44.2L100.0 50.0L94.1 55.8L98.3 62.9L91.1 67.0L93.3 75.0L85.3 77.1L85.4 85.4L77.1 85.3L75.0 93.3L67.0 91.1L62.9 98.3L55.8 94.1L50.0 100.0L44.2 94.1L37.1 98.3L33.0 91.1L25.0 93.3L22.9 85.3L14.6 85.4L14.7 77.1L6.7 75.0L8.9 67.0L1.7 62.9L5.9 55.8L0.0 50.0L5.9 44.2L1.7 37.1L8.9 33.0L6.7 25.0L14.7 22.9L14.6 14.6L22.9 14.7L25.0 6.7L33.0 8.9L37.1 1.7L44.2 5.9Z'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
 }
-/* Ticket perforé : encoches latérales et ligne de perforation. */
+/* Perforated ticket. */
 .sticker-ticket {
   border-radius: 6px;
   mask:
@@ -292,7 +287,7 @@ body::before {
   border-left: 1.5px dashed color-mix(in srgb, var(--bg) 45%, transparent);
 }
 
-/* Barre CTA mobile collée en bas. */
+/* Mobile CTA bar. */
 .cta-bar {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -306,7 +301,7 @@ body::before {
   }
 }
 
-/* Bandeau métiers (§3.3) : défilement de 0 à -50 % sur 40 s, contenu doublé, pause au survol. */
+/* Jobs marquee: content is doubled and scrolls to -50%, paused on hover. */
 .marquee-band {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
@@ -354,9 +349,9 @@ body::before {
   }
 }
 
-/* ---------- Stage « Boucle et histoire » (§3.4) ---------- */
+/* ---------- Stage ---------- */
 
-/* Valeurs par défaut (1440px) avant la première mesure, et pour le rendu sans JS. */
+/* 1440px defaults before the first measure and without JS. */
 .stage-frame,
 .stage-static section {
   --st-tl: 16px;
@@ -401,9 +396,9 @@ body::before {
   display: block;
 }
 
-/* ---------- Sections sous l'histoire (§3.5 à §3.11) ---------- */
+/* ---------- Sections below the stage ---------- */
 
-/* Téléphone de la section pro : inclinaison fixe sur desktop seulement, jamais en reduced-motion. */
+/* Pro section phone: tilted on desktop only, never with reduced motion. */
 @media (min-width: 1024px) {
   .pro-phone-tilt {
     transform: rotateY(-14deg) rotateX(6deg);
@@ -424,7 +419,7 @@ body::before {
   }
 }
 
-/* Curseur bloc du hash (Confiance) et du snippet (Entre devs) : clignote à 1 Hz. */
+/* Block cursor of the hash and the snippet. */
 .cert-cursor {
   animation: cursor-blink 1s steps(1) infinite;
 }
@@ -434,7 +429,7 @@ body::before {
   }
 }
 
-/* Snippet tapé : le cache recule d'un caractère par pas (transform seulement). */
+/* Typed snippet: the cover moves back one character per step. */
 .snippet-cover.is-typing {
   animation: snippet-type var(--ms) steps(var(--n)) forwards;
 }
@@ -447,7 +442,7 @@ body::before {
   }
 }
 
-/* Titre du CTA final : les mots sortent du masque quand le bloc entre dans le viewport (JS seulement). */
+/* Final CTA title words rise out of a mask on enter (JS only). */
 .cta-title[data-state="armed"] .cta-word {
   transform: translateY(105%);
 }
@@ -456,7 +451,7 @@ body::before {
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
-/* Footer : le FirstFan géant en contour blanc chaud à 8 %. */
+/* Giant outlined footer wordmark. */
 .footer-name {
   color: transparent;
   -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);

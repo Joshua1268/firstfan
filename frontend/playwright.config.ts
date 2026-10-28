@@ -1,10 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Landing e2e. Run `make up` first: Django comes from Docker on 127.0.0.1:8010
- * (not 8000, often taken by another project that reuseExistingServer would pick up).
- * Next runs as a production build on port 3100 (and 3101 for the api-down project).
- */
+// Django comes from Docker on 8010 (run make up first); Next runs as a production build on 3100 and 3101.
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -15,7 +11,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",
   },
-  // Les tests tagués @api-down ne tournent que dans le projet « api-down » (serveur Next sans API joignable).
+  // Tests tagged @api-down only run in the api-down project, against a Next server with no reachable API.
   projects: [
     {
       name: "desktop",
@@ -34,7 +30,7 @@ export default defineConfig({
       },
     },
     {
-      // Tablette portrait : disposition « mobile » des autocollants (zones réservées, 5 autocollants).
+      // Portrait tablet: stickers use the mobile layout.
       name: "tablet",
       grepInvert: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 820, height: 1180 }, isMobile: true, hasTouch: true },
@@ -50,14 +46,13 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
     {
-      // Positions « compact » des autocollants (1024 à 1279px).
+      // Compact sticker positions (1024 to 1279px).
       name: "laptop-sm",
       grepInvert: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 768 } },
     },
     {
-      // API Django injoignable : build et serveur à part (port 3101, distDir .next-api-down), API_INTERNAL_URL
-      // pointée sur un port fermé. Le build doit lui aussi voir l'API arrêtée : la page est prérendue (ISR).
+      // Separate build pointed at a closed port: the home page is prerendered, so the build must see the API down too.
       name: "api-down",
       grep: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: "http://127.0.0.1:3101" },

@@ -8,22 +8,16 @@ import { go, useStage, useStepValue, useThreshold } from "./context";
 import { CARD, FEEDBACK, RATINGS, STAMPS } from "./copy";
 import { CheckIcon, StarIcon } from "../icons";
 
-/**
- * Le dossier qui s'épaissit (§3.4) : enfants de la carte, ils restent attachés à scale 0.7 en périphérie.
- * - étape 01 : badge « Métier vérifié » (0.43) ;
- * - étape 02 : polaroïds sortis de derrière la carte (4 sur desktop, 3 sur mobile), 2 restent (0.635) ;
- * - étape 03 : bulles de retour (0.66, 0.675, 0.69), puis une bulle et la pastille de note restent (0.78).
- */
+// Proofs collected by the card, rendered as its children so they move with it.
 
 const STAMP = { type: "spring", ...spring.stamp } as const;
 const POP = { type: "spring", ...spring.pop } as const;
 const POLAROID = { type: "spring", stiffness: 220, damping: 18 } as const;
-/** Rotations « aléatoires » déterministes entre -8° et 8°. */
+// Deterministic "random" rotations between -8 and 8 degrees.
 const POLAROID_ROT = [-6, 5, -3, 7];
 export const BUBBLE_T = [0.66, 0.675, 0.69] as const;
 const KEEP_T = 0.78;
 
-/** Tampon : scale 1.4 vers 1 (relatif à `to`), opacité d'entrée en 90 ms, anneau d'encre 420 ms. */
 export function useStamp(p: MotionValue<number>, t: number, to = 1) {
   const { instant } = useStage();
   const on = p.get() >= t;
@@ -51,7 +45,15 @@ export function useStamp(p: MotionValue<number>, t: number, to = 1) {
   return { scale, opacity, inkScale, inkOpacity };
 }
 
-export function InkRing({ scale, opacity, className = "" }: { scale: MotionValue<number>; opacity: MotionValue<number>; className?: string }) {
+export function InkRing({
+  scale,
+  opacity,
+  className = "",
+}: {
+  scale: MotionValue<number>;
+  opacity: MotionValue<number>;
+  className?: string;
+}) {
   return (
     <motion.span
       aria-hidden="true"
@@ -64,8 +66,14 @@ export function InkRing({ scale, opacity, className = "" }: { scale: MotionValue
 function VerifiedBadge({ p }: { p: MotionValue<number> }) {
   const s = useStamp(p, 0.43, 0.7);
   return (
-    <motion.div className="absolute -left-7 -top-5 origin-top-left" style={{ scale: s.scale, opacity: s.opacity, rotate: -6 }}>
-      <span data-proof-badge="" className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink">
+    <motion.div
+      className="absolute -left-7 -top-5 origin-top-left"
+      style={{ scale: s.scale, opacity: s.opacity, rotate: -6 }}
+    >
+      <span
+        data-proof-badge=""
+        className="relative inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold leading-none text-accent-ink"
+      >
         <CheckIcon size={16} strokeWidth={2.5} />
         {CARD.proof}
         <InkRing scale={s.inkScale} opacity={s.inkOpacity} />
@@ -82,7 +90,7 @@ function Polaroid({ i, p, desktop }: { i: number; p: MotionValue<number>; deskto
   const x = useTransform(shown, [0, 1], [-96, 0]);
   const y = useTransform(shown, [0, 1], [20, 0]);
   const scale = useTransform(trim, [0, 1], [1, kept ? 0.7 : 1]);
-  // Rangé derrière la carte, il est masqué : certains dépasseraient du bord droit.
+  // Hidden while behind the card, or some would stick out on the right.
   const opacity = useTransform(shown, [0, 0.08], [0, 1]);
   return (
     <motion.div
@@ -110,7 +118,9 @@ function Polaroid({ i, p, desktop }: { i: number; p: MotionValue<number>; deskto
 
 export function FeedbackBubble({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <span className={`relative block rounded-[16px] rounded-tr-[4px] bg-ink px-3.5 py-2.5 text-[13px] font-medium leading-snug text-bg ${className}`}>
+    <span
+      className={`relative block rounded-[16px] rounded-tr-[4px] bg-ink px-3.5 py-2.5 text-[13px] font-medium leading-snug text-bg ${className}`}
+    >
       {text}
     </span>
   );
@@ -151,7 +161,9 @@ function Bubble({ i, p, desktop }: { i: number; p: MotionValue<number>; desktop:
 
 export function RatingPill({ value, className = "" }: { value: string; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold leading-none text-ink ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold leading-none text-ink ${className}`}
+    >
       <StarIcon size={14} />
       {value}
     </span>
@@ -161,7 +173,10 @@ export function RatingPill({ value, className = "" }: { value: string; className
 function RatingProof({ p }: { p: MotionValue<number> }) {
   const s = useStamp(p, KEEP_T, 0.7);
   return (
-    <motion.div className="absolute -bottom-4 -right-5 origin-bottom-right" style={{ scale: s.scale, opacity: s.opacity }}>
+    <motion.div
+      className="absolute -bottom-4 -right-5 origin-bottom-right"
+      style={{ scale: s.scale, opacity: s.opacity }}
+    >
       <RatingPill value={RATINGS.toDev.value} />
     </motion.div>
   );

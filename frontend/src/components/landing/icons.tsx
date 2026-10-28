@@ -1,9 +1,6 @@
 import type { SVGProps } from "react";
 
-/**
- * Jeu d'icônes de la landing : SVG au trait, stroke 1.5px, embouts arrondis, grille de 24px.
- * Décoratives par défaut (aria-hidden) : le texte voisin porte le sens.
- */
+// Decorative by default (aria-hidden): the nearby text carries the meaning.
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
 function Svg({ size = 24, children, ...rest }: IconProps) {

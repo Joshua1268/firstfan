@@ -5,16 +5,33 @@ import { motion, useInView, useMotionValue, useSpring, useTransform } from "moti
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, spring } from "@/lib/motion-tokens";
-import { ArrowIcon, CheckIcon, ChevronIcon, ClockIcon, PauseIcon, PhoneIcon, PlayIcon, ShieldIcon, SparkIcon, StarIcon } from "./icons";
+import {
+  ArrowIcon,
+  CheckIcon,
+  ChevronIcon,
+  ClockIcon,
+  PauseIcon,
+  PhoneIcon,
+  PlayIcon,
+  ShieldIcon,
+  SparkIcon,
+  StarIcon,
+} from "./icons";
 import { ProofSticker, type ProofKind } from "./ProofSticker";
-import { containerCls, h2Cls, Kicker, leadCls, riseVariants, STAMP_SPRING, useMediaQuery, usePageVisible, useReveal, useReduce } from "./reveal";
+import {
+  containerCls,
+  h2Cls,
+  Kicker,
+  leadCls,
+  riseVariants,
+  STAMP_SPRING,
+  useMediaQuery,
+  usePageVisible,
+  useReveal,
+  useReduce,
+} from "./reveal";
 
-/**
- * Section « Et toi, le pro » (§3.5) : texte à gauche, téléphone en HTML à droite (desktop),
- * boucle de démonstration liste, mission, mission validée. La boucle tourne seulement si la section
- * est visible, l'onglet affiché et que personne ne la survole ni ne la met en pause (WCAG 2.2.2).
- * Reduced-motion : écran « Mission validée » figé, liste des missions en statique dessous.
- */
+// The phone demo loops only while visible, not hovered and not paused (WCAG 2.2.2).
 
 const BULLETS = [
   { icon: ShieldIcon, text: "Ton métier est vérifié une fois. Ton profil parle pour toi." },
@@ -33,13 +50,13 @@ const PAID = "Payé après validation";
 const WALLETS = "Wave · Orange Money · MTN MoMo";
 
 const STICKERS: { text: string; kind: ProofKind; r: number; pos: string }[] = [
-  // Positions autour du téléphone (300x600) : ils mordent sur le cadre, jamais sur le texte de l'écran.
+  // They overlap the phone frame, never the screen text.
   { text: PAID, kind: "check", r: -6, pos: "-left-[194px] top-[64px]" },
   { text: "4,8 / 5", kind: "rating", r: 8, pos: "-right-[64px] top-[300px]" },
   { text: "Le dev aussi est noté", kind: "pill", r: -4, pos: "-left-[190px] top-[452px]" },
 ];
 
-/** Durées des états 1 à 3 de la boucle (ms). */
+// Duration of each loop state, in ms.
 const HOLD = [2400, 2000, 2400] as const;
 const LIFT = { type: "spring", ...spring.lift } as const;
 const SLIDE = { type: "spring", stiffness: 320, damping: 32 } as const;
@@ -66,7 +83,6 @@ function PaidBadge() {
   );
 }
 
-/** Liste des missions (état 1 du téléphone, et version statique du reduced-motion). */
 function MissionList({ ripple, cycle }: { ripple: boolean; cycle: number }) {
   return (
     <ul className="flex flex-col gap-2.5">
@@ -93,7 +109,10 @@ function MissionList({ ripple, cycle }: { ripple: boolean; cycle: number }) {
 
 function StatusBar() {
   return (
-    <div aria-hidden="true" className="flex h-7 items-center justify-between px-5 pt-1 font-mono text-[11px] text-ink-muted">
+    <div
+      aria-hidden="true"
+      className="flex h-7 items-center justify-between px-5 pt-1 font-mono text-[11px] text-ink-muted"
+    >
       <span>14:32</span>
       <span className="h-[18px] w-[72px] rounded-pill bg-[#000]" />
       <span className="flex items-center gap-1">
@@ -107,7 +126,7 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
   const back = screen === 0;
   return (
     <div className="absolute inset-[8px] overflow-hidden rounded-[32px] bg-bg">
-      {/* État 1 : liste des missions (toujours dessous). */}
+      {/* State 1: mission list (always underneath). */}
       <div data-phone-screen="list" aria-hidden={screen !== 0} className="absolute inset-0 flex flex-col">
         <StatusBar />
         <div className="flex flex-1 flex-col px-4 pt-3">
@@ -122,7 +141,7 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
         </div>
       </div>
 
-      {/* État 2 : la mission ouverte glisse depuis la droite. */}
+      {/* State 2: the open mission slides in. */}
       <motion.div
         data-phone-screen="mission"
         aria-hidden={screen !== 1}
@@ -173,7 +192,7 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
         </div>
       </motion.div>
 
-      {/* État 3 : mission validée, tampon, notification « Paiement envoyé » (aucun montant). */}
+      {/* State 3: mission approved, no amount shown. */}
       <motion.div
         data-phone-screen="done"
         aria-hidden={screen !== 2}
@@ -187,7 +206,11 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
           className="absolute inset-x-3 top-9 z-10 flex items-center gap-3 rounded-[16px] border border-line bg-surface px-3.5 py-3 shadow-[0_12px_32px_-12px_rgba(0,0,0,.7)]"
           initial={false}
           animate={screen === 2 ? { y: 0, opacity: 1 } : { y: -40, opacity: 0 }}
-          transition={screen === 2 && !still ? { ...DROP, delay: 0.85, opacity: { duration: 0.12, delay: 0.85 } } : { duration: 0, delay: back ? 0.4 : 0 }}
+          transition={
+            screen === 2 && !still
+              ? { ...DROP, delay: 0.85, opacity: { duration: 0.12, delay: 0.85 } }
+              : { duration: 0, delay: back ? 0.4 : 0 }
+          }
         >
           <span className="flex size-8 flex-none items-center justify-center rounded-full bg-accent text-accent-ink">
             <CheckIcon size={16} strokeWidth={2.5} />
@@ -211,7 +234,10 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
                 animate={{ pathLength: screen === 2 ? 1 : 0, opacity: screen === 2 ? 1 : 0 }}
                 transition={
                   screen === 2 && !still
-                    ? { pathLength: { duration: dur.medium / 1000 - 0.02, delay: 0.15, ease: [0.65, 0, 0.35, 1] }, opacity: { duration: 0.01, delay: 0.15 } }
+                    ? {
+                        pathLength: { duration: dur.medium / 1000 - 0.02, delay: 0.15, ease: [0.65, 0, 0.35, 1] },
+                        opacity: { duration: 0.01, delay: 0.15 },
+                      }
                     : { duration: 0, delay: back ? 0.4 : 0 }
                 }
               />
@@ -221,12 +247,15 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
             Mission validée
           </p>
           <p className="mt-2 text-[13px] leading-snug text-ink-muted">{MISSIONS[0].title}</p>
-          {/* Tampon accent et son anneau d'encre. */}
           <motion.span
             className="relative mt-5 inline-flex items-center gap-1.5 rounded-pill border-2 border-accent px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-accent"
             initial={false}
             animate={screen === 2 ? { scale: 1, rotate: -6, opacity: 1 } : { scale: 1.4, rotate: -14, opacity: 0 }}
-            transition={screen === 2 && !still ? { ...STAMP_SPRING, delay: 0.55, opacity: { duration: dur.instant / 1000, delay: 0.55 } } : { duration: 0, delay: back ? 0.4 : 0 }}
+            transition={
+              screen === 2 && !still
+                ? { ...STAMP_SPRING, delay: 0.55, opacity: { duration: dur.instant / 1000, delay: 0.55 } }
+                : { duration: 0, delay: back ? 0.4 : 0 }
+            }
           >
             Validé
             {!still && (
@@ -235,7 +264,9 @@ function PhoneScreens({ screen, cycle, still }: { screen: Screen; cycle: number;
                 className="pointer-events-none absolute inset-[-6px] rounded-pill border-2 border-accent"
                 initial={false}
                 animate={screen === 2 ? { scale: [0.8, 1.5], opacity: [0.9, 0] } : { scale: 0.8, opacity: 0 }}
-                transition={screen === 2 ? { duration: dur.medium / 1000, ease: "easeOut", delay: 0.6 } : { duration: 0 }}
+                transition={
+                  screen === 2 ? { duration: dur.medium / 1000, ease: "easeOut", delay: 0.6 } : { duration: 0 }
+                }
               />
             )}
           </motion.span>
@@ -268,7 +299,7 @@ export function PhoneDemo() {
     return () => window.clearTimeout(t);
   }, [running, screen]);
 
-  // Inclinaison qui suit la souris (desktop, pointeur fin) : ±4°, spring 120/20.
+  // Tilt follows the mouse on fine pointers.
   const tilt = desktop && fine && !reduce;
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -306,12 +337,16 @@ export function PhoneDemo() {
       >
         <motion.div
           data-reveal=""
-          variants={{ hidden: { y: 60, opacity: 0 }, show: { y: 0, opacity: 1, transition: { ...LIFT, opacity: { duration: 0.3 } } } }}
+          variants={{
+            hidden: { y: 60, opacity: 0 },
+            show: { y: 0, opacity: 1, transition: { ...LIFT, opacity: { duration: 0.3 } } },
+          }}
         >
-          {/* Inclinaison fixe sur desktop (rotateY -14°, rotateX 6°), aucune sur mobile ni en reduced-motion. */}
           <div className="pro-phone-tilt [transform-style:preserve-3d]">
-            <motion.div style={tilt ? { rotateY, rotateX } : undefined} className="relative [transform-style:preserve-3d]">
-              {/* Deux écrans fantômes derrière le téléphone (desktop). */}
+            <motion.div
+              style={tilt ? { rotateY, rotateX } : undefined}
+              className="relative [transform-style:preserve-3d]"
+            >
               {[1, 2].map((n) => (
                 <motion.div
                   key={n}
@@ -350,7 +385,6 @@ export function PhoneDemo() {
         </button>
       )}
 
-      {/* Reduced-motion : la liste des missions en version statique, sous l'écran validé. */}
       <div data-static-missions="" className="pro-static-missions mt-8 w-full max-w-[340px]">
         <p className="mb-3 font-mono text-[12px] uppercase tracking-[0.12em] text-ink-muted">Missions pour toi</p>
         <MissionList ripple={false} cycle={0} />
@@ -359,7 +393,7 @@ export function PhoneDemo() {
   );
 }
 
-/** Autocollants : autour du téléphone sur desktop (`around`), en ligne sous lui sur mobile. */
+// Around the phone on desktop, in a row below it on mobile.
 function Stickers({ around = false }: { around?: boolean }) {
   const reveal = useReveal(0.35);
   return (
@@ -383,7 +417,11 @@ function Stickers({ around = false }: { around?: boolean }) {
               scale: 1,
               rotate: s.r,
               opacity: 1,
-              transition: { ...STAMP_SPRING, delay: 0.45 + i * 0.06, opacity: { duration: dur.instant / 1000, delay: 0.45 + i * 0.06 } },
+              transition: {
+                ...STAMP_SPRING,
+                delay: 0.45 + i * 0.06,
+                opacity: { duration: dur.instant / 1000, delay: 0.45 + i * 0.06 },
+              },
             },
           }}
           style={{ rotate: s.r }}
@@ -407,9 +445,9 @@ export function ProSection() {
             Ton métier vaut de l&apos;argent. Ici, il est payé.
           </h2>
           <p className={`${leadCls} mt-6`}>
-            T&apos;es comptable, livreur, restauratrice, commerçante&nbsp;? Les devs construisent des outils pour ton travail, et
-            ils ont besoin de ton œil. Tu testes depuis ton téléphone, tu dis ce que tu penses vraiment, et tu es payé après
-            validation.
+            T&apos;es comptable, livreur, restauratrice, commerçante&nbsp;? Les devs construisent des outils pour ton
+            travail, et ils ont besoin de ton œil. Tu testes depuis ton téléphone, tu dis ce que tu penses vraiment, et
+            tu es payé après validation.
           </p>
         </div>
 
@@ -430,7 +468,7 @@ export function ProSection() {
             ))}
           </motion.ul>
           <div className="mt-10 flex flex-col gap-3 md:items-start">
-            {/* Bandeau côté testeur de l'accueil : il renvoie vers /testeurs, sans prendre le lime réservé au dev. */}
+            {/* Links to /testeurs without the lime reserved for the dev action. */}
             <Link
               href="/testeurs"
               prefetch={false}

@@ -8,14 +8,7 @@ import { ArrowIcon, ChatIcon, CheckIcon, CopyIcon } from "./icons";
 import { containerCls, h2Cls, Kicker, useReduce } from "./reveal";
 import { CodeAvatar } from "./stage/avatars";
 
-/**
- * Section « Entre devs » (§3.9) : le snippet d'usage et l'espace d'échange.
- * - Le snippet se tape à 12 ms par caractère (plafonné à 900 ms) : un cache de la couleur du terminal
- *   recule par pas d'un caractère (transform en steps), le texte reste dans le DOM. Puis `data-app` se surligne.
- * - Copier : l'icône passe à la coche (spring 500/25), le libellé devient « Copié » 1600 ms, annoncé en aria-live.
- * - Les fils arrivent comme dans un chat : trois points « en train d'écrire » 500 ms, puis le message, à 700 ms d'écart.
- * Reduced-motion et sans JS : snippet complet, fils affichés, la copie change seulement le texte.
- */
+// The snippet text stays in the DOM while a cover reveals it; with reduced motion or no JS, all is shown.
 
 const fr = (t: string) => t.replace(/ (?=[?:!])/g, " ");
 
@@ -35,7 +28,12 @@ const TOKENS: Tok[] = [
 const TOK_CLS = { tag: "text-ink-muted", attr: "text-ink", str: "text-accent/80", app: "text-ink" } as const;
 
 const THREADS = [
-  { text: fr("Webhooks mobile money en local, vous faites comment ?"), tag: "#paiement", stack: "Flutter", replies: 12 },
+  {
+    text: fr("Webhooks mobile money en local, vous faites comment ?"),
+    tag: "#paiement",
+    stack: "Flutter",
+    replies: 12,
+  },
   {
     text: fr("Mes 3 restauratrices ont toutes bloqué sur le même écran. Quelqu'un a déjà géré l'offline sur Next ?"),
     tag: "#ux",
@@ -59,7 +57,7 @@ function Snippet() {
 
   useEffect(() => {
     if (reduce) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- l'état « à taper » n'existe qu'avec JS, hors du viewport
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the typing state only exists with JS, off screen
     setPhase((p) => (p === "idle" ? (inView ? "done" : "armed") : p === "armed" && inView ? "typing" : p));
   }, [reduce, inView]);
 
@@ -73,7 +71,7 @@ function Snippet() {
     try {
       await navigator.clipboard.writeText(SNIPPET);
     } catch {
-      // Repli (contexte non sécurisé, permission refusée) : sélection et copie classique.
+      // Fallback for insecure contexts or a denied permission.
       const area = document.createElement("textarea");
       area.value = SNIPPET;
       area.setAttribute("readonly", "");
@@ -126,8 +124,13 @@ function Snippet() {
       <p aria-live="polite" className="sr-only">
         {copied ? "Copié" : ""}
       </p>
-      {/* Seul défilement horizontal autorisé de la page (§3.9 mobile). */}
-      <div className="overflow-x-auto px-5 py-6 md:px-6 md:py-8" tabIndex={0} role="region" aria-label="Snippet d'usage">
+      {/* The only horizontal scroll allowed on the page. */}
+      <div
+        className="overflow-x-auto px-5 py-6 md:px-6 md:py-8"
+        tabIndex={0}
+        role="region"
+        aria-label="Snippet d'usage"
+      >
         <pre className="relative inline-block overflow-hidden align-top font-mono text-[13px] leading-[1.7] md:text-[14px]">
           <code data-snippet="">
             {TOKENS.map((tok) =>
@@ -191,7 +194,7 @@ function Threads() {
 
   useEffect(() => {
     if (reduce || inView) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- les fils masqués n'existent qu'avec JS, hors du viewport
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hidden threads only exist with JS, off screen
     setArmed(true);
     setShown(0);
   }, [reduce, inView]);
@@ -202,10 +205,13 @@ function Threads() {
     THREADS.forEach((_, i) => {
       timers.push(window.setTimeout(() => setTyping(i), i * 700));
       timers.push(
-        window.setTimeout(() => {
-          setTyping(null);
-          setShown(i + 1);
-        }, i * 700 + 500),
+        window.setTimeout(
+          () => {
+            setTyping(null);
+            setShown(i + 1);
+          },
+          i * 700 + 500,
+        ),
       );
     });
     return () => timers.forEach((t) => window.clearTimeout(t));
@@ -232,7 +238,9 @@ function Threads() {
               <CodeAvatar size={40} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-pill border border-line px-2 py-0.5 font-mono text-[11px] leading-[1.4] text-ink-muted">{th.stack}</span>
+                  <span className="rounded-pill border border-line px-2 py-0.5 font-mono text-[11px] leading-[1.4] text-ink-muted">
+                    {th.stack}
+                  </span>
                   <span className="font-mono text-[12px] text-accent">{th.tag}</span>
                 </div>
                 <p className="mt-2 text-[15px] leading-snug text-ink">{th.text}</p>
@@ -260,7 +268,8 @@ export function DevExchange() {
           </h2>
           <p className="mt-6 max-w-[60ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
             Colle le script&nbsp;: on mesure l&apos;usage réel à <abbr title="7 jours après le test">J7</abbr> et à{" "}
-            <abbr title="30 jours après le test">J30</abbr>, sans données perso inutiles. Et quand tu bloques, la communauté est là.
+            <abbr title="30 jours après le test">J30</abbr>, sans données perso inutiles. Et quand tu bloques, la
+            communauté est là.
           </p>
         </div>
 
@@ -277,7 +286,9 @@ export function DevExchange() {
             </Link>
           </div>
           <div className="lg:col-span-5">
-            <p className="mb-4 font-mono text-[12px] uppercase tracking-[0.12em] text-ink-muted">Aperçu de l&apos;espace devs</p>
+            <p className="mb-4 font-mono text-[12px] uppercase tracking-[0.12em] text-ink-muted">
+              Aperçu de l&apos;espace devs
+            </p>
             <Threads />
           </div>
         </div>

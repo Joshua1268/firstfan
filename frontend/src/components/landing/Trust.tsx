@@ -7,13 +7,6 @@ import { dur, spring } from "@/lib/motion-tokens";
 import { ClockIcon, ShieldIcon, StarIcon } from "./icons";
 import { containerCls, h2Cls, Kicker, riseVariants, useReveal, useReduce } from "./reveal";
 
-/**
- * Section « Confiance » (§3.8) : certificat d'antériorité à gauche, trois mini-blocs à droite.
- * À l'entrée (une fois) : le hash s'écrit en scramble (700 ms, requestAnimationFrame, curseur bloc à 1 Hz),
- * puis le tampon HORODATÉ tombe avec son anneau d'encre et le certificat encaisse le choc (y 0, 3, 0).
- * Reduced-motion et sans JS : texte complet, tampon déjà posé.
- */
-
 const HASH = "9f3a…c21e";
 const HEX = "0123456789abcdef";
 const SCRAMBLE_MS = 700;
@@ -25,7 +18,7 @@ const BLOCKS = [
   { icon: StarIcon, title: "Notation dans les deux sens" },
 ] as const;
 
-/** Hash qui se fixe de gauche à droite ; écrit dans textContent, sans re-render React par frame. */
+// Written to textContent, so there is no React render per frame.
 function useScramble(run: boolean, onDone: () => void) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -51,8 +44,7 @@ function useScramble(run: boolean, onDone: () => void) {
       cancelAnimationFrame(raf);
       el.textContent = HASH;
     };
-    // onDone est stable pour un passage donné.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onDone is stable for one run
   }, [run]);
   return ref;
 }
@@ -69,11 +61,10 @@ function Certificate() {
 
   const run = inView && !reduce;
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- démarre le curseur au début du scramble
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- start the cursor with the scramble
     if (run) setTyping(true);
   }, [run]);
 
-  // Avant l'entrée (et seulement avec JS, hors reduced-motion), le tampon attend en l'air.
   useEffect(() => {
     if (reduce) return;
     if (!inView) stamp.set({ scale: 1.6, rotate: -18, opacity: 0 });
@@ -81,11 +72,20 @@ function Certificate() {
 
   const hashRef = useScramble(run, () => {
     setTyping(false);
-    void stamp.start({ scale: 1, rotate: -8, opacity: 1, transition: { ...STAMP, opacity: { duration: dur.instant / 1000 } } });
+    void stamp.start({
+      scale: 1,
+      rotate: -8,
+      opacity: 1,
+      transition: { ...STAMP, opacity: { duration: dur.instant / 1000 } },
+    });
     window.setTimeout(() => {
       setLanded(true);
       void card.start({ y: [0, 3, 0], transition: { duration: 0.12, ease: "easeOut" } });
-      void ink.start({ scale: [0.7, 1.5], opacity: [0.9, 0], transition: { duration: dur.medium / 1000, ease: "easeOut" } });
+      void ink.start({
+        scale: [0.7, 1.5],
+        opacity: [0.9, 0],
+        transition: { duration: dur.medium / 1000, ease: "easeOut" },
+      });
     }, 140);
   });
 
@@ -97,7 +97,9 @@ function Certificate() {
       aria-label="Certificat d'antériorité horodaté du projet MonApp."
       className="relative rounded-[var(--radius-card)] border border-line bg-surface p-6 font-mono text-[14px] leading-[1.9] text-ink shadow-[0_40px_80px_-20px_rgba(0,0,0,.6),inset_0_0_0_1px_rgba(242,237,227,.06)] md:p-8 md:text-[15px]"
     >
-      <p className="text-[11px] uppercase tracking-[0.12em] text-ink-muted">{PRODUCT_NAME} · Preuve d&apos;antériorité</p>
+      <p className="text-[11px] uppercase tracking-[0.12em] text-ink-muted">
+        {PRODUCT_NAME} · Preuve d&apos;antériorité
+      </p>
       <dl className="mt-5 flex flex-col">
         <div className="flex flex-wrap gap-x-2">
           <dt className="text-ink-muted">Projet :</dt>
@@ -113,12 +115,13 @@ function Certificate() {
             <span ref={hashRef} data-cert-hash="" className="tabular-nums">
               {HASH}
             </span>
-            {typing && <span aria-hidden="true" className="cert-cursor ml-0.5 inline-block h-[1.1em] w-[0.6em] bg-accent" />}
+            {typing && (
+              <span aria-hidden="true" className="cert-cursor ml-0.5 inline-block h-[1.1em] w-[0.6em] bg-accent" />
+            )}
           </dd>
         </div>
       </dl>
 
-      {/* Tampon rond HORODATÉ. */}
       <motion.div
         data-cert-stamp=""
         data-landed={landed || reduce ? "" : undefined}
@@ -152,8 +155,8 @@ export function Trust() {
             Protégé dès le dépôt.
           </h2>
           <p className="mt-6 max-w-[60ch] text-[length:var(--text-lead)] leading-[var(--leading-lead)] text-ink-muted">
-            Ton projet est horodaté dès que tu le déposes&nbsp;: tu as une preuve d&apos;antériorité. Les testeurs s&apos;engagent à la
-            confidentialité, le contenu est protégé contre la copie, et tout est tracé.
+            Ton projet est horodaté dès que tu le déposes&nbsp;: tu as une preuve d&apos;antériorité. Les testeurs
+            s&apos;engagent à la confidentialité, le contenu est protégé contre la copie, et tout est tracé.
           </p>
         </div>
 

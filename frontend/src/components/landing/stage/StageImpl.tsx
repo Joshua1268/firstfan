@@ -16,18 +16,14 @@ import { StageStatic } from "./StageStatic";
 import { Ratings, Testers } from "./Steps";
 import { StoryCard } from "./StoryCard";
 
-/**
- * Stage « Boucle et histoire » (§3.4) : un conteneur de 480vh (360vh sous 1024px) et un cadre sticky.
- * Un seul useScroll, lissé par un seul useSpring ; toutes les scènes lisent ce `p`.
- * En reduced-motion (ou sans JS, ou sur appareil modeste), le repli statique prend la place (StageStatic).
- */
+// One useScroll smoothed by one useSpring: every scene reads this `p`.
 
-// Sans JS : le repli statique s'affiche et le stage sticky disparaît.
+// Without JS, show the static fallback.
 const NO_JS = "<style>.stage-live{display:none!important}.stage-static{display:block!important}</style>";
 
 const noop = () => () => {};
 
-/** Stage sticky animé. Monté seulement quand il sert (ses écouteurs de scroll ne tournent pas pour rien). */
+// Mounted only when used, so its scroll listeners do not run for nothing.
 function LiveStage({ hydrated }: { hydrated: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -49,7 +45,7 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
     if (!el) return;
     const top = el.getBoundingClientRect().top + window.scrollY;
     const range = el.offsetHeight - window.innerHeight;
-    // Un poil après le début de la plage, pour que le `p` lissé tombe bien dans la scène visée.
+    // Slightly past the range start so the smoothed `p` lands in the target scene.
     const start = sceneStart(id);
     window.scrollTo({ top: top + (start > 0 ? start + 0.004 : 0) * range, behavior: "smooth" });
   }, []);
@@ -64,16 +60,12 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
     >
       <StageAnchors />
       <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
-        {/*
-         * En tête de l'ordre de tabulation : le lien d'évitement, puis la transcription pour les lecteurs d'écran.
-         * La transcription n'est montée qu'après l'hydratation : le HTML serveur ne porte qu'un seul plan de titres,
-         * celui du repli statique (lu sans JS et en reduced-motion).
-         */}
+        {/* Skip link first, then the transcript, mounted after hydration to keep one heading outline. */}
         <SkipStory />
         {hydrated && <StageTranscript />}
         <StageProvider value={ctx}>
           <div aria-hidden="true" className="absolute inset-0 [perspective:1200px]">
-            {/* Les arcs d'abord : les labels de l'anneau passent au-dessus du trait. */}
+            {/* Arcs first, so ring labels sit above the stroke. */}
             <Break p={p} />
             <Loop p={p} />
             <Curves p={p} />
@@ -90,16 +82,21 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
 }
 
 export function Stage() {
-  // Le HTML serveur contient les deux versions (le CSS choisit) ; après l'hydratation, on démonte celle qui ne sert pas.
-  const hydrated = useSyncExternalStore(noop, () => true, () => false);
+  // The server HTML has both versions; after hydration, unmount the unused one.
+  const hydrated = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
   const reduce = useReducedMotion() ?? false;
   const short = useMedia("(max-height: 359px)", false);
-  // Repli : appareil modeste ou économie de données.
+  // Fallback on low-end devices or with data saver.
   const [lowEnd, setLowEnd] = useState(false);
   useEffect(() => {
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    const weak = (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- capacité de l'appareil, connue seulement côté client
+    const weak =
+      (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- device capability is only known on the client
     if (weak) setLowEnd(true);
   }, []);
   const fallback = reduce || short || lowEnd;

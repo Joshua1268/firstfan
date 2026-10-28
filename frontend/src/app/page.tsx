@@ -13,7 +13,6 @@ import { Trust } from "@/components/landing/Trust";
 import { WhatIs } from "@/components/landing/WhatIs";
 import { fetchPublicStats } from "@/lib/stats";
 
-// Composition serveur de la landing (§3).
 export default async function Home() {
   const stats = await fetchPublicStats();
   return (

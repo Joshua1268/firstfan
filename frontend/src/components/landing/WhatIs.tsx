@@ -6,12 +6,6 @@ import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, ease, spring } from "@/lib/motion-tokens";
 import { containerCls, h2Cls, Kicker, STAMP_SPRING, useReveal } from "./reveal";
 
-/**
- * Section « C'est quoi FirstFan ? » (§3.7) : trois cartes, chacune avec son illustration au trait (64px)
- * qui se trace après l'entrée de la carte, puis son détail accent qui se tamponne.
- * Mobile : cartes empilées, sous-ligne TESTEUR avant la sous-ligne DEV. Reduced-motion : tout est posé.
- */
-
 const CARDS = [
   {
     n: "01",
@@ -45,23 +39,28 @@ const cardVariants: Variants = {
   }),
 };
 
-/** Tracé : 200 ms après la carte, 600 ms en in-out. */
 const drawVariants = (i: number): Variants => ({
   hidden: { pathLength: 0, opacity: 0 },
   show: {
     pathLength: 1,
     opacity: 1,
-    transition: { pathLength: { delay: i * 0.1 + 0.2, duration: 0.6, ease: ease.inOut }, opacity: { delay: i * 0.1 + 0.2, duration: 0.01 } },
+    transition: {
+      pathLength: { delay: i * 0.1 + 0.2, duration: 0.6, ease: ease.inOut },
+      opacity: { delay: i * 0.1 + 0.2, duration: 0.01 },
+    },
   },
 });
 
-/** Détail accent : tamponné à la fin du tracé. */
 const stampVariants = (i: number): Variants => ({
   hidden: { scale: 1.5, opacity: 0 },
   show: {
     scale: 1,
     opacity: 1,
-    transition: { ...STAMP_SPRING, delay: i * 0.1 + 0.75, opacity: { duration: dur.instant / 1000, delay: i * 0.1 + 0.75 } },
+    transition: {
+      ...STAMP_SPRING,
+      delay: i * 0.1 + 0.75,
+      opacity: { duration: dur.instant / 1000, delay: i * 0.1 + 0.75 },
+    },
   },
 });
 
@@ -88,7 +87,6 @@ function Illustration({ i, children }: { i: number; children: (i: number) => Rea
   );
 }
 
-/** Une carte d'identité qui reçoit un tampon. */
 function IdCard(i: number) {
   return (
     <>
@@ -103,7 +101,6 @@ function IdCard(i: number) {
   );
 }
 
-/** Un téléphone qui reçoit la notification « Paiement envoyé » (aucun chiffre). */
 function PhoneNotif(i: number) {
   return (
     <>
@@ -118,7 +115,6 @@ function PhoneNotif(i: number) {
   );
 }
 
-/** Une mini-courbe qui reste haute. */
 function HighCurve(i: number) {
   return (
     <>
@@ -158,7 +154,7 @@ export function WhatIs() {
           {CARDS.map((c, i) => (
             <motion.li key={c.n} data-reveal="" custom={i} variants={cardVariants} className="group">
               <article className="relative h-full overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface p-6 transition-transform duration-[160ms] ease-out md:p-8 [@media(hover:hover)]:group-hover:-translate-y-1">
-                {/* Filet accent 40 % au survol : calque en opacité, la bordure ne s'anime pas. */}
+                {/* Hover border on its own layer: only its opacity animates. */}
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0 rounded-[inherit] border border-accent/40 opacity-0 transition-opacity duration-[160ms] [@media(hover:hover)]:group-hover:opacity-100"

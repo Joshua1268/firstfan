@@ -12,15 +12,7 @@ import {
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { DEFAULT_LAYOUT, type StageLayout } from "./layout";
 
-/**
- * État partagé du stage. Le `p` lissé est passé en prop à chaque scène ; le reste vit ici :
- * - `layout` : géométrie (MotionValue, écrite au resize : aucun re-render) ;
- * - `pass` : avancement du passage de la carte par la brèche (0 à 1, joué en temps réel, §4) ;
- * - `colorOn` : couche couleur de la carte allumée par la cassure ;
- * - `shake` : tremblement horizontal de la carte (px) ;
- * - `recess` : recul de la boucle déclenché par la cassure (0 à 1, temps réel), combiné au scrub 0.19 à 0.22 ;
- * - `instant` : vrai dans le repli statique, les micro-chorégraphies sautent à leur état final.
- */
+// Shared stage state. `p` is passed as a prop; `instant` makes animations jump to their end in the fallback.
 export type StageCtx = {
   layout: MotionValue<StageLayout>;
   pass: MotionValue<number>;
@@ -52,7 +44,6 @@ export function useStageValues(desktop: boolean, instant: boolean, initialPass: 
   );
 }
 
-/** Anime une MotionValue, ou la pose directement en mode instantané. */
 export function go(
   mv: MotionValue<number>,
   to: number | number[],
@@ -66,10 +57,7 @@ export function go(
   return animate(mv, to, transition);
 }
 
-/**
- * Déclenche `cb(true)` quand `p` franchit `t` en montant et `cb(false)` en redescendant (§3.4 : réversible).
- * Évalué aussi au montage avec la valeur courante (`initial` vaut alors vrai).
- */
+// Calls cb(true) when p goes above t, cb(false) when it goes back; also once on mount.
 export function useThreshold(p: MotionValue<number>, t: number, cb: (above: boolean, initial: boolean) => void) {
   const tracker = useRef<ThresholdTracker | null>(null);
   const cbRef = useRef(cb);
@@ -88,10 +76,6 @@ export function useThreshold(p: MotionValue<number>, t: number, cb: (above: bool
 
 export type ThresholdTracker = { init(v: number): boolean; update(v: number): boolean | null };
 
-/**
- * Suivi pur d'un seuil : `update` renvoie `true` au franchissement en montant, `false` en redescendant,
- * `null` sinon. Aucun événement avant `init` (le montage décide de l'état de départ).
- */
 export function createThresholdTracker(t: number): ThresholdTracker {
   let state: boolean | null = null;
   return {
@@ -108,10 +92,7 @@ export function createThresholdTracker(t: number): ThresholdTracker {
   };
 }
 
-/**
- * MotionValue à deux états liée à un seuil : `from` sous `t`, `to` au-dessus, animée par `transition`.
- * La valeur initiale suit `p` dès le rendu serveur (le repli statique sort donc dans son état final).
- */
+// `from` below t, `to` above; the initial value already follows p on the server.
 export function useStepValue(
   p: MotionValue<number>,
   t: number,
@@ -130,12 +111,11 @@ export function useStepValue(
   return mv;
 }
 
-/** Rayon de l'anneau, en état React (il change la géométrie des tracés SVG) : relu à chaque resize. */
+// React state because it changes the SVG paths.
 export function useRingRadius(): number {
   return useLayoutValue((l) => l.ring.r);
 }
 
-/** Valeur dérivée de la géométrie, en état React (elle change la structure, pas une frame) : relue au resize. */
 export function useLayoutValue<T extends number | boolean | string>(pick: (l: StageLayout) => T): T {
   const { layout } = useStage();
   const subscribe = useCallback((cb: () => void) => layout.on("change", cb), [layout]);
@@ -146,13 +126,7 @@ export function useLayoutValue<T extends number | boolean | string>(pick: (l: St
   );
 }
 
-/**
- * Transform recalculé seulement quand `p` est dans [lo, hi] : hors de sa scène, un calque garde sa dernière
- * valeur (déjà invisible) au lieu de recalculer et d'allouer à chaque frame.
- * `track` liste les autres MotionValues lues par `fn` (animations en temps réel, géométrie). Motion collecte les
- * dépendances à chaque rendu React : si un rendu tombe hors de la plage, `fn` n'est pas appelé, et sans cette liste
- * le calque ne suivrait plus que `p` (une pastille en vol se figerait dès que le scroll s'arrête).
- */
+// Recomputed only while p is in [lo, hi]. `track` lists the other values read by fn, which Motion could miss.
 export function useGatedTransform<T>(
   p: MotionValue<number>,
   lo: number,

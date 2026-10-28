@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-// Node n'a pas de requestAnimationFrame : la boucle de frames de motion en a besoin.
+// Node has no requestAnimationFrame, which Motion's frame loop needs.
 beforeAll(() => {
   globalThis.requestAnimationFrame ??= (cb: FrameRequestCallback) =>
     setTimeout(() => cb(performance.now()), 16) as unknown as number;
@@ -16,7 +16,7 @@ describe("startCountUp", () => {
     count.on("change", (v) => seen.push(v));
     await new Promise<void>((resolve) => {
       startCountUp(count, 42, { duration: 0.2, delay: 0, onComplete: resolve });
-      // Le comptage repart de 0 tout de suite.
+      // Counting restarts from 0 right away.
       expect(count.get()).toBe(0);
     });
     expect(seen.some((v) => v > 0 && v < 42)).toBe(true);

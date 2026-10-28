@@ -4,7 +4,7 @@ import { cardPose } from "./pose";
 
 const l = computeLayout(1440, 900);
 
-describe("card milestones (§3.4)", () => {
+describe("card milestones", () => {
   it("sits grey and small in the ring during the loop", () => {
     const pose = cardPose(0.12, 0, 0, l);
     expect(pose).toMatchObject({ x: l.ring.cx, y: l.ring.cy, rotateY: 0 });
@@ -37,7 +37,11 @@ describe("card milestones (§3.4)", () => {
 });
 
 describe("card thumbnail on small screens", () => {
-  for (const [vw, vh] of [[375, 812], [820, 1180], [1024, 768]] as const) {
+  for (const [vw, vh] of [
+    [375, 812],
+    [820, 1180],
+    [1024, 768],
+  ] as const) {
     it(`${vw}x${vh}: stays on screen at the graph origin`, () => {
       const lay = computeLayout(vw, vh);
       const pose = cardPose(1, 1, 0, lay);

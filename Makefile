@@ -2,7 +2,7 @@ BACKEND = docker compose exec -T backend uv run
 # run, not exec: frontend targets work even when only db and backend are up.
 FRONTEND = docker compose run --rm --no-deps frontend
 
-.PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back fmt fmt-back check
+.PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check
 
 # -V: fresh node_modules volume after a dependency change.
 up:
@@ -31,16 +31,25 @@ test-front:
 e2e:
 	cd frontend && pnpm exec playwright test
 
-lint: lint-back
+lint: lint-back lint-front
 
 lint-back:
 	$(BACKEND) ruff check .
 	$(BACKEND) ruff format --check .
 
-fmt: fmt-back
+lint-front:
+	$(FRONTEND) pnpm lint
+	$(FRONTEND) pnpm format:check
+	$(FRONTEND) pnpm typecheck
+	$(FRONTEND) pnpm check:content
+
+fmt: fmt-back fmt-front
 
 fmt-back:
 	$(BACKEND) ruff check --fix-only .
 	$(BACKEND) ruff format .
+
+fmt-front:
+	$(FRONTEND) pnpm format
 
 check: lint test
