@@ -470,4 +470,7 @@ body::before {
   body {
     padding: 18mm;
   }
+  body::before {
+    display: none;
+  }
 }
