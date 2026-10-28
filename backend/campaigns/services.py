@@ -1,12 +1,14 @@
+from django.core.files import File
 from django.db import transaction
 from django.db.models import Count, F, Q, QuerySet
-from rest_framework.exceptions import ValidationError
+from django.utils import timezone
+from rest_framework.exceptions import NotFound, ValidationError
 
 from accounts.models import TesterProfile, User
 from core.exceptions import Conflict
 from projects.models import Project
 
-from .models import Campaign, Invitation, ScenarioStep
+from .models import Campaign, Feedback, Invitation, Rating, ScenarioStep, StepProof, TestSession
 
 
 def create_campaign(
@@ -59,3 +61,75 @@ def select_testers(campaign: Campaign, tester_ids: list[int]) -> None:
             raise ValidationError({"tester_ids": ["Testeur non disponible pour cette campagne."]})
         campaign.invitations.filter(status=Invitation.Status.SELECTED).delete()
         Invitation.objects.bulk_create(Invitation(campaign=campaign, tester_id=pk) for pk in sorted(ids))
+
+
+def _lock(invitation: Invitation) -> Invitation:
+    return Invitation.objects.select_for_update().get(pk=invitation.pk)
+
+
+def accept_invitation(invitation: Invitation, *, nda: bool) -> TestSession:
+    if not nda:
+        raise ValidationError({"nda": ["Tu dois accepter l'engagement de confidentialité."]})
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status == Invitation.Status.ACCEPTED:
+            return invitation.session
+        if invitation.status != Invitation.Status.SENT:
+            raise Conflict("Cette invitation ne peut plus être acceptée.")
+        invitation.status = Invitation.Status.ACCEPTED
+        invitation.nda_accepted_at = timezone.now()
+        invitation.save(update_fields=["status", "nda_accepted_at"])
+        return TestSession.objects.create(invitation=invitation)
+
+
+def decline_invitation(invitation: Invitation) -> None:
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status == Invitation.Status.DECLINED:
+            return
+        if invitation.status != Invitation.Status.SENT:
+            raise Conflict("Cette invitation ne peut plus être refusée.")
+        invitation.status = Invitation.Status.DECLINED
+        invitation.save(update_fields=["status"])
+
+
+def save_step_proof(invitation: Invitation, order: int, *, answer: str, capture: File | None) -> StepProof:
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status != Invitation.Status.ACCEPTED:
+            raise Conflict("Le test n'est pas en cours.")
+        step = invitation.campaign.steps.filter(order=order).first()
+        if step is None:
+            raise NotFound("Étape introuvable.")
+        proof = StepProof.objects.filter(session=invitation.session, step=step).first()
+        if proof is None:
+            if capture is None:
+                raise ValidationError({"capture": ["Ajoute une capture d'écran."]})
+            proof = StepProof(session=invitation.session, step=step)
+        proof.answer = answer
+        if capture is not None:
+            proof.capture = capture
+        proof.save()
+    return proof
+
+
+def submit_test(invitation: Invitation, *, feedback: dict, dev_score: int, dev_comment: str) -> None:
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status != Invitation.Status.ACCEPTED:
+            raise Conflict("Ce test n'est plus modifiable.")
+        session = invitation.session
+        if session.proofs.count() < invitation.campaign.steps.count():
+            raise ValidationError({"detail": "Il reste des étapes sans preuve."})
+        Feedback.objects.create(session=session, **feedback)
+        Rating.objects.create(
+            session=session,
+            rater=invitation.tester,
+            ratee=invitation.campaign.project.owner,
+            score=dev_score,
+            comment=dev_comment,
+        )
+        session.submitted_at = timezone.now()
+        session.save(update_fields=["submitted_at"])
+        invitation.status = Invitation.Status.SUBMITTED
+        invitation.save(update_fields=["status"])

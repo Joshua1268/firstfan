@@ -1,11 +1,13 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from accounts.models import User
 from accounts.professions import PROFESSIONS
+from core.uploads import validate_upload
 from projects.models import Project
 
-from .models import Campaign, Invitation, ScenarioStep
+from .models import Campaign, Feedback, Invitation, ScenarioStep, StepProof
 
 MAX_STEPS = 10
 
@@ -143,3 +145,110 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
 
 class SelectionSerializer(serializers.Serializer):
     tester_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class ProofSerializer(serializers.ModelSerializer):
+    capture_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StepProof
+        fields = ["id", "answer", "capture_url", "updated_at"]
+
+    def get_capture_url(self, proof: StepProof) -> str:
+        return f"/api/proofs/{proof.pk}/capture/"
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ["usefulness", "blockers", "would_pay", "comment"]
+
+
+class TesterInvitationSummarySerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source="campaign.project.name")
+    target_profession = serializers.CharField(source="campaign.target_profession")
+    steps_total = serializers.SerializerMethodField()
+    steps_done = serializers.SerializerMethodField()
+    reward_xof = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invitation
+        fields = [
+            "id",
+            "project_name",
+            "target_profession",
+            "steps_total",
+            "steps_done",
+            "status",
+            "reward_xof",
+            "created_at",
+        ]
+
+    def get_steps_total(self, invitation: Invitation) -> int:
+        return len(invitation.campaign.steps.all())
+
+    def get_steps_done(self, invitation: Invitation) -> int:
+        session = getattr(invitation, "session", None)
+        return len(session.proofs.all()) if session else 0
+
+    def get_reward_xof(self, invitation: Invitation) -> int:
+        return settings.TESTER_REWARD_XOF
+
+
+class TesterInvitationDetailSerializer(TesterInvitationSummarySerializer):
+    project_description = serializers.CharField(source="campaign.project.description")
+    steps = serializers.SerializerMethodField()
+    feedback = serializers.SerializerMethodField()
+
+    class Meta(TesterInvitationSummarySerializer.Meta):
+        fields = [
+            *TesterInvitationSummarySerializer.Meta.fields,
+            "project_description",
+            "nda_accepted_at",
+            "test_url",
+            "steps",
+            "feedback",
+        ]
+
+    def get_steps(self, invitation: Invitation) -> list[dict]:
+        session = getattr(invitation, "session", None)
+        proofs = {proof.step_id: proof for proof in session.proofs.all()} if session else {}
+        return [
+            {
+                "order": step.order,
+                "instruction": step.instruction,
+                "proof": ProofSerializer(proofs[step.pk]).data if step.pk in proofs else None,
+            }
+            for step in invitation.campaign.steps.all()
+        ]
+
+    def get_feedback(self, invitation: Invitation) -> dict | None:
+        feedback = getattr(getattr(invitation, "session", None), "feedback", None)
+        return FeedbackSerializer(feedback).data if feedback else None
+
+
+class AcceptSerializer(serializers.Serializer):
+    nda = serializers.BooleanField(default=False)
+
+
+class StepProofInputSerializer(serializers.Serializer):
+    answer = serializers.CharField(max_length=2000, allow_blank=True, default="")
+    capture = serializers.FileField(required=False, default=None)
+
+    def validate_capture(self, f):
+        if f is None:
+            return f
+        try:
+            validate_upload(f)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.messages) from e
+        return f
+
+
+class SubmitSerializer(serializers.Serializer):
+    usefulness = serializers.IntegerField(min_value=1, max_value=5)
+    blockers = serializers.CharField(allow_blank=True)
+    would_pay = serializers.ChoiceField(choices=Feedback.WouldPay.choices)
+    comment = serializers.CharField(allow_blank=True, default="")
+    dev_score = serializers.IntegerField(min_value=1, max_value=5)
+    dev_comment = serializers.CharField(allow_blank=True, default="")
