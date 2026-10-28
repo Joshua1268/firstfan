@@ -24,7 +24,19 @@ describe("homeFor", () => {
   });
 
   it("ignores a next that leaves the site", () => {
-    for (const next of ["//evil.com", "/\\evil.com", "https://evil.com", "javascript:alert(1)", "dev", ""]) {
+    const outside = [
+      "//evil.com",
+      "/\\evil.com",
+      "/\t/evil.com",
+      "/\n/evil.com",
+      "/\r/evil.com",
+      "\\/evil.com",
+      "https://evil.com",
+      "javascript:alert(1)",
+      "dev",
+      "",
+    ];
+    for (const next of outside) {
       expect(homeFor(dev, next), next).toBe("/dev");
     }
   });

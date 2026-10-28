@@ -1,12 +1,20 @@
 import type { Me } from "./types";
 
-// Only a path on this site: "//host" and "/\host" would leave it.
-function isLocalPath(next: string): boolean {
-  return next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\");
+// Any base works: it only tells whether next stays on the same site.
+const SITE = "http://site.local";
+
+// Parse next the way the browser will (it drops tabs and newlines, reads "\" as "/"),
+// then keep it only if it stays on the site.
+function localPath(next: string): string | null {
+  if (!next.startsWith("/")) return null;
+  const url = new URL(next, SITE);
+  if (url.origin !== SITE) return null;
+  return url.pathname + url.search + url.hash;
 }
 
 export function homeFor(me: Me, next?: string | null): string {
-  if (next && isLocalPath(next)) return next;
+  const path = next ? localPath(next) : null;
+  if (path) return path;
   if (me.role === "dev") return "/dev";
   if (me.role === "tester") return me.profile_complete ? "/testeur" : "/testeur/profil";
   return "/";
