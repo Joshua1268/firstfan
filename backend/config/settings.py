@@ -27,6 +27,8 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 
 # Must be set explicitly outside DEBUG: true for the demo, false in real production.
 DEMO_MODE = env_bool("DEMO_MODE", True)
+# Password of the demo dev account; generated and printed once when empty.
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "")
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY == DEV_SECRET_KEY:
