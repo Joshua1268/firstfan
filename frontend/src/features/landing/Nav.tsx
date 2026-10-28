@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, ease } from "@/lib/motion-tokens";
 import { navLinks, PAGE_CTA, type SitePage } from "@/lib/site-links";
+import { Logo } from "@/ui/Logo";
 
 export function Nav({ page = "home" }: { page?: SitePage }) {
   const LINKS = navLinks(page);
@@ -71,8 +71,8 @@ export function Nav({ page = "home" }: { page?: SitePage }) {
         aria-label="Navigation principale"
         className="relative z-10 mx-auto flex h-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] items-center justify-between px-[var(--grid-margin)]"
       >
-        <Link href="/" className="font-display text-[22px] font-extrabold leading-none tracking-tight text-ink">
-          {PRODUCT_NAME}
+        <Link href="/" className="flex min-h-11 items-center text-ink">
+          <Logo />
         </Link>
 
         {/* In the flow from 1024 to 1279px so nothing overlaps, centered above. */}
