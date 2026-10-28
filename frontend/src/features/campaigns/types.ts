@@ -85,3 +85,23 @@ export type TesterInvitationDetail = TesterInvitationSummary & {
 };
 
 export type SubmitInput = Feedback & { dev_score: number; dev_comment: string };
+
+export type LiveProof = { id: number; step_order: number; answer: string; capture_url: string; updated_at: string };
+
+export type LiveRow = {
+  invitation_id: number;
+  tester: { first_name: string; profession: string; rating_avg: number | null };
+  status: InvitationStatus;
+  nda_accepted_at: string | null;
+  started_at: string | null;
+  submitted_at: string | null;
+  last_event_at: string | null;
+  proofs: LiveProof[];
+  feedback: Feedback | null;
+  // The dev's own rating of the tester, once the test is judged.
+  dev_rating: { score: number; comment: string } | null;
+};
+
+export type Decision = "validated" | "rejected";
+
+export type ValidateInput = { decision: Decision; score: number; comment: string };

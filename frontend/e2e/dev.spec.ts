@@ -149,7 +149,7 @@ test("a dev picks two testers, pays and the invitations are sent", async ({ page
 
   await expect(page).toHaveURL(/\/dev\/campagnes\/\d+$/);
   await expect(page.getByText("Ouverte", { exact: true })).toBeVisible();
-  const invitations = page.getByRole("list", { name: "Invitations" }).getByRole("listitem");
+  const invitations = page.getByRole("list", { name: "Testeurs" }).getByRole("article");
   await expect(invitations).toHaveCount(2);
   for (const tester of testers) await expect(invitations.filter({ hasText: tester })).toContainText("Envoyée");
   await expect(page.getByRole("button", { name: "Payer et envoyer les invitations" })).toHaveCount(0);

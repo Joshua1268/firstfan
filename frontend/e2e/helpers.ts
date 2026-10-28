@@ -74,7 +74,7 @@ export const SCENARIO = [
 async function postAs(
   request: APIRequestContext,
   path: string,
-  options: { data?: unknown; multipart?: Record<string, string> },
+  options: { data?: unknown; multipart?: Record<string, string | { name: string; mimeType: string; buffer: Buffer }> },
 ) {
   const { cookies } = await request.storageState();
   const token = cookies.find((c) => c.name === "csrftoken")?.value ?? "";
@@ -102,6 +102,33 @@ export async function seedOpenCampaign(request: APIRequestContext, testerEmail: 
   await postAs(request, `/api/campaigns/${campaign.id}/selection/`, { data: { tester_ids: [tester.id] } });
   const { reference } = await postAs(request, `/api/campaigns/${campaign.id}/checkout/`, {});
   await postAs(request, `/api/payments/${reference}/simulate/`, { data: { outcome: "paid" } });
+  return { campaignId: campaign.id as number };
+}
+
+// The tester of seedOpenCampaign accepts, sends a proof for the first `steps` steps and, when all are done, the test.
+export async function playSeededTest(request: APIRequestContext, testerEmail: string, steps = SCENARIO.length) {
+  await postAs(request, "/api/auth/login/", { data: { email: testerEmail, password: PASSWORD } });
+  const [invitation] = await (await request.get("/api/tester/invitations/")).json();
+  await postAs(request, `/api/tester/invitations/${invitation.id}/accept/`, { data: { nda: true } });
+  for (let order = 1; order <= steps; order++) {
+    await postAs(request, `/api/tester/invitations/${invitation.id}/steps/${order}/`, {
+      multipart: {
+        answer: `Fait pour l'étape ${order}.`,
+        capture: { name: "capture.png", mimeType: "image/png", buffer: TINY_PNG },
+      },
+    });
+  }
+  if (steps < SCENARIO.length) return;
+  await postAs(request, `/api/tester/invitations/${invitation.id}/submit/`, {
+    data: {
+      usefulness: 4,
+      blockers: "Le bouton d'export est caché.",
+      would_pay: "maybe",
+      comment: "Pratique pour mes clients.",
+      dev_score: 5,
+      dev_comment: "Merci !",
+    },
+  });
 }
 
 export async function logIn(page: Page, email: string) {

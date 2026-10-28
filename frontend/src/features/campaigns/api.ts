@@ -4,11 +4,13 @@ import type {
   CampaignInput,
   CampaignSummary,
   Checkout,
+  LiveRow,
   Proof,
   SubmitInput,
   TesterCandidates,
   TesterInvitationDetail,
   TesterInvitationSummary,
+  ValidateInput,
 } from "./types";
 
 export function getProjectCampaigns(projectId: number): Promise<CampaignSummary[]> {
@@ -33,6 +35,15 @@ export function selectTesters(campaignId: number, testerIds: number[]): Promise<
 
 export function startCheckout(campaignId: number): Promise<Checkout> {
   return apiFetch(`/api/campaigns/${campaignId}/checkout/`, { method: "POST" });
+}
+
+export function getLive(campaignId: number): Promise<LiveRow[]> {
+  return apiFetch(`/api/campaigns/${campaignId}/live/`);
+}
+
+// Answers with the updated row.
+export function validateTest(invitationId: number, input: ValidateInput): Promise<LiveRow> {
+  return apiFetch(`/api/invitations/${invitationId}/validate/`, { method: "POST", json: input });
 }
 
 export function getTesterInvitations(): Promise<TesterInvitationSummary[]> {
