@@ -9,6 +9,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const onCloseRef = useRef(onClose);
+  const pressedOnBackdrop = useRef(false);
   useEffect(() => {
     onCloseRef.current = onClose;
   });
@@ -19,10 +20,17 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // The close event comes later: skip it when the dialog was opened again meanwhile (React dev remounts).
     const close = () => !dialog.open && onCloseRef.current();
+    // Escape asks the owner, which may keep the dialog open while it saves.
+    const cancel = (e: Event) => {
+      e.preventDefault();
+      onCloseRef.current();
+    };
     dialog.addEventListener("close", close);
+    dialog.addEventListener("cancel", cancel);
     dialog.showModal();
     return () => {
       dialog.removeEventListener("close", close);
+      dialog.removeEventListener("cancel", cancel);
       dialog.close();
       opener?.focus();
     };
@@ -33,8 +41,10 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
       ref={ref}
       aria-labelledby={titleId}
       aria-modal="true"
-      // A click on the dimmed backdrop lands on the dialog element itself.
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      // A click on the dimmed backdrop lands on the dialog element itself. A text selection
+      // dragged out of a field ends there too, so the press must also start on the backdrop.
+      onMouseDown={(e) => (pressedOnBackdrop.current = e.target === e.currentTarget)}
+      onClick={(e) => e.target === e.currentTarget && pressedOnBackdrop.current && onClose()}
       className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-[560px] rounded-[var(--radius-card)] border border-line bg-surface p-0 text-ink backdrop:bg-black/60"
     >
       <div className="flex flex-col gap-5 p-5 md:p-7">

@@ -66,8 +66,18 @@ test("a dev follows a test live, checks the proofs, then validates and rates it"
   await expect(score).toHaveAccessibleDescription(/Choisis une note/);
 
   await score.locator("label", { hasText: "5 sur 5" }).click();
-  await dialog.getByLabel("Un mot pour le testeur").fill("Retours précis, merci.");
+  const comment = dialog.getByLabel("Un mot pour le testeur");
+  await comment.fill("Retours précis, merci.");
   await noHorizontalScroll(page);
+
+  // Selecting the comment with a drag that ends on the backdrop keeps the dialog open.
+  const box = (await comment.boundingBox())!;
+  await page.mouse.move(box.x + box.width - 8, box.y + 12);
+  await page.mouse.down();
+  await page.mouse.move(2, 2, { steps: 4 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  await expect(comment).toHaveValue("Retours précis, merci.");
   await dialog.getByRole("button", { name: "Valider le test" }).dblclick();
 
   await expect(dialog).toBeHidden();
