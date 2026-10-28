@@ -58,3 +58,16 @@ def test_last_event_by_invitation(db, session_started_10_days_ago):
     last = add_event(session, timedelta(days=3))
     assert last_event_by_invitation([session.invitation.pk]) == {session.invitation.pk: last.created_at}
     assert last_event_by_invitation([]) == {}
+
+
+def test_adoption_api(dev_client, session_started_10_days_ago, campaign):
+    add_event(session_started_10_days_ago, timedelta(days=8))
+    data = dev_client.get(f"/api/projects/{campaign.project.pk}/adoption/").json()
+    assert data["demo"] is False
+    assert [(r["d1"], r["d7"], r["d30"]) for r in data["rows"]] == [(False, True, None)]
+    Campaign.objects.filter(pk=campaign.pk).update(is_demo=True)
+    assert dev_client.get(f"/api/projects/{campaign.project.pk}/adoption/").json()["demo"] is True
+
+
+def test_adoption_other_dev_404(other_dev_client, campaign):
+    assert other_dev_client.get(f"/api/projects/{campaign.project.pk}/adoption/").status_code == 404
