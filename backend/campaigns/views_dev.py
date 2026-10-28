@@ -8,6 +8,7 @@ from core.permissions import IsDev
 from payments.providers import get_provider
 from payments.services import start_checkout
 from projects.models import Project
+from tracking.services import last_event_by_invitation
 
 from .matching import tester_candidates
 from .models import Campaign, Invitation
@@ -87,6 +88,11 @@ class CampaignCheckoutView(APIView):
         )
 
 
+def live_rows_data(invitations) -> list:
+    last_events = last_event_by_invitation([i.pk for i in invitations])
+    return LiveRowSerializer(invitations, many=True, context={"last_events": last_events}).data
+
+
 def live_invitations(owner):
     # Selected testers only see the campaign once it is paid.
     return (
@@ -103,8 +109,8 @@ class CampaignLiveView(APIView):
 
     def get(self, request, pk):
         campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
-        rows = live_invitations(request.user).filter(campaign=campaign)
-        return Response(LiveRowSerializer(rows, many=True).data)
+        rows = list(live_invitations(request.user).filter(campaign=campaign))
+        return Response(live_rows_data(rows))
 
 
 class ValidateTestView(APIView):
@@ -115,4 +121,4 @@ class ValidateTestView(APIView):
         serializer = ValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validate_test(invitation, **serializer.validated_data)
-        return Response(LiveRowSerializer(get_object_or_404(live_invitations(request.user), pk=pk)).data)
+        return Response(live_rows_data([get_object_or_404(live_invitations(request.user), pk=pk)])[0])

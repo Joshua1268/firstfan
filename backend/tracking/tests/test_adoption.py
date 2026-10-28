@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from campaigns.models import Campaign, Invitation, TestSession
 from conftest import make_tester
@@ -71,3 +72,9 @@ def test_adoption_api(dev_client, session_started_10_days_ago, campaign):
 
 def test_adoption_other_dev_404(other_dev_client, campaign):
     assert other_dev_client.get(f"/api/projects/{campaign.project.pk}/adoption/").status_code == 404
+
+
+def test_live_row_has_last_event(dev_client, session_started_10_days_ago, campaign):
+    event = add_event(session_started_10_days_ago, timedelta(days=3))
+    row = dev_client.get(f"/api/campaigns/{campaign.pk}/live/").json()[0]
+    assert parse_datetime(row["last_event_at"]) == event.created_at
