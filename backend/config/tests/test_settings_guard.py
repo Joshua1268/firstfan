@@ -67,8 +67,11 @@ def test_debug_keeps_dev_defaults():
     assert "BrowsableAPIRenderer" in r.stdout
 
 
+STATIC_PROBE = "import django; django.setup(); from django.conf import settings as s; print(s.STATIC_ROOT)"
+
+
 def test_static_root_is_defined():
-    r = run_settings("import django; django.setup(); from django.conf import settings as s; print(s.STATIC_ROOT)")
+    r = run_settings(STATIC_PROBE)
     assert r.returncode == 0, r.stderr
     assert r.stdout.strip().endswith("staticfiles")
 
