@@ -17,7 +17,8 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
     const dialog = ref.current;
     if (!dialog) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const close = () => onCloseRef.current();
+    // The close event comes later: skip it when the dialog was opened again meanwhile (React dev remounts).
+    const close = () => !dialog.open && onCloseRef.current();
     dialog.addEventListener("close", close);
     dialog.showModal();
     return () => {
