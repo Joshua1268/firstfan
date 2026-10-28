@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ApiError, asApiError, formMessage } from "@/lib/api-client";
+import { useFocusFirstError } from "@/lib/use-focus-first-error";
 import { Button } from "@/ui/Button";
 import { Field, controlCls } from "@/ui/Field";
 import { FormAlert } from "@/ui/FormAlert";
@@ -16,6 +17,8 @@ export function LoginForm({ next }: { next: string | null }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError>();
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, error);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -31,9 +34,9 @@ export function LoginForm({ next }: { next: string | null }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-6">
+    <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-6">
       <FormAlert message={formMessage(error)} />
-      <Field label="Email" error={error?.fields.email?.[0]}>
+      <Field label="Email" error={error?.fields.email?.join(" ")}>
         {(control) => (
           <input
             {...control}
@@ -47,7 +50,7 @@ export function LoginForm({ next }: { next: string | null }) {
           />
         )}
       </Field>
-      <Field label="Mot de passe" error={error?.fields.password?.[0]}>
+      <Field label="Mot de passe" error={error?.fields.password?.join(" ")}>
         {(control) => (
           <input
             {...control}

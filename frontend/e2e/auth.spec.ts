@@ -42,6 +42,12 @@ test("a tester signs up, fills the profile and waits for verification", async ({
   await page.getByRole("button", { name: "Créer mon compte" }).click();
 
   await expect(page).toHaveURL(/\/testeur\/profil$/);
+  await page.getByRole("button", { name: "Enregistrer mon profil" }).click();
+  await expect(page.getByLabel("Métier")).toBeFocused();
+  await expect(page.getByLabel("Métier")).toHaveAccessibleDescription("Choisis ton métier.");
+  await expect(page.getByLabel("Numéro mobile money")).toHaveAttribute("aria-invalid", "true");
+  await expect(page).toHaveURL(/\/testeur\/profil$/);
+
   await page.getByLabel("Métier").selectOption("Comptable");
   await page.getByLabel("Commune").fill("Cocody");
   await page.getByLabel("Profil LinkedIn").fill("https://www.linkedin.com/in/koffi");
@@ -80,12 +86,14 @@ test("a taken email shows its error under the email field", async ({ page, reque
   const field = page.getByLabel("Email");
   await expect(field).toHaveAttribute("aria-invalid", "true");
   await expect(field).toHaveAccessibleDescription("Un compte existe déjà avec cet email.");
+  await expect(field).toBeFocused();
   await expect(page).toHaveURL(/\/inscription\?role=dev$/);
 });
 
 test("sign-up without a role offers both accounts", async ({ page }) => {
   await page.goto("/inscription");
   await expect(page.locator("form")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Déjà un compte ? Connecte-toi" })).toBeVisible();
   await page.getByRole("link", { name: "Je suis développeur" }).click();
   await expect(page).toHaveURL(/role=dev$/);
   await expect(page.getByRole("button", { name: "Créer mon compte" })).toBeVisible();

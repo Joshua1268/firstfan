@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ApiError, asApiError, formMessage } from "@/lib/api-client";
+import { useFocusFirstError } from "@/lib/use-focus-first-error";
 import { useApi } from "@/lib/use-api";
 import { Button } from "@/ui/Button";
 import { Field, controlCls } from "@/ui/Field";
@@ -10,6 +11,7 @@ import { FileField } from "@/ui/FileField";
 import { FormAlert } from "@/ui/FormAlert";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { getProfessions, getTesterProfile, updateTesterProfile } from "./api";
+import { missingProfileFields } from "./profile-check";
 import type { TesterProfile } from "./types";
 
 async function loadForm() {
@@ -36,7 +38,9 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError>();
-  const fieldError = (name: string) => error?.fields[name]?.[0];
+  const fieldError = (name: string) => error?.fields[name]?.join(" ");
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, error);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,6 +50,11 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
     const proof = form.get("proof");
     if (proof instanceof File && proof.size === 0) form.delete("proof");
 
+    const missing = missingProfileFields(form, profile.has_proof);
+    if (Object.keys(missing).length > 0) {
+      setError(new ApiError(400, missing));
+      return;
+    }
     setBusy(true);
     setError(undefined);
     try {
@@ -58,7 +67,7 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
   }
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-6">
+    <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-6">
       <FormAlert message={formMessage(error)} />
       <Field label="Métier" error={fieldError("profession")}>
         {(control) => (

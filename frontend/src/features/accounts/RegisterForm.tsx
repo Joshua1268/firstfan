@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ApiError, asApiError, formMessage } from "@/lib/api-client";
+import { useFocusFirstError } from "@/lib/use-focus-first-error";
 import { Button } from "@/ui/Button";
 import { Field, controlCls } from "@/ui/Field";
 import { FormAlert } from "@/ui/FormAlert";
@@ -20,7 +21,9 @@ export function RegisterForm({ role }: { role: Role }) {
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError>();
-  const fieldError = (name: string) => error?.fields[name]?.[0];
+  const fieldError = (name: string) => error?.fields[name]?.join(" ");
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, error);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +39,7 @@ export function RegisterForm({ role }: { role: Role }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-6">
+    <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-6">
       <FormAlert message={formMessage(error)} />
       <Field label="Prénom" error={fieldError("first_name")}>
         {(control) => (
