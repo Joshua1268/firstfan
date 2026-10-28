@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -301,8 +303,8 @@ class LiveRowSerializer(serializers.ModelSerializer):
             "rating_avg": float(rating) if rating is not None else None,
         }
 
-    def get_last_event_at(self, invitation: Invitation) -> None:
-        return None
+    def get_last_event_at(self, invitation: Invitation) -> datetime | None:
+        return self.context.get("last_events", {}).get(invitation.pk)
 
     def get_proofs(self, invitation: Invitation) -> list[dict]:
         session = getattr(invitation, "session", None)
