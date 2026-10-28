@@ -22,18 +22,22 @@ export function useApi<T>(
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | undefined;
+    let lastRequest = 0;
 
     async function load() {
+      // A slow response must not overwrite a newer one.
+      const request = ++lastRequest;
+      const isCurrent = () => !cancelled && request === lastRequest;
       try {
         const result = await fetcherRef.current();
-        if (!cancelled) {
+        if (isCurrent()) {
           setData(result);
           setError(undefined);
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e : new ApiError(0, { detail: "Connexion impossible." }));
+        if (isCurrent()) setError(e instanceof ApiError ? e : new ApiError(0, { detail: "Connexion impossible." }));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (isCurrent()) setLoading(false);
       }
     }
 
