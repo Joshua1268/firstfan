@@ -83,3 +83,30 @@ test("a dev follows a test live, checks the proofs, then validates and rates it"
   await logIn(page, email);
   await expect(page.getByRole("link", { name: /Compta Express/ })).toContainText("Validé");
 });
+
+test("a dev rejects a test: no reward, and the tester sees it rejected", async ({ page, request }, testInfo) => {
+  const email = uniqueEmail("testeuse-rejet", testInfo);
+  const testerName = email.split("@")[0];
+  const { campaignId } = await seedOpenCampaign(request, email);
+  await playSeededTest(request, email);
+
+  await logIn(page, `dev-${email}`);
+  await expect(page).toHaveURL(/\/dev$/);
+  await page.goto(`/dev/campagnes/${campaignId}`);
+  const card = page.getByRole("article", { name: new RegExp(testerName, "i") });
+  await card.getByRole("button", { name: "Valider et noter" }).click();
+  const dialog = page.getByRole("dialog", { name: `Valider le test de ${testerName}` });
+  await dialog.getByText("Rejeter", { exact: true }).click();
+  await expect(dialog).toContainText("n'est pas rémunéré");
+  await dialog.getByRole("radiogroup", { name: "Ta note pour le testeur" }).locator("label", { hasText: "2 sur 5" }).click();
+  await dialog.getByRole("button", { name: "Rejeter le test" }).click();
+
+  await expect(dialog).toBeHidden();
+  await expect(card).toContainText("Rejeté, sans rémunération");
+  await expect(card).toContainText("Ta note : 2 sur 5");
+  await expect(card.getByRole("button", { name: "Valider et noter" })).toHaveCount(0);
+
+  await page.context().clearCookies();
+  await logIn(page, email);
+  await expect(page.getByRole("link", { name: /Compta Express/ })).toContainText("Rejeté");
+});

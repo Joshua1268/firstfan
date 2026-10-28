@@ -18,7 +18,7 @@ const OUTCOME: Partial<Record<LiveRow["status"], string>> = {
   declined: "Le testeur a refusé l'invitation.",
   submitted: "Test terminé : à toi de le valider.",
   validated: "Validé, rémunération créditée.",
-  rejected: "Refusé, sans rémunération.",
+  rejected: "Rejeté, sans rémunération.",
 };
 
 export function TesterCard({

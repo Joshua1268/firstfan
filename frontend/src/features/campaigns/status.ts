@@ -24,7 +24,7 @@ export const TESTER_STATUS: Record<InvitationStatus, { label: string; tone: "wai
   declined: { label: "Refusée", tone: "danger" },
   submitted: { label: "Test envoyé", tone: "waiting" },
   validated: { label: "Validé", tone: "success" },
-  rejected: { label: "Refusé", tone: "danger" },
+  rejected: { label: "Rejeté", tone: "danger" },
 };
 
 export const WOULD_PAY_LABEL: Record<WouldPay, string> = { yes: "Oui", maybe: "Peut-être", no: "Non" };

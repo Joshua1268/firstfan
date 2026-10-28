@@ -13,7 +13,7 @@ import type { Decision } from "../types";
 
 const DECISIONS: { value: Decision; label: string }[] = [
   { value: "validated", label: "Valider" },
-  { value: "rejected", label: "Refuser" },
+  { value: "rejected", label: "Rejeter" },
 ];
 
 export function ValidateDialog({
@@ -110,7 +110,7 @@ export function ValidateDialog({
           )}
         </Field>
         <Button type="submit" busy={busy} className="self-stretch md:self-start">
-          {decision === "validated" ? "Valider le test" : "Refuser le test"}
+          {decision === "validated" ? "Valider le test" : "Rejeter le test"}
         </Button>
       </form>
     </Dialog>
