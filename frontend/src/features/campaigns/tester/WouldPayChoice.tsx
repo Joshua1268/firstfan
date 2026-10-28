@@ -16,17 +16,17 @@ export function WouldPayChoice({
   onChange: (value: WouldPay) => void;
   error?: string;
 }) {
-  const name = useId();
-  const errorId = `${name}-error`;
+  const id = useId();
+  const errorId = `${id}-error`;
 
   return (
     <div className="flex flex-col gap-2">
-      <span id={`${name}-label`} className="mb-2 text-[14px] font-medium text-ink">
+      <span id={`${id}-label`} className="mb-2 text-[14px] font-medium text-ink">
         Est-ce que tu paierais pour cette app ?
       </span>
       <div
         role="radiogroup"
-        aria-labelledby={`${name}-label`}
+        aria-labelledby={`${id}-label`}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className="grid grid-cols-3 gap-2"
@@ -38,7 +38,7 @@ export function WouldPayChoice({
           >
             <input
               type="radio"
-              name={name}
+              name="would_pay"
               value={choice.value}
               checked={value === choice.value}
               onChange={() => onChange(choice.value)}

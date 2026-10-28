@@ -19,6 +19,7 @@ export function GuidedStep({
   total,
   focusTitle,
   onSaved,
+  onConflict,
 }: {
   invitationId: number;
   step: TestStep;
@@ -26,10 +27,13 @@ export function GuidedStep({
   total: number;
   focusTitle: boolean;
   onSaved: () => void;
+  onConflict: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError>();
-  const fieldError = (name: string) => error?.fields[name]?.join(" ");
+  // Fields changed since the error was shown: their message no longer applies.
+  const [changed, setChanged] = useState<string[]>([]);
+  const fieldError = (name: string) => (changed.includes(name) ? undefined : error?.fields[name]?.join(" "));
   const formRef = useRef<HTMLFormElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   useFocusFirstError(formRef, error);
@@ -46,7 +50,7 @@ export function GuidedStep({
     if (capture instanceof File && capture.size === 0) form.delete("capture");
     const missing = checkCapture(form.get("capture"), step.proof !== null);
     if (missing) {
-      setError(new ApiError(400, { capture: [missing] }));
+      showError(new ApiError(400, { capture: [missing] }));
       return;
     }
 
@@ -57,28 +61,40 @@ export function GuidedStep({
       // Stays busy: the page reloads the invitation and shows the next step.
       onSaved();
     } catch (err) {
-      setError(asApiError(err));
+      const apiError = asApiError(err);
+      showError(apiError);
       setBusy(false);
+      // The invitation changed elsewhere, in another tab for instance: show where it stands now.
+      if (apiError.status === 409) onConflict();
     }
+  }
+
+  function showError(apiError: ApiError) {
+    setError(apiError);
+    setChanged([]);
+  }
+
+  function markChanged(e: FormEvent<HTMLFormElement>) {
+    const name = (e.target as HTMLInputElement).name;
+    setChanged((names) => [...names, name]);
   }
 
   return (
     <form
       ref={formRef}
       onSubmit={submit}
+      onChange={markChanged}
       noValidate
       className="flex flex-col gap-6 rounded-[var(--radius-card)] border border-line bg-surface/60 p-5 md:p-8"
     >
-      <div className="flex flex-col gap-3">
-        <h2
-          ref={titleRef}
-          tabIndex={-1}
-          className="font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-accent focus:outline-none"
-        >
+      <h2 ref={titleRef} tabIndex={-1} className="flex flex-col gap-3 focus:outline-none">
+        <span className="font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-accent">
           Étape {number} sur {total}
-        </h2>
-        <p className="text-[20px] font-semibold leading-[1.4] text-ink [overflow-wrap:anywhere]">{step.instruction}</p>
-      </div>
+        </span>{" "}
+        <span className="text-[20px] font-semibold leading-[1.4] text-ink [overflow-wrap:anywhere]">
+          {step.instruction}
+        </span>
+      </h2>
       <FormAlert message={formMessage(error)} />
       <Field label="Ta réponse" error={fieldError("answer")} hint="Facultatif. Ce que tu as vu, ce qui t'a surpris.">
         {(control) => (
@@ -95,7 +111,7 @@ export function GuidedStep({
       <FileField
         label="Capture d'écran"
         name="capture"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         capture="environment"
         error={fieldError("capture")}
         hint={

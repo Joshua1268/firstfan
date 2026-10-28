@@ -94,7 +94,7 @@ function GuidedTest({
       )}
       <StepTrail steps={invitation.steps} shown={shown} onOpen={open} />
       {shown === null ? (
-        <FinalFeedback invitationId={invitation.id} focusTitle={acted || moved} onSent={onSaved} />
+        <FinalFeedback invitationId={invitation.id} focusTitle={acted || moved} onSent={onSaved} onConflict={onSaved} />
       ) : (
         <GuidedStep
           key={invitation.steps[shown].order}
@@ -104,6 +104,7 @@ function GuidedTest({
           total={invitation.steps.length}
           focusTitle={acted || moved}
           onSaved={saved}
+          onConflict={saved}
         />
       )}
     </div>

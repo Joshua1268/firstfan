@@ -14,8 +14,9 @@ async function noHorizontalScroll(page: Page) {
 }
 
 async function doStep(page: Page, number: number) {
-  await expect(page.getByRole("heading", { name: `Étape ${number} sur 3` })).toBeVisible();
-  await expect(page.getByText(SCENARIO[number - 1])).toBeVisible();
+  await expect(page.getByRole("heading", { name: `Étape ${number} sur 3` })).toHaveAccessibleName(
+    `Étape ${number} sur 3 ${SCENARIO[number - 1]}`,
+  );
   await page.getByLabel("Ta réponse").fill(`C'est fait pour l'étape ${number}.`);
   await page
     .getByLabel("Capture d'écran")
@@ -31,6 +32,11 @@ test("a tester accepts, follows the steps, resumes after a reload and sends the 
   const email = uniqueEmail("testeuse", testInfo);
   await seedOpenCampaign(request, email);
   await logIn(page, email);
+  const posts: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() === "POST") posts.push(new URL(r.url()).pathname);
+  });
+  const postCount = (end: string) => posts.filter((path) => path.endsWith(end)).length;
 
   await expect(page).toHaveURL(/\/testeur$/);
   await page.getByRole("link", { name: /Compta Express/ }).click();
@@ -55,6 +61,11 @@ test("a tester accepts, follows the steps, resumes after a reload and sends the 
   await expect(page.getByLabel("Capture d'écran")).toBeFocused();
   await expect(page.getByLabel("Capture d'écran")).toHaveAccessibleDescription(/Format refusé/);
   await noHorizontalScroll(page);
+  // Picking another file clears the error.
+  await page
+    .getByLabel("Capture d'écran")
+    .setInputFiles({ name: "capture.png", mimeType: "image/png", buffer: TINY_PNG });
+  await expect(page.getByLabel("Capture d'écran")).not.toHaveAccessibleDescription(/Format refusé/);
 
   await doStep(page, 1);
   await doStep(page, 2);
@@ -78,13 +89,14 @@ test("a tester accepts, follows the steps, resumes after a reload and sends the 
   await page.getByRole("button", { name: "Valider l'étape" }).dblclick();
 
   await expect(page.getByRole("heading", { name: "Ton avis" })).toBeFocused();
+  expect(postCount("/steps/3/")).toBe(1);
   await page.getByRole("button", { name: "Envoyer mon test" }).click();
-  await expect(page.getByRole("radio", { name: "1 sur 5" }).first()).toBeFocused();
+  const usefulness = page.getByRole("radiogroup", { name: "Utilité pour ton métier" });
+  await expect(usefulness.getByRole("radio").first()).toBeFocused();
+  await expect(usefulness).toHaveAccessibleDescription(/Choisis une note/);
 
-  await page
-    .getByRole("radiogroup", { name: "Utilité pour ton métier" })
-    .locator("label", { hasText: "4 sur 5" })
-    .click();
+  await usefulness.locator("label", { hasText: "4 sur 5" }).click();
+  await expect(usefulness).not.toHaveAccessibleDescription(/Choisis une note/);
   await page.getByLabel("Ce qui t'a bloqué").fill("Le bouton d'export est caché.");
   await page.getByText("Peut-être", { exact: true }).click();
   await expect(page.getByRole("radio", { name: "Peut-être" })).toBeChecked();
@@ -96,6 +108,7 @@ test("a tester accepts, follows the steps, resumes after a reload and sends the 
 
   await expect(page.getByText("En attente de validation par le dev")).toBeVisible();
   await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
+  expect(postCount("/submit/")).toBe(1);
 
   await page.getByRole("link", { name: "Retour à mes invitations" }).click();
   await expect(page.getByRole("link", { name: /Compta Express/ })).toContainText("Test envoyé");

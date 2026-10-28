@@ -6,26 +6,28 @@ const SCORES = [1, 2, 3, 4, 5];
 // Five native radio buttons drawn as stars: arrow keys move between them, as in any radio group.
 export function Stars({
   label,
+  name,
   value,
   onChange,
   error,
 }: {
   label: string;
+  name: string;
   value: number | null;
   onChange: (value: number) => void;
   error?: string;
 }) {
-  const name = useId();
-  const errorId = `${name}-error`;
+  const id = useId();
+  const errorId = `${id}-error`;
 
   return (
     <div className="flex flex-col gap-2">
-      <span id={`${name}-label`} className="mb-2 text-[14px] font-medium text-ink">
+      <span id={`${id}-label`} className="mb-2 text-[14px] font-medium text-ink">
         {label}
       </span>
       <div
         role="radiogroup"
-        aria-labelledby={`${name}-label`}
+        aria-labelledby={`${id}-label`}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className="flex gap-1"
@@ -35,7 +37,7 @@ export function Stars({
           return (
             <label
               key={score}
-              className="flex size-11 cursor-pointer items-center justify-center rounded-full transition-transform duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent active:scale-95"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-full transition-transform duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <input
                 type="radio"
