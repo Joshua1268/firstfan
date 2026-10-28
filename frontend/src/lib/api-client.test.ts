@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiFetch } from "./api-client";
+import { ApiError, apiFetch, asApiError } from "./api-client";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -112,5 +112,18 @@ describe("apiFetch", () => {
     const error = await apiErrorOf(apiFetch("/api/a/"));
     expect(error.status).toBe(500);
     expect(error.detail).toBeNull();
+  });
+});
+
+describe("asApiError", () => {
+  it("keeps an ApiError as is", () => {
+    const error = new ApiError(400, { email: ["Adresse invalide."] });
+    expect(asApiError(error)).toBe(error);
+  });
+
+  it("turns a network failure into a readable ApiError", () => {
+    const error = asApiError(new TypeError("Failed to fetch"));
+    expect(error.status).toBe(0);
+    expect(error.detail).toBe("Connexion impossible. Vérifie ton réseau et réessaie.");
   });
 });

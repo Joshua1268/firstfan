@@ -16,6 +16,13 @@ export class ApiError extends Error {
   }
 }
 
+// fetch rejects with a TypeError when the network fails: give it the same shape as an API error.
+export function asApiError(e: unknown): ApiError {
+  return e instanceof ApiError
+    ? e
+    : new ApiError(0, { detail: "Connexion impossible. Vérifie ton réseau et réessaie." });
+}
+
 function readCsrfCookie(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
