@@ -12,7 +12,7 @@ import { Loading } from "@/ui/Loading";
 import { getTesterCandidates, selectTesters, startCheckout } from "../api";
 import { selectionCount, toggleTester } from "../selection";
 import type { CampaignDetail, TesterCandidate } from "../types";
-import { TesterCard } from "./TesterCard";
+import { CandidateCard } from "./CandidateCard";
 
 export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
   const { data, error, reload } = useApi(() => getTesterCandidates(campaign.id));
@@ -86,7 +86,7 @@ function PickerForm({
           const checked = selected.includes(tester.id);
           return (
             <li key={tester.id}>
-              <TesterCard
+              <CandidateCard
                 tester={tester}
                 checked={checked}
                 showReason={showReasons}

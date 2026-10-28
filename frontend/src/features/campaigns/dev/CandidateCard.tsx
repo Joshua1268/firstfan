@@ -6,7 +6,7 @@ const rating = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximu
 
 // The real checkbox is invisible and covers the whole card, so the tap target is the card.
 // Its bottom scroll margin keeps a focused card clear of the sticky pay bar.
-export function TesterCard({
+export function CandidateCard({
   tester,
   checked,
   showReason,
