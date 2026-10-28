@@ -1,16 +1,10 @@
 import { expect, test } from "./fixtures";
-import { scan } from "./helpers";
-
-const PASSWORD = "Sol1de-pass!";
+import { PASSWORD, scan, uniqueEmail } from "./helpers";
 
 // Auth does not depend on the layout: two viewports are enough, and they stay under the login throttle.
 test.beforeEach(({}, testInfo) => {
   test.skip(!["desktop", "mobile"].includes(testInfo.project.name));
 });
-
-function uniqueEmail(prefix: string, testInfo: { project: { name: string } }) {
-  return `${prefix}-${testInfo.project.name}-${Date.now()}@e2e.test`;
-}
 
 test("a dev signs up, lands on /dev, logs out and logs in again", async ({ page }, testInfo) => {
   const email = uniqueEmail("dev", testInfo);

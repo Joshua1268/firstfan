@@ -135,3 +135,41 @@ export function LockIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4.5 7h15" />
+      <path d="M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2" />
+      <path d="M6.5 7l.9 11.6a2 2 0 0 0 2 1.9h5.2a2 2 0 0 0 2-1.9L17.5 7" />
+    </Svg>
+  );
+}
+
+export function DownloadIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M12 4v11" />
+      <path d="M7 10.5l5 5 5-5" />
+      <path d="M5 19.5h14" />
+    </Svg>
+  );
+}
+
+export function PrinterIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M7 9V4.5h10V9" />
+      <rect x="4" y="9" width="16" height="7.5" rx="2" />
+      <path d="M7 14h10v5.5H7z" />
+    </Svg>
+  );
+}

@@ -3,34 +3,41 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Field } from "@/ui/Field";
 
-// A file input that shows the chosen file name, and a preview when it is an image.
+// A file input that shows the chosen file names, and a preview of each image.
 export function FileField({
   label,
   name,
   accept,
+  multiple = false,
   error,
   hint,
 }: {
   label: string;
   name: string;
   accept: string;
+  multiple?: boolean;
   error?: string;
   hint?: ReactNode;
 }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
-  // Free the previous preview when it changes or the field goes away.
+  // Free the previous previews when they change or the field goes away.
   useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
+    return () => previews.forEach((url) => URL.revokeObjectURL(url));
+  }, [previews]);
 
-  function choose(chosen: File | null) {
-    setFile(chosen);
-    setPreview(chosen && chosen.type.startsWith("image/") ? URL.createObjectURL(chosen) : null);
+  function choose(chosen: File[]) {
+    setFiles(chosen);
+    setPreviews(chosen.filter((f) => f.type.startsWith("image/")).map((f) => URL.createObjectURL(f)));
   }
+
+  const summary =
+    files.length === 0
+      ? "Aucun fichier choisi"
+      : files.length === 1
+        ? files[0].name
+        : `${files.length} fichiers choisis`;
 
   return (
     <Field label={label} error={error} hint={hint}>
@@ -44,27 +51,33 @@ export function FileField({
               aria-hidden="true"
               className="inline-flex min-h-10 shrink-0 items-center rounded-pill bg-ink/10 px-4 text-[14px] font-medium text-ink"
             >
-              Choisir un fichier
+              {multiple ? "Choisir des fichiers" : "Choisir un fichier"}
             </span>
             <span aria-hidden="true" className="min-w-0 truncate text-[15px] text-ink-muted">
-              {file ? file.name : "Aucun fichier choisi"}
+              {summary}
             </span>
             <input
               {...control}
               type="file"
               name={name}
               accept={accept}
-              onChange={(e) => choose(e.target.files?.[0] ?? null)}
+              multiple={multiple}
+              onChange={(e) => choose(Array.from(e.target.files ?? []))}
               className="absolute inset-0 cursor-pointer opacity-0"
             />
           </div>
-          {preview && (
-            // eslint-disable-next-line @next/next/no-img-element -- local blob preview, nothing to optimize
-            <img
-              src={preview}
-              alt="Aperçu du fichier choisi"
-              className="size-24 rounded-[var(--radius-label)] object-cover"
-            />
+          {previews.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {previews.map((url, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- local blob preview, nothing to optimize
+                <img
+                  key={url}
+                  src={url}
+                  alt={previews.length === 1 ? "Aperçu du fichier choisi" : `Aperçu ${i + 1}`}
+                  className="size-24 rounded-[var(--radius-label)] object-cover"
+                />
+              ))}
+            </div>
           )}
         </div>
       )}

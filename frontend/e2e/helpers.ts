@@ -1,3 +1,5 @@
+import { expect, type Page } from "@playwright/test";
+
 type Box = { x: number; y: number; width: number; height: number } | null;
 
 export type Finding = { rule: string; match: string; index: number };
@@ -15,7 +17,7 @@ export function overlaps(a: Box, b: Box): boolean {
 }
 
 // Scrolls so the raw stage progress equals p; the smoothed progress catches up afterwards.
-export async function scrollStageTo(page: import("@playwright/test").Page, p: number) {
+export async function scrollStageTo(page: Page, p: number) {
   await waitForLiveStage(page);
   await page.evaluate((target) => {
     const stage = document.querySelector<HTMLElement>("[data-stage]");
@@ -27,6 +29,27 @@ export async function scrollStageTo(page: import("@playwright/test").Page, p: nu
 }
 
 // The animated stage loads after hydration; never use this with reduced motion, where it never loads.
-export async function waitForLiveStage(page: import("@playwright/test").Page) {
+export async function waitForLiveStage(page: Page) {
   await page.locator("[data-stage-loaded]").waitFor({ state: "attached", timeout: 15_000 });
 }
+
+export const PASSWORD = "Sol1de-pass!";
+
+export function uniqueEmail(prefix: string, testInfo: { project: { name: string } }) {
+  return `${prefix}-${testInfo.project.name}-${Date.now()}@e2e.test`;
+}
+
+export async function signUpDev(page: Page, email: string) {
+  await page.goto("/inscription?role=dev");
+  await page.getByLabel("Prénom").fill("Awa");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Mot de passe").fill(PASSWORD);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page).toHaveURL(/\/dev$/);
+}
+
+// Smallest valid PNG (1 x 1 pixel): the API checks the first bytes of every capture.
+export const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);

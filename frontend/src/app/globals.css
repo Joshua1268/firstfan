@@ -456,3 +456,21 @@ body::before {
   color: transparent;
   -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);
 }
+
+/* Paper: white page. A zero page margin also removes the browser's own header and footer lines. */
+@media print {
+  @page {
+    margin: 0;
+  }
+  html,
+  body {
+    background: #fff;
+    color: #111;
+  }
+  body {
+    padding: 18mm;
+  }
+  body::before {
+    display: none;
+  }
+}
