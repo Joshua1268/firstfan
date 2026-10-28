@@ -144,6 +144,7 @@ test("a dev picks two testers, pays and the invitations are sent", async ({ page
   await expect(page).toHaveURL(/\/paiement\/simule\/[\w-]+$/);
   await expect(page.getByText("Paiement simulé : aucun argent ne circule")).toBeVisible();
   await expect(page.getByTestId("payment-amount")).toHaveText(/^10\s000\sFCFA$/);
+  await expect(page.getByText("Compta Express · Comptable")).toBeVisible();
   await page.getByRole("button", { name: "Confirmer le paiement" }).click();
 
   await expect(page).toHaveURL(/\/dev\/campagnes\/\d+$/);

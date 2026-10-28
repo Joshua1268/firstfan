@@ -13,6 +13,7 @@ import { LoadFailed } from "@/ui/LoadFailed";
 import { Loading } from "@/ui/Loading";
 import { NotFoundNotice } from "@/ui/NotFoundNotice";
 import { ShieldIcon } from "@/ui/icons";
+import { getCampaign } from "@/features/campaigns/api";
 import { getPayment, simulatePayment } from "./api";
 
 export function SimulatedCheckout({ reference }: { reference: string }) {
@@ -54,6 +55,7 @@ export function SimulatedCheckout({ reference }: { reference: string }) {
       </p>
       <header className="flex flex-col gap-3">
         <SpaceTitle>Paiement</SpaceTitle>
+        <CampaignName campaignId={payment.campaign_id} />
         <p className="text-[15px] text-ink-muted">Le prix des testeurs choisis, payé une seule fois.</p>
       </header>
       <dl className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-line bg-surface/60 p-6">
@@ -79,15 +81,36 @@ export function SimulatedCheckout({ reference }: { reference: string }) {
           <p role="status" className="text-[16px] text-ink">
             {payment.status === "paid" ? "Ce paiement est déjà confirmé." : "Ce paiement a été annulé."}
           </p>
-          <Link
-            href={campaignHref}
-            className="inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline"
-          >
-            Retour à la campagne
-          </Link>
+          <BackToCampaign href={campaignHref} />
         </div>
       )}
-      <FormAlert message={formMessage(error)} />
+      {error && (
+        <div className="flex flex-col items-start gap-3">
+          <FormAlert message={formMessage(error)} />
+          <BackToCampaign href={campaignHref} />
+        </div>
+      )}
     </div>
+  );
+}
+
+function CampaignName({ campaignId }: { campaignId: number }) {
+  const { data: campaign } = useApi(() => getCampaign(campaignId));
+  if (!campaign) return null;
+  return (
+    <p className="text-[16px] font-medium text-ink [overflow-wrap:anywhere]">
+      {campaign.project.name} · {campaign.target_profession}
+    </p>
+  );
+}
+
+function BackToCampaign({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline"
+    >
+      Retour à la campagne
+    </Link>
   );
 }
