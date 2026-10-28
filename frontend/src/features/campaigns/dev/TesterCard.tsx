@@ -4,7 +4,7 @@ import type { TesterCandidate } from "../types";
 
 const rating = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-// The whole card is the checkbox label, so the tap target is the card.
+// The real checkbox is invisible and covers the whole card, so the tap target is the card.
 export function TesterCard({
   tester,
   checked,
@@ -22,9 +22,9 @@ export function TesterCard({
 
   return (
     <label
-      className={`flex h-full cursor-pointer gap-4 rounded-[var(--radius-card)] border p-5 transition-colors duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent ${
+      className={`relative flex h-full gap-4 rounded-[var(--radius-card)] border p-5 transition-colors duration-150 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent ${
         checked ? "border-accent bg-accent/[0.06]" : "border-line bg-surface/60 hover:border-ink/40"
-      } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+      } ${disabled ? "opacity-50" : ""}`}
     >
       <input
         type="checkbox"
@@ -33,7 +33,7 @@ export function TesterCard({
         onChange={onToggle}
         aria-labelledby={`${id}-name`}
         aria-describedby={`${id}-details`}
-        className="sr-only"
+        className="absolute inset-0 size-full cursor-pointer appearance-none rounded-[var(--radius-card)] focus:outline-none disabled:cursor-not-allowed"
       />
       <span
         aria-hidden="true"
