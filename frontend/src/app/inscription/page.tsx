@@ -47,6 +47,12 @@ export default async function Inscription({ searchParams }: { searchParams: Prom
           <PrimaryLink href="/inscription?role=dev">Je suis développeur</PrimaryLink>
           <SecondaryLink href="/inscription?role=tester">Je teste et je suis rémunéré</SecondaryLink>
         </Actions>
+        <Link
+          href="/connexion"
+          className="mt-6 inline-flex min-h-11 items-center text-[15px] text-ink-muted underline underline-offset-4 hover:text-ink"
+        >
+          Déjà un compte ? Connecte-toi
+        </Link>
       </PageShell>
     );
   }

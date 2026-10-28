@@ -27,17 +27,17 @@ export function ConsentCheckbox({
           J&apos;accepte que mes informations professionnelles soient vérifiées et conservées pour la durée du service.
         </label>
       </div>
+      {error && (
+        <p id={`${id}-error`} className="pl-9 text-[14px] leading-snug text-danger">
+          {error}
+        </p>
+      )}
       <Link
         href="/confidentialite"
         className="inline-flex min-h-11 items-center self-start pl-9 text-[14px] text-ink-muted underline underline-offset-4 hover:text-ink"
       >
         Lire la politique de confidentialité
       </Link>
-      {error && (
-        <p id={`${id}-error`} className="pl-9 text-[14px] leading-snug text-danger">
-          {error}
-        </p>
-      )}
     </div>
   );
 }
