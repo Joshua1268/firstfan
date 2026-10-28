@@ -1,11 +1,14 @@
+from decimal import Decimal
+
 from django.core.files import File
 from django.db import transaction
-from django.db.models import Count, F, Q, QuerySet
+from django.db.models import Avg, Count, F, Q, QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 
 from accounts.models import TesterProfile, User
 from core.exceptions import Conflict
+from payments.services import credit_tester
 from projects.models import Project
 
 from .models import Campaign, Feedback, Invitation, Rating, ScenarioStep, StepProof, TestSession
@@ -133,3 +136,28 @@ def submit_test(invitation: Invitation, *, feedback: dict, dev_score: int, dev_c
         session.save(update_fields=["submitted_at"])
         invitation.status = Invitation.Status.SUBMITTED
         invitation.save(update_fields=["status"])
+
+
+def update_rating_avg(tester: User) -> None:
+    avg = Rating.objects.filter(ratee=tester).aggregate(avg=Avg("score"))["avg"]
+    rating = Decimal(avg).quantize(Decimal("0.01")) if avg is not None else None
+    TesterProfile.objects.filter(user=tester).update(rating_avg=rating)
+
+
+def validate_test(invitation: Invitation, *, decision: str, score: int, comment: str) -> None:
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status != Invitation.Status.SUBMITTED:
+            raise Conflict("Ce test n'attend pas de validation.")
+        invitation.status = decision
+        invitation.save(update_fields=["status"])
+        Rating.objects.create(
+            session=invitation.session,
+            rater=invitation.campaign.project.owner,
+            ratee=invitation.tester,
+            score=score,
+            comment=comment,
+        )
+        if decision == Invitation.Status.VALIDATED:
+            credit_tester(invitation)
+        update_rating_avg(invitation.tester)

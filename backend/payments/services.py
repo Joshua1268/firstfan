@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
+from accounts.models import TesterProfile, User
 from campaigns.models import Campaign, Invitation
 from core.exceptions import Conflict
 
-from .models import Earning, Payment
+from .models import Earning, Payment, Withdrawal
 from .providers import get_provider
 
 
@@ -68,3 +71,32 @@ def credit_tester(invitation: Invitation) -> Earning:
         defaults={"tester_id": invitation.tester_id, "amount_xof": settings.TESTER_REWARD_XOF},
     )
     return earning
+
+
+def balance_of(tester: User) -> int:
+    earned = Earning.objects.filter(tester=tester).aggregate(total=Sum("amount_xof"))["total"] or 0
+    withdrawn = (
+        Withdrawal.objects.filter(tester=tester)
+        .exclude(status=Withdrawal.Status.FAILED)
+        .aggregate(total=Sum("amount_xof"))["total"]
+        or 0
+    )
+    return earned - withdrawn
+
+
+def withdraw(tester: User, amount_xof: int) -> Withdrawal:
+    with transaction.atomic():
+        # One lock per tester serializes withdrawals, so the balance cannot go negative.
+        profile = TesterProfile.objects.select_for_update().get(user=tester)
+        if amount_xof < 1:
+            raise ValidationError({"amount_xof": ["Le montant doit être d'au moins 1 FCFA."]})
+        if amount_xof > balance_of(tester):
+            raise ValidationError({"amount_xof": ["Montant supérieur à ton solde."]})
+        if not profile.momo_number:
+            raise ValidationError({"detail": "Ajoute ton numéro mobile money dans ton profil."})
+        provider = get_provider()
+        withdrawal = Withdrawal.objects.create(
+            tester=tester, amount_xof=amount_xof, momo_number=profile.momo_number, provider=provider.name
+        )
+        provider.send_withdrawal(withdrawal)
+    return withdrawal

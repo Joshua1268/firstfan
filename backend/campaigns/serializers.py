@@ -252,3 +252,71 @@ class SubmitSerializer(serializers.Serializer):
     comment = serializers.CharField(allow_blank=True, default="")
     dev_score = serializers.IntegerField(min_value=1, max_value=5)
     dev_comment = serializers.CharField(allow_blank=True, default="")
+
+
+class ValidateSerializer(serializers.Serializer):
+    decision = serializers.ChoiceField(choices=[Invitation.Status.VALIDATED, Invitation.Status.REJECTED])
+    score = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(allow_blank=True, default="")
+
+
+class LiveProofSerializer(ProofSerializer):
+    step_order = serializers.IntegerField(source="step.order")
+
+    class Meta(ProofSerializer.Meta):
+        fields = ["id", "step_order", "answer", "capture_url", "updated_at"]
+
+
+class LiveRowSerializer(serializers.ModelSerializer):
+    invitation_id = serializers.IntegerField(source="pk")
+    tester = serializers.SerializerMethodField()
+    started_at = serializers.DateTimeField(source="session.started_at", default=None)
+    submitted_at = serializers.DateTimeField(source="session.submitted_at", default=None)
+    last_event_at = serializers.SerializerMethodField()
+    proofs = serializers.SerializerMethodField()
+    feedback = serializers.SerializerMethodField()
+    dev_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invitation
+        fields = [
+            "invitation_id",
+            "tester",
+            "status",
+            "nda_accepted_at",
+            "started_at",
+            "submitted_at",
+            "last_event_at",
+            "proofs",
+            "feedback",
+            "dev_rating",
+        ]
+
+    def get_tester(self, invitation: Invitation) -> dict:
+        profile = invitation.tester.tester_profile
+        rating = profile.rating_avg
+        return {
+            "first_name": invitation.tester.first_name,
+            "profession": profile.profession,
+            "rating_avg": float(rating) if rating is not None else None,
+        }
+
+    def get_last_event_at(self, invitation: Invitation) -> None:
+        return None
+
+    def get_proofs(self, invitation: Invitation) -> list[dict]:
+        session = getattr(invitation, "session", None)
+        proofs = sorted(session.proofs.all(), key=lambda p: p.step.order) if session else []
+        return LiveProofSerializer(proofs, many=True).data
+
+    def get_feedback(self, invitation: Invitation) -> dict | None:
+        feedback = getattr(getattr(invitation, "session", None), "feedback", None)
+        return FeedbackSerializer(feedback).data if feedback else None
+
+    def get_dev_rating(self, invitation: Invitation) -> dict | None:
+        session = getattr(invitation, "session", None)
+        if session is None:
+            return None
+        owner_id = invitation.campaign.project.owner_id
+        rating = next((r for r in session.ratings.all() if r.rater_id == owner_id), None)
+        return {"score": rating.score, "comment": rating.comment} if rating else None

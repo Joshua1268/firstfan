@@ -8,6 +8,8 @@ urlpatterns = [
     path("campaigns/<int:pk>/testers/", views_dev.CampaignTestersView.as_view()),
     path("campaigns/<int:pk>/selection/", views_dev.CampaignSelectionView.as_view()),
     path("campaigns/<int:pk>/checkout/", views_dev.CampaignCheckoutView.as_view()),
+    path("campaigns/<int:pk>/live/", views_dev.CampaignLiveView.as_view()),
+    path("invitations/<int:pk>/validate/", views_dev.ValidateTestView.as_view()),
     path("tester/invitations/", views_tester.TesterInvitationListView.as_view()),
     path("tester/invitations/<int:pk>/", views_tester.TesterInvitationDetailView.as_view()),
     path("tester/invitations/<int:pk>/accept/", views_tester.AcceptInvitationView.as_view()),

@@ -9,4 +9,17 @@ class PaymentAdmin(admin.ModelAdmin):
     list_filter = ("status",)
 
 
-admin.site.register([Earning, Withdrawal])
+@admin.register(Withdrawal)
+class WithdrawalAdmin(admin.ModelAdmin):
+    list_display = ("reference", "tester", "amount_xof", "status", "created_at")
+    list_filter = ("status",)
+    actions = ["mark_failed"]
+
+    @admin.action(description="Marquer comme échoué")
+    def mark_failed(self, request, queryset):
+        # A failed withdrawal no longer counts in the balance, so the money comes back.
+        count = queryset.filter(status=Withdrawal.Status.PENDING).update(status=Withdrawal.Status.FAILED)
+        self.message_user(request, f"{count} retrait(s) marqué(s) comme échoué(s).")
+
+
+admin.site.register(Earning)
