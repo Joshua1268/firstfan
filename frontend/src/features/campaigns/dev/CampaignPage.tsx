@@ -11,6 +11,8 @@ import { StatusPill } from "@/ui/StatusPill";
 import { getCampaign } from "../api";
 import { CAMPAIGN_STATUS } from "../status";
 import type { CampaignDetail } from "../types";
+import { InvitationList } from "./InvitationList";
+import { TesterPicker } from "./TesterPicker";
 
 export function CampaignPage({ campaignId }: { campaignId: number }) {
   const { data: campaign, error, reload } = useApi(() => getCampaign(campaignId));
@@ -51,12 +53,19 @@ export function CampaignPage({ campaignId }: { campaignId: number }) {
         <PriceSummary campaign={campaign} />
       </div>
 
-      {/* Blocks that depend on the status (tester choice, payment, live follow-up) come here. */}
+      {campaign.status === "draft" ? (
+        <TesterPicker campaign={campaign} />
+      ) : (
+        <InvitationList invitations={campaign.invitations} />
+      )}
     </div>
   );
 }
 
 function PriceSummary({ campaign }: { campaign: CampaignDetail }) {
+  // Once paid, the dev may have invited fewer testers than wanted: show what was paid.
+  const draft = campaign.status === "draft";
+  const testers = draft ? campaign.testers_wanted : campaign.invitations.length;
   return (
     <section className="flex flex-col gap-4 self-start rounded-[var(--radius-card)] border border-line bg-surface/60 p-6 md:p-8">
       <h2 className="font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted">Budget</h2>
@@ -66,13 +75,15 @@ function PriceSummary({ campaign }: { campaign: CampaignDetail }) {
           <dd className="text-ink">{formatXof(campaign.price_per_tester_xof)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-ink-muted">Testeurs</dt>
-          <dd className="text-ink">{campaign.testers_wanted}</dd>
+          <dt className="text-ink-muted">{draft ? "Testeurs" : "Testeurs invités"}</dt>
+          <dd data-testid="campaign-testers" className="text-ink">
+            {testers}
+          </dd>
         </div>
         <div className="flex items-baseline justify-between gap-4 border-t border-line pt-4">
-          <dt className="font-medium text-ink">Total</dt>
+          <dt className="font-medium text-ink">{draft ? "Total" : "Total payé"}</dt>
           <dd data-testid="campaign-total" className="font-display text-[28px] font-extrabold text-accent">
-            {formatXof(campaign.total_xof)}
+            {formatXof(testers * campaign.price_per_tester_xof)}
           </dd>
         </div>
       </dl>

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
 
 type Box = { x: number; y: number; width: number; height: number } | null;
@@ -53,3 +54,22 @@ export const TINY_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
+
+// Uses the e2e_tester command of the Docker backend (DEBUG only): the tester is verified and available.
+export function createVerifiedTester(email: string, profession: string) {
+  execFileSync("docker", [
+    "compose",
+    "exec",
+    "-T",
+    "backend",
+    "uv",
+    "run",
+    "python",
+    "manage.py",
+    "e2e_tester",
+    "--email",
+    email,
+    "--profession",
+    profession,
+  ]);
+}

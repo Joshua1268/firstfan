@@ -37,3 +37,21 @@ export type CampaignDetail = {
   payment: { reference: string; status: string } | null;
   invitations: InvitationRow[];
 };
+
+export type TesterCandidate = {
+  id: number;
+  first_name: string;
+  last_initial: string;
+  profession: string;
+  city: string;
+  rating_avg: number | null;
+  completed_tests: number;
+  recommended: boolean;
+  selected: boolean;
+  reason: string;
+};
+
+// source: "groq", "mistral" or "rules", whichever ranked the candidates.
+export type TesterCandidates = { source: string; candidates: TesterCandidate[] };
+
+export type Checkout = { reference: string; redirect_url: string };
