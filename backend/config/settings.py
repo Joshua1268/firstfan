@@ -1,4 +1,5 @@
 import os
+import ssl
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -121,8 +122,18 @@ DATABASES = {
         "PASSWORD": os.environ.get("DATABASE_PASSWORD", "cadev"),
         "HOST": os.environ.get("DATABASE_HOST", "localhost"),
         "PORT": os.environ.get("DATABASE_PORT", "55432"),
+        # Reusing connections saves the round trips of each new one to a remote database.
+        "CONN_MAX_AGE": int(os.environ.get("CONN_MAX_AGE", "0")),
+        "CONN_HEALTH_CHECKS": True,
+        "OPTIONS": {},
     }
 }
+
+if env_bool("DATABASE_SSL", False):
+    # Verified TLS; managed providers often sign with their own CA.
+    DATABASES["default"]["OPTIONS"]["ssl_context"] = ssl.create_default_context(
+        cafile=os.environ.get("DATABASE_SSL_ROOT_CERT") or None
+    )
 
 
 AUTH_PASSWORD_VALIDATORS = [
