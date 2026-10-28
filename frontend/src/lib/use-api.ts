@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError } from "./api-client";
+import { ApiError, asApiError } from "./api-client";
 
 export function useApi<T>(
   fetcher: () => Promise<T>,
@@ -35,7 +35,7 @@ export function useApi<T>(
           setError(undefined);
         }
       } catch (e) {
-        if (isCurrent()) setError(e instanceof ApiError ? e : new ApiError(0, { detail: "Connexion impossible." }));
+        if (isCurrent()) setError(asApiError(e));
       } finally {
         if (isCurrent()) setLoading(false);
       }

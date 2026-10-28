@@ -47,10 +47,6 @@ test("every CTA, nav and footer link of the landing leads to a real page (no 404
 });
 
 const PAGES = [
-  { path: "/inscription?role=dev", h1: "Les inscriptions ouvrent bientôt.", text: "Inscription · Développeur" },
-  { path: "/inscription?role=tester", h1: "Les inscriptions ouvrent bientôt.", text: "Inscription · Testeur" },
-  { path: "/inscription", h1: "Les inscriptions ouvrent bientôt.", text: "Aucun formulaire" },
-  { path: "/connexion", h1: "La connexion arrive avec les inscriptions.", text: "Aucun compte n'existe encore" },
   { path: "/confidentialite", h1: "Tes données, en clair.", text: "Version provisoire" },
   { path: "/contact", h1: "Écris-nous.", text: "Par e-mail" },
 ] as const;
@@ -62,7 +58,7 @@ for (const p of PAGES) {
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(p.h1);
     await expect(page.locator("main")).toContainText(p.text);
-    // Placeholder: no field that would suggest sign-up or login already works.
+    // Information pages only: forms live on /inscription and /connexion.
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Retour à l'accueil" }).first()).toBeVisible();
     expect(await scan(await page.locator("body").innerText())).toEqual([]);

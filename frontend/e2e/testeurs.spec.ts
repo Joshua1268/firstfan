@@ -36,7 +36,7 @@ test("one action, framed as an application, leads to the tester sign-up", async 
   expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height);
   await ctas.first().click();
   await expect(page).toHaveURL(/\/inscription\?role=tester$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Les inscriptions ouvrent bientôt.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Teste des apps de ton métier.");
 });
 
 test("testers page shows no amount and no forbidden content", async ({ page }) => {
