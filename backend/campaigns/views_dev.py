@@ -5,11 +5,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import IsDev
+from payments.providers import get_provider
+from payments.services import start_checkout
 from projects.models import Project
 
 from .models import Campaign
-from .serializers import CampaignCreateSerializer, CampaignDetailSerializer, CampaignSummarySerializer
-from .services import create_campaign
+from .serializers import (
+    CampaignCreateSerializer,
+    CampaignDetailSerializer,
+    CampaignSummarySerializer,
+    SelectionSerializer,
+    TesterCandidateSerializer,
+)
+from .services import create_campaign, select_testers, tester_candidates
 
 
 def get_campaign_detail(pk: int, owner) -> Campaign:
@@ -41,3 +49,35 @@ class CampaignDetailView(APIView):
 
     def get(self, request, pk):
         return Response(CampaignDetailSerializer(get_campaign_detail(pk, request.user)).data)
+
+
+class CampaignTestersView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def get(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
+        candidates, recommended_ids, selected_ids = tester_candidates(campaign)
+        context = {"recommended_ids": recommended_ids, "selected_ids": selected_ids}
+        return Response(TesterCandidateSerializer(candidates, many=True, context=context).data)
+
+
+class CampaignSelectionView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def post(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
+        serializer = SelectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        select_testers(campaign, serializer.validated_data["tester_ids"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CampaignCheckoutView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def post(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
+        payment = start_checkout(campaign)
+        return Response(
+            {"reference": payment.reference, "redirect_url": get_provider().start_checkout(payment)}
+        )

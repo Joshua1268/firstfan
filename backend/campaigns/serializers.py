@@ -103,6 +103,47 @@ class CampaignDetailSerializer(serializers.ModelSerializer):
     def get_price_per_tester_xof(self, campaign: Campaign) -> int:
         return settings.PRICE_PER_TESTER_XOF
 
-    def get_payment(self, campaign: Campaign) -> None:
-        # No payment model yet: a campaign is always unpaid.
-        return None
+    def get_payment(self, campaign: Campaign) -> dict | None:
+        payment = campaign.payments.order_by("-created_at", "-pk").first()
+        return {"reference": payment.reference, "status": payment.status} if payment else None
+
+
+class TesterCandidateSerializer(serializers.ModelSerializer):
+    last_initial = serializers.SerializerMethodField()
+    profession = serializers.CharField(source="tester_profile.profession")
+    city = serializers.CharField(source="tester_profile.city")
+    rating_avg = serializers.SerializerMethodField()
+    completed_tests = serializers.IntegerField()
+    recommended = serializers.SerializerMethodField()
+    selected = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_initial",
+            "profession",
+            "city",
+            "rating_avg",
+            "completed_tests",
+            "recommended",
+            "selected",
+        ]
+
+    def get_last_initial(self, user: User) -> str:
+        return user.last_name[:1]
+
+    def get_rating_avg(self, user: User) -> float | None:
+        rating = user.tester_profile.rating_avg
+        return float(rating) if rating is not None else None
+
+    def get_recommended(self, user: User) -> bool:
+        return user.pk in self.context["recommended_ids"]
+
+    def get_selected(self, user: User) -> bool:
+        return user.pk in self.context["selected_ids"]
+
+
+class SelectionSerializer(serializers.Serializer):
+    tester_ids = serializers.ListField(child=serializers.IntegerField())

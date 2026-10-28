@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "public",
     "projects",
     "campaigns",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -163,6 +164,8 @@ SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
 # Whole XOF amounts.
 PRICE_PER_TESTER_XOF = int(os.environ.get("PRICE_PER_TESTER_XOF", "5000"))
 TESTER_REWARD_XOF = int(os.environ.get("TESTER_REWARD_XOF", "3500"))
+# Only "simule" exists for now: the hook for a real aggregator.
+PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "simule")
 
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
