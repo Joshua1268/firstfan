@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useApi } from "@/lib/use-api";
 import { SpaceTitle } from "@/ui/AppShell";
 import { ArrowIcon } from "@/ui/icons";
@@ -38,7 +39,8 @@ async function loadHome() {
   return { me, profile };
 }
 
-export function TesterHome() {
+// children: the invitation list, given by the page.
+export function TesterHome({ children }: { children: ReactNode }) {
   const { data, error, reload } = useApi(loadHome);
   if (error) return <LoadFailed message={error.detail ?? "Impossible de charger ton espace."} onRetry={reload} />;
   if (!data) {
@@ -66,14 +68,7 @@ export function TesterHome() {
         </Link>
       </section>
 
-      <section className="rounded-[var(--radius-card)] border border-dashed border-line p-6 md:p-8">
-        <h2 className="text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink">
-          Aucune invitation pour l&apos;instant
-        </h2>
-        <p className="mt-3 max-w-[52ch] text-[16px] leading-[1.6] text-ink-muted">
-          Quand un développeur t&apos;invite à tester son app, l&apos;invitation apparaît ici avec le parcours à suivre.
-        </p>
-      </section>
+      {children}
     </div>
   );
 }
