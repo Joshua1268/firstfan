@@ -22,7 +22,7 @@ PROBE = (
 )
 
 
-def run_settings(**overrides):
+def run_settings(probe=PROBE, **overrides):
     env = {k: v for k, v in os.environ.items() if k not in PROD_ENV}
     env.update(PROD_ENV)
     for key, value in overrides.items():
@@ -31,7 +31,7 @@ def run_settings(**overrides):
         else:
             env[key] = value
     env["DJANGO_SETTINGS_MODULE"] = "config.settings"
-    return subprocess.run([sys.executable, "-c", PROBE], cwd=BACKEND, env=env, capture_output=True, text=True)
+    return subprocess.run([sys.executable, "-c", probe], cwd=BACKEND, env=env, capture_output=True, text=True)
 
 
 def test_complete_production_env_starts_hardened():
@@ -65,3 +65,22 @@ def test_debug_keeps_dev_defaults():
     )
     assert r.returncode == 0, r.stderr
     assert "BrowsableAPIRenderer" in r.stdout
+
+
+def test_static_root_is_defined():
+    r = run_settings("import django; django.setup(); from django.conf import settings as s; print(s.STATIC_ROOT)")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip().endswith("staticfiles")
+
+
+HOST_PROBE = (
+    "import django; django.setup(); from django.test import RequestFactory; f = RequestFactory(); "
+    "print(f.get('/', HTTP_HOST='nom.example').get_host(), f.get('/', HTTP_HOST='backend:8000').get_host())"
+)
+
+
+def test_production_accepts_backend_host_next_to_domain():
+    # Next server-side rendering calls Django with the "backend" host.
+    r = run_settings(HOST_PROBE, ALLOWED_HOSTS="nom.example,backend")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == "nom.example backend:8000"
