@@ -18,7 +18,7 @@ export function AppShell({
 }) {
   return (
     <>
-      <header className="border-b border-line">
+      <header className="border-b border-line print:hidden">
         <nav aria-label="Navigation de l'espace" className={`${containerCls} flex h-16 items-center gap-4`}>
           <Link href={spaceHref} className="flex min-h-11 items-center text-ink">
             <Logo variant="mark" size={32} className="md:hidden" />
@@ -33,7 +33,7 @@ export function AppShell({
           <div className="ml-auto">{actions}</div>
         </nav>
       </header>
-      <main id="contenu" className={`${containerCls} pb-24 pt-10 md:pt-16`}>
+      <main id="contenu" className={`${containerCls} pb-24 pt-10 md:pt-16 print:p-0`}>
         {children}
       </main>
     </>
