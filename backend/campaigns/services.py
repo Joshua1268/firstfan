@@ -161,3 +161,15 @@ def validate_test(invitation: Invitation, *, decision: str, score: int, comment:
         if decision == Invitation.Status.VALIDATED:
             credit_tester(invitation)
         update_rating_avg(invitation.tester)
+
+
+def reopen_test(invitation: Invitation) -> None:
+    # A dispute sends the test back to the dev, who validates or rejects it again.
+    with transaction.atomic():
+        invitation = _lock(invitation)
+        if invitation.status not in (Invitation.Status.VALIDATED, Invitation.Status.REJECTED):
+            raise Conflict("Ce test n'a pas encore été jugé.")
+        invitation.status = Invitation.Status.SUBMITTED
+        invitation.save(update_fields=["status"])
+        Rating.objects.filter(session=invitation.session, rater=invitation.campaign.project.owner).delete()
+        update_rating_avg(invitation.tester)
