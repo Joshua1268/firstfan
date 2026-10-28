@@ -92,6 +92,7 @@ def test_money_and_events_are_read_only(staff_client, campaign, tester_user):
         assert staff_client.get(url).status_code == 403
     r = staff_client.post(f"/admin/payments/withdrawal/{withdrawal.pk}/change/", {"amount_xof": 1})
     assert r.status_code == 403
-    assert staff_client.post(f"/admin/tracking/trackevent/{event.pk}/delete/", {"post": "yes"}).status_code == 403
+    r = staff_client.post(f"/admin/tracking/trackevent/{event.pk}/delete/", {"post": "yes"})
+    assert r.status_code == 403
     withdrawal.refresh_from_db()
     assert withdrawal.amount_xof == 1000
