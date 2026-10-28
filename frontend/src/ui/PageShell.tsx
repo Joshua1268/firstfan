@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowIcon } from "@/ui/icons";
-import { PRODUCT_NAME } from "@/lib/brand";
+import { Logo } from "@/ui/Logo";
 
 // Same classes as reveal.tsx, whose client constants a server component cannot import.
 const containerCls = "mx-auto w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] px-[var(--grid-margin)]";
@@ -24,8 +24,8 @@ export function PageShell({
     <>
       <header className="border-b border-line">
         <nav aria-label="Navigation principale" className={`${containerCls} flex h-16 items-center justify-between`}>
-          <Link href="/" className="font-display text-[22px] font-extrabold leading-none tracking-tight text-ink">
-            {PRODUCT_NAME}
+          <Link href="/" className="flex min-h-11 items-center text-ink">
+            <Logo />
           </Link>
           <Link
             href="/"
@@ -54,10 +54,10 @@ export function PageShell({
 
       <footer className="border-t border-line py-10 text-[14px] leading-[1.6] text-ink-muted">
         <div className={`${containerCls} flex flex-col gap-4 md:flex-row md:items-center md:justify-between`}>
-          <p>
-            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Projet CADEV 2026 · Groupe Côte
-            d&apos;Ivoire
-          </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+            <Logo size={28} className="text-ink" />
+            <p>Projet CADEV 2026 · Groupe Côte d&apos;Ivoire</p>
+          </div>
           <ul className="flex flex-wrap gap-x-6">
             <li>
               <Link

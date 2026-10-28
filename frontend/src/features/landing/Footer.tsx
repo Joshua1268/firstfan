@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { footerLinks, type SitePage } from "@/lib/site-links";
+import { Logo } from "@/ui/Logo";
 import { containerCls, useReduce } from "./reveal";
 
 export function Footer({ page = "home" }: { page?: SitePage }) {
@@ -21,9 +22,9 @@ export function Footer({ page = "home" }: { page?: SitePage }) {
     >
       <div className={`${containerCls} flex flex-col gap-8 md:flex-row md:items-start md:justify-between`}>
         <div className="max-w-[52ch]">
-          <p>
-            <span className="font-semibold text-ink">{PRODUCT_NAME}</span> · Construit à Abidjan, pour les devs, par les
-            devs · Projet CADEV 2026 · Groupe Côte d&apos;Ivoire
+          <Logo size={28} className="text-ink" />
+          <p className="mt-4">
+            Construit à Abidjan, pour les devs, par les devs · Projet CADEV 2026 · Groupe Côte d&apos;Ivoire
           </p>
           <p className="mt-3">Paiements via un agrégateur mobile money.</p>
         </div>
