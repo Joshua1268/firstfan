@@ -1,11 +1,8 @@
 import { useId } from "react";
+import { WOULD_PAY_LABEL } from "../status";
 import type { WouldPay } from "../types";
 
-const CHOICES: { value: WouldPay; label: string }[] = [
-  { value: "yes", label: "Oui" },
-  { value: "maybe", label: "Peut-être" },
-  { value: "no", label: "Non" },
-];
+const CHOICES: WouldPay[] = ["yes", "maybe", "no"];
 
 export function WouldPayChoice({
   value,
@@ -33,18 +30,18 @@ export function WouldPayChoice({
       >
         {CHOICES.map((choice) => (
           <label
-            key={choice.value}
+            key={choice}
             className="flex min-h-12 cursor-pointer items-center justify-center rounded-pill border border-line px-3 text-[15px] font-medium text-ink transition-colors duration-150 hover:border-ink/40 has-[:checked]:border-accent has-[:checked]:bg-accent has-[:checked]:text-accent-ink has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
           >
             <input
               type="radio"
               name="would_pay"
-              value={choice.value}
-              checked={value === choice.value}
-              onChange={() => onChange(choice.value)}
+              value={choice}
+              checked={value === choice}
+              onChange={() => onChange(choice)}
               className="sr-only"
             />
-            {choice.label}
+            {WOULD_PAY_LABEL[choice]}
           </label>
         ))}
       </div>
