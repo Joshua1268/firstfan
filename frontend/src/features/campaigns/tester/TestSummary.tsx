@@ -13,7 +13,7 @@ export function TestSummary({ invitation, focusTitle }: { invitation: TesterInvi
     if (focusTitle) titleRef.current?.focus();
   }, [focusTitle]);
 
-  const summary = SUMMARIES[invitation.status as keyof typeof SUMMARIES] ?? SUMMARIES.submitted;
+  const summary = SUMMARIES[invitation.status] ?? SUMMARIES.submitted;
   return (
     <section className="flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-line bg-surface/60 p-6 md:p-8">
       <span
@@ -39,8 +39,9 @@ export function TestSummary({ invitation, focusTitle }: { invitation: TesterInvi
   );
 }
 
+// Keyed by invitation status; "sent" and "accepted" never reach this screen.
 const SUMMARIES: Record<
-  "submitted" | "validated" | "rejected" | "declined",
+  string,
   { title: string; icon: ReactNode; done: boolean; text: (i: TesterInvitationDetail) => string }
 > = {
   submitted: {
