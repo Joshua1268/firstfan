@@ -27,6 +27,8 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 
 # Must be set explicitly outside DEBUG: true for the demo, false in real production.
 DEMO_MODE = env_bool("DEMO_MODE", True)
+# Password of the demo dev account; generated and printed once when empty.
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "")
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY == DEV_SECRET_KEY:
@@ -73,6 +75,7 @@ INSTALLED_APPS = [
     "projects",
     "campaigns",
     "payments",
+    "tracking",
 ]
 
 MIDDLEWARE = [
@@ -191,6 +194,7 @@ REST_FRAMEWORK = {
         # Read by the Next server (15 s cache), not by each visitor.
         "public_stats": os.environ.get("THROTTLE_PUBLIC_STATS", "240/min"),
         "login": os.environ.get("THROTTLE_LOGIN", "10/min"),
+        "track": os.environ.get("THROTTLE_TRACK", "120/min"),
     },
     # Caddy is the only proxy, so the client IP is the last X-Forwarded-For entry.
     "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),

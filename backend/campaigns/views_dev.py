@@ -8,17 +8,20 @@ from core.permissions import IsDev
 from payments.providers import get_provider
 from payments.services import start_checkout
 from projects.models import Project
+from tracking.services import last_event_by_invitation
 
 from .matching import tester_candidates
-from .models import Campaign
+from .models import Campaign, Invitation
 from .serializers import (
     CampaignCreateSerializer,
     CampaignDetailSerializer,
     CampaignSummarySerializer,
+    LiveRowSerializer,
     SelectionSerializer,
     TesterCandidateSerializer,
+    ValidateSerializer,
 )
-from .services import create_campaign, select_testers
+from .services import create_campaign, select_testers, validate_test
 
 
 def get_campaign_detail(pk: int, owner) -> Campaign:
@@ -83,3 +86,39 @@ class CampaignCheckoutView(APIView):
         return Response(
             {"reference": payment.reference, "redirect_url": get_provider().start_checkout(payment)}
         )
+
+
+def live_rows_data(invitations) -> list:
+    last_events = last_event_by_invitation([i.pk for i in invitations])
+    return LiveRowSerializer(invitations, many=True, context={"last_events": last_events}).data
+
+
+def live_invitations(owner):
+    # Selected testers only see the campaign once it is paid.
+    return (
+        Invitation.objects.filter(campaign__project__owner=owner)
+        .exclude(status=Invitation.Status.SELECTED)
+        .select_related("campaign__project", "tester__tester_profile", "session__feedback")
+        .prefetch_related("session__proofs__step", "session__ratings")
+        .order_by("pk")
+    )
+
+
+class CampaignLiveView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def get(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
+        rows = list(live_invitations(request.user).filter(campaign=campaign))
+        return Response(live_rows_data(rows))
+
+
+class ValidateTestView(APIView):
+    permission_classes = [IsAuthenticated, IsDev]
+
+    def post(self, request, pk):
+        invitation = get_object_or_404(live_invitations(request.user), pk=pk)
+        serializer = ValidateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validate_test(invitation, **serializer.validated_data)
+        return Response(live_rows_data([get_object_or_404(live_invitations(request.user), pk=pk)])[0])
