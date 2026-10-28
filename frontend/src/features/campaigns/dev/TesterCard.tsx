@@ -6,7 +6,7 @@ import { StarIcon } from "@/ui/icons";
 import { StatusPill } from "@/ui/StatusPill";
 import { stepsWithProofs } from "../live";
 import { INVITATION_STATUS } from "../status";
-import type { LiveRow } from "../types";
+import type { CampaignDetail, LiveRow } from "../types";
 import { FeedbackSummary } from "./FeedbackSummary";
 import { ProofList } from "./ProofList";
 import { ValidateDialog } from "./ValidateDialog";
@@ -27,27 +27,28 @@ export function TesterCard({
   onChanged,
 }: {
   row: LiveRow;
-  steps: { order: number; instruction: string }[];
+  steps: CampaignDetail["steps"];
   onChanged: () => void;
 }) {
   const id = useId();
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  // Set once this card has judged the test: hides the button until the board refreshes, then keeps the focus.
+  // Hides the button between the decision and the next refresh of the board.
   const [judged, setJudged] = useState(false);
+  // A dispute can send a judged test back for review: the button must come back then.
+  if (judged && row.status !== "submitted") setJudged(false);
+  const canJudge = row.status === "submitted" && !judged;
+
+  // When the dialog closes on a card without the button that opened it, the focus goes to the title.
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (judged) titleRef.current?.focus();
-  }, [judged]);
+    if (wasOpen.current && !dialogOpen && !canJudge) titleRef.current?.focus();
+    wasOpen.current = dialogOpen;
+  }, [dialogOpen, canJudge]);
 
   const done = row.proofs.length;
   const status = INVITATION_STATUS[row.status];
   const tester = row.tester;
-
-  function closeDialog() {
-    setDialogOpen(false);
-    // The button that opened the dialog is gone when the test was judged elsewhere meanwhile.
-    if (row.status !== "submitted") setJudged(true);
-  }
 
   return (
     <article
@@ -76,23 +77,29 @@ export function TesterCard({
       </header>
 
       <div className="flex flex-col gap-2">
-        <p className="flex items-baseline justify-between gap-3 text-[14px] text-ink-muted">
-          <span>
-            <span className="font-display text-[22px] font-extrabold text-ink">{done}</span> sur {steps.length}{" "}
-            {steps.length > 1 ? "étapes" : "étape"}
-          </span>
-          {OUTCOME[row.status] && <span className="text-right">{OUTCOME[row.status]}</span>}
+        <p className="text-[14px] text-ink-muted">
+          <span className="font-display text-[22px] font-extrabold text-ink">{done}</span> sur {steps.length}{" "}
+          {steps.length > 1 ? "étapes" : "étape"}
         </p>
         <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-pill bg-line">
           <div
-            className="h-full origin-left rounded-pill bg-accent transition-transform duration-300 motion-reduce:transition-none"
+            className={`h-full origin-left rounded-pill transition-transform duration-300 motion-reduce:transition-none ${
+              row.status === "rejected" ? "bg-danger" : "bg-accent"
+            }`}
             style={{ transform: `scaleX(${steps.length ? done / steps.length : 0})` }}
           />
         </div>
+        {OUTCOME[row.status] && <p className="text-[14px] text-ink-muted">{OUTCOME[row.status]}</p>}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
-        <ProofList steps={stepsWithProofs(steps, row.proofs)} />
+        {done > 0 ? (
+          <ProofList steps={stepsWithProofs(steps, row.proofs)} />
+        ) : (
+          row.status !== "declined" && (
+            <p className="text-[15px] text-ink-muted">Aucune étape faite pour l&apos;instant.</p>
+          )
+        )}
         <div className="flex flex-col gap-4">
           {row.feedback && <FeedbackSummary feedback={row.feedback} />}
           {row.dev_rating && (
@@ -103,7 +110,7 @@ export function TesterCard({
               )}
             </p>
           )}
-          {row.status === "submitted" && !judged && (
+          {canJudge && (
             <Button onClick={() => setDialogOpen(true)} className="self-stretch">
               Valider et noter
             </Button>
@@ -115,13 +122,12 @@ export function TesterCard({
         <ValidateDialog
           invitationId={row.invitation_id}
           testerName={tester.first_name}
-          onClose={closeDialog}
+          onClose={() => setDialogOpen(false)}
           onDone={() => {
             setDialogOpen(false);
             setJudged(true);
             onChanged();
           }}
-          onStale={onChanged}
         />
       )}
     </article>

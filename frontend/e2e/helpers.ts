@@ -64,6 +64,12 @@ export function createVerifiedTester(email: string, profession: string, password
   execFileSync("docker", args);
 }
 
+// What the admin does when a tester disputes a decision: the test goes back to the dev.
+export function reopenTest(invitationId: number) {
+  const code = `from campaigns.models import Invitation; from campaigns.services import reopen_test; reopen_test(Invitation.objects.get(pk=${invitationId}))`;
+  execFileSync("docker", ["compose", "exec", "-T", "backend", "uv", "run", "python", "manage.py", "shell", "-c", code]);
+}
+
 export const SCENARIO = [
   "Crée une facture pour un client",
   "Ajoute une dépense avec son justificatif",

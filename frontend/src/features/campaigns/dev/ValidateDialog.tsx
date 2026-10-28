@@ -21,13 +21,12 @@ export function ValidateDialog({
   testerName,
   onClose,
   onDone,
-  onStale,
 }: {
   invitationId: number;
   testerName: string;
   onClose: () => void;
+  // Called once the test is judged, here or elsewhere: the board then shows the outcome.
   onDone: () => void;
-  onStale: () => void;
 }) {
   const [decision, setDecision] = useState<Decision>("validated");
   const [score, setScore] = useState<number | null>(null);
@@ -51,15 +50,15 @@ export function ValidateDialog({
       onDone();
     } catch (err) {
       const apiError = asApiError(err);
+      // Already judged, in another tab for instance: sending again could only fail.
+      if (apiError.status === 409) return onDone();
       setError(apiError);
       setBusy(false);
-      // Already judged, in another tab for instance: the board refreshes behind the message.
-      if (apiError.status === 409) onStale();
     }
   }
 
   return (
-    <Dialog title={`Valider le test de ${testerName}`} onClose={onClose}>
+    <Dialog title={`Valider le test de ${testerName}`} onClose={() => !busy && onClose()}>
       <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-6">
         <FormAlert message={formMessage(error)} />
         <fieldset className="flex flex-col gap-2">

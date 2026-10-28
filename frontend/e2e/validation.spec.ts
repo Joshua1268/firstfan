@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { logIn, playSeededTest, seedOpenCampaign, uniqueEmail } from "./helpers";
+import { logIn, playSeededTest, reopenTest, seedOpenCampaign, uniqueEmail } from "./helpers";
 import type { Page } from "@playwright/test";
 
 test.beforeEach(({}, testInfo) => {
@@ -108,7 +108,10 @@ test("a dev rejects a test: no reward, and the tester sees it rejected", async (
   const dialog = page.getByRole("dialog", { name: `Valider le test de ${testerName}` });
   await dialog.getByText("Rejeter", { exact: true }).click();
   await expect(dialog).toContainText("n'est pas rémunéré");
-  await dialog.getByRole("radiogroup", { name: "Ta note pour le testeur" }).locator("label", { hasText: "2 sur 5" }).click();
+  await dialog
+    .getByRole("radiogroup", { name: "Ta note pour le testeur" })
+    .locator("label", { hasText: "2 sur 5" })
+    .click();
   await dialog.getByRole("button", { name: "Rejeter le test" }).click();
 
   await expect(dialog).toBeHidden();
@@ -119,4 +122,42 @@ test("a dev rejects a test: no reward, and the tester sees it rejected", async (
   await page.context().clearCookies();
   await logIn(page, email);
   await expect(page.getByRole("link", { name: /Compta Express/ })).toContainText("Rejeté");
+});
+
+test("a test judged elsewhere closes the dialog, and a dispute brings the button back", async ({
+  page,
+  request,
+}, testInfo) => {
+  const email = uniqueEmail("testeuse-litige", testInfo);
+  const testerName = email.split("@")[0];
+  const { campaignId } = await seedOpenCampaign(request, email);
+  await playSeededTest(request, email);
+
+  await logIn(page, `dev-${email}`);
+  await expect(page).toHaveURL(/\/dev$/);
+  await page.goto(`/dev/campagnes/${campaignId}`);
+  const card = page.getByRole("article", { name: new RegExp(testerName, "i") });
+  await card.getByRole("button", { name: "Valider et noter" }).click();
+  const dialog = page.getByRole("dialog", { name: `Valider le test de ${testerName}` });
+
+  // Judged in another tab meanwhile: sending again closes the dialog on the real outcome.
+  const [row] = await (await page.request.get(`/api/campaigns/${campaignId}/live/`)).json();
+  const csrf = (await page.context().cookies()).find((c) => c.name === "csrftoken")?.value ?? "";
+  const judged = await page.request.post(`/api/invitations/${row.invitation_id}/validate/`, {
+    data: { decision: "validated", score: 4, comment: "" },
+    headers: { "X-CSRFToken": csrf },
+  });
+  expect(judged.ok()).toBe(true);
+  await dialog
+    .getByRole("radiogroup", { name: "Ta note pour le testeur" })
+    .locator("label", { hasText: "3 sur 5" })
+    .click();
+  await dialog.getByRole("button", { name: "Valider le test" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(card).toContainText("Ta note : 4 sur 5");
+  await expect(card.getByRole("heading", { name: new RegExp(testerName, "i") })).toBeFocused();
+
+  // A dispute sends the test back for review while the board is open.
+  reopenTest(row.invitation_id);
+  await expect(card.getByRole("button", { name: "Valider et noter" })).toBeVisible(NEXT_REFRESH);
 });
