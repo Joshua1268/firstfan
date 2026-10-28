@@ -152,6 +152,8 @@ test("a dev picks two testers, pays and the invitations are sent", async ({ page
   await expect(invitations).toHaveCount(2);
   for (const tester of testers) await expect(invitations.filter({ hasText: tester })).toContainText("Envoyée");
   await expect(page.getByRole("button", { name: "Payer et envoyer les invitations" })).toHaveCount(0);
+  await expect(page.getByTestId("campaign-testers")).toHaveText("2");
+  await expect(page.getByTestId("campaign-total")).toHaveText(/^10\s000\sFCFA$/);
 });
 
 test("a cancelled payment keeps the campaign in draft", async ({ page }, testInfo) => {
