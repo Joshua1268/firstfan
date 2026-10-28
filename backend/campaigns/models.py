@@ -74,6 +74,13 @@ class Invitation(models.Model):
     def __str__(self):
         return f"{self.tester} - {self.campaign}"
 
+    @property
+    def test_url(self) -> str | None:
+        if self.nda_accepted_at is None:
+            return None
+        url = self.campaign.project.url
+        return f"{url}{'&' if '?' in url else '?'}ff_t={self.token}"
+
 
 class TestSession(models.Model):
     invitation = models.OneToOneField(Invitation, on_delete=models.CASCADE, related_name="session")

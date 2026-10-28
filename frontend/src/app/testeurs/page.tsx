@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Footer } from "@/components/landing/Footer";
-import { JobsMarquee } from "@/components/landing/JobsMarquee";
-import { MobileCtaBar } from "@/components/landing/MobileCtaBar";
-import { Nav } from "@/components/landing/Nav";
-import { REVEAL_NO_JS } from "@/components/landing/reveal-nojs";
-import { APPLY_HREF, APPLY_LABEL } from "@/components/testeurs/apply";
-import { TestersHero } from "@/components/testeurs/TestersHero";
-import { Apply, Flexibility, Payment, TrustBlock, WhyYou } from "@/components/testeurs/TestersSections";
+import { Footer } from "@/features/landing/Footer";
+import { JobsMarquee } from "@/features/landing/JobsMarquee";
+import { MobileCtaBar } from "@/features/landing/MobileCtaBar";
+import { Nav } from "@/features/landing/Nav";
+import { REVEAL_NO_JS } from "@/features/landing/reveal-nojs";
+import { APPLY_HREF, APPLY_LABEL } from "@/features/testers-landing/apply";
+import { TestersHero } from "@/features/testers-landing/TestersHero";
+import { Apply, Flexibility, Payment, TrustBlock, WhyYou } from "@/features/testers-landing/TestersSections";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -15,7 +15,6 @@ export const metadata: Metadata = {
     "Comptable, restauratrice, livreur, commerçante : teste depuis ton téléphone des apps faites pour ton métier. Métier vérifié, chaque test rémunéré en mobile money après validation.",
 };
 
-// Page du côté testeur (recherche « deux publics ») : reconnaissance, rémunération sans montant, flexibilité, confiance.
 export default function Testeurs() {
   return (
     <>

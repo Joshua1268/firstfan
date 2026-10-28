@@ -1,7 +1,4 @@
-/**
- * Liens partagés de la nav et du footer. L'accueil parle aux devs, `/testeurs` aux pros : hors de l'accueil,
- * les ancres de sections de l'accueil deviennent « /#… », et l'action de la nav suit le public de la page.
- */
+// Nav and footer links. Off the home page, section anchors become "/#..." and the main action follows the audience.
 export type SitePage = "home" | "testeurs";
 
 export type SiteLink = { href: string; label: string };
@@ -26,7 +23,6 @@ export function footerLinks(page: SitePage): SiteLink[] {
   ];
 }
 
-/** Une seule action principale par page. */
 export const PAGE_CTA: Record<SitePage, SiteLink> = {
   home: { href: "/inscription?role=dev", label: "Je suis développeur" },
   testeurs: { href: "/inscription?role=tester", label: "Proposer mon profil" },

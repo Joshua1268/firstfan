@@ -1,17 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * E2E de la landing.
- *
- * Prérequis : la base Postgres du projet doit tourner avant `pnpm exec playwright test` :
- *   docker compose -f ../docker-compose.yml up -d db
- *   (cd ../backend && uv run python manage.py migrate)
- *
- * Deux serveurs sont lancés (ou réutilisés s'ils répondent déjà) :
- *   1. Django sur 127.0.0.1:8010 (compteurs publics de la landing ; pas 8000, souvent déjà pris
- *      par un autre projet, ce qui ferait réutiliser la mauvaise API par reuseExistingServer) ;
- *   2. Next en build de production sur le port 3100, qui lit l'API via API_INTERNAL_URL.
- */
+// Django comes from Docker on 8010 (run make up first); Next runs as a production build on 3100 and 3101.
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -22,7 +11,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",
   },
-  // Les tests tagués @api-down ne tournent que dans le projet « api-down » (serveur Next sans API joignable).
+  // Tests tagged @api-down only run in the api-down project, against a Next server with no reachable API.
   projects: [
     {
       name: "desktop",
@@ -41,7 +30,7 @@ export default defineConfig({
       },
     },
     {
-      // Tablette portrait : disposition « mobile » des autocollants (zones réservées, 5 autocollants).
+      // Portrait tablet: stickers use the mobile layout.
       name: "tablet",
       grepInvert: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 820, height: 1180 }, isMobile: true, hasTouch: true },
@@ -57,14 +46,13 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
     {
-      // Positions « compact » des autocollants (1024 à 1279px).
+      // Compact sticker positions (1024 to 1279px).
       name: "laptop-sm",
       grepInvert: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 768 } },
     },
     {
-      // API Django injoignable : build et serveur à part (port 3101, distDir .next-api-down), API_INTERNAL_URL
-      // pointée sur un port fermé. Le build doit lui aussi voir l'API arrêtée : la page est prérendue (ISR).
+      // Separate build pointed at a closed port: the home page is prerendered, so the build must see the API down too.
       name: "api-down",
       grep: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: "http://127.0.0.1:3101" },
@@ -72,11 +60,10 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "uv run python manage.py runserver 127.0.0.1:8010",
-      cwd: "../backend",
+      // Django comes from Docker only: fail fast instead of starting it here.
+      command: "echo 'Django is not running on 8010: run make up first.' && exit 1",
       url: "http://127.0.0.1:8010/api/health/",
       reuseExistingServer: true,
-      timeout: 60_000,
     },
     {
       command: "pnpm build && pnpm start -p 3100",

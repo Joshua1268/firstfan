@@ -23,6 +23,8 @@ services:
     env_file:
       - path: .env
         required: false
+      - path: backend/.env
+        required: false
     environment:
       UV_PROJECT_ENVIRONMENT: /opt/venv
       DATABASE_HOST: db
@@ -34,6 +36,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    command: pnpm dev -H 0.0.0.0
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      API_INTERNAL_URL: http://backend:8010
+      # File events do not cross the macOS volume reliably.
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   cadev_pgdata:

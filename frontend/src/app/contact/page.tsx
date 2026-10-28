@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/components/site/PageShell";
+import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Contact · ${PRODUCT_NAME}` };
 
-/** Adresse de contact fournie au build (`NEXT_PUBLIC_CONTACT_EMAIL`). Aucune adresse personnelle dans le code. */
 function contactEmail() {
   const v = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim();
   return v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : null;
@@ -36,7 +35,11 @@ export default function Contact() {
         )}
       </div>
       <Actions>
-        {email ? <PrimaryLink href={`mailto:${email}`}>Écrire un e-mail</PrimaryLink> : <PrimaryLink href="/">Retour à l&apos;accueil</PrimaryLink>}
+        {email ? (
+          <PrimaryLink href={`mailto:${email}`}>Écrire un e-mail</PrimaryLink>
+        ) : (
+          <PrimaryLink href="/">Retour à l&apos;accueil</PrimaryLink>
+        )}
         <SecondaryLink href="/confidentialite">Tes données</SecondaryLink>
       </Actions>
     </PageShell>

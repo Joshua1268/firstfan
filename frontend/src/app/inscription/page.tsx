@@ -1,34 +1,35 @@
 import type { Metadata } from "next";
-import { CheckIcon } from "@/components/landing/icons";
-import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/components/site/PageShell";
+import { CheckIcon } from "@/ui/icons";
+import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Inscription · ${PRODUCT_NAME}` };
 
 type Role = "dev" | "tester";
 
-const ROLES: Record<Role, { kicker: string; lead: string; points: string[]; other: { href: string; label: string } }> = {
-  dev: {
-    kicker: "Inscription · Développeur",
-    lead: "Le parcours dev est en cours de construction. Dès l'ouverture, tu pourras faire tester ton app par des pros vérifiés de ton métier cible.",
-    points: [
-      "Déposer ton app, horodatée dès le dépôt.",
-      "Choisir les métiers de tes testeurs.",
-      "Savoir qui l'utilise encore à J7 et à J30.",
-    ],
-    other: { href: "/inscription?role=tester", label: "Voir le côté testeur" },
-  },
-  tester: {
-    kicker: "Inscription · Testeur",
-    lead: "Le parcours testeur est en cours de construction. Dès l'ouverture, tu pourras tester des apps pensées pour ton métier.",
-    points: [
-      "Prouver ton métier une fois, pour obtenir le badge vérifié.",
-      "Tester des apps avec un parcours guidé, preuves à l'appui.",
-      "Être rémunéré en mobile money après validation de ton test.",
-    ],
-    other: { href: "/inscription?role=dev", label: "Voir le côté dev" },
-  },
-};
+const ROLES: Record<Role, { kicker: string; lead: string; points: string[]; other: { href: string; label: string } }> =
+  {
+    dev: {
+      kicker: "Inscription · Développeur",
+      lead: "Le parcours dev est en cours de construction. Dès l'ouverture, tu pourras faire tester ton app par des pros vérifiés de ton métier cible.",
+      points: [
+        "Déposer ton app, horodatée dès le dépôt.",
+        "Choisir les métiers de tes testeurs.",
+        "Savoir qui l'utilise encore à J7 et à J30.",
+      ],
+      other: { href: "/inscription?role=tester", label: "Voir le côté testeur" },
+    },
+    tester: {
+      kicker: "Inscription · Testeur",
+      lead: "Le parcours testeur est en cours de construction. Dès l'ouverture, tu pourras tester des apps pensées pour ton métier.",
+      points: [
+        "Prouver ton métier une fois, pour obtenir le badge vérifié.",
+        "Tester des apps avec un parcours guidé, preuves à l'appui.",
+        "Être rémunéré en mobile money après validation de ton test.",
+      ],
+      other: { href: "/inscription?role=dev", label: "Voir le côté dev" },
+    },
+  };
 
 export default async function Inscription({ searchParams }: { searchParams: Promise<{ role?: string | string[] }> }) {
   const raw = (await searchParams).role;

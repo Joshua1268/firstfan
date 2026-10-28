@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Card, PageShell } from "@/components/site/PageShell";
+import { Card, PageShell } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Confidentialité · ${PRODUCT_NAME}` };
 
-const linkCls = "text-ink underline decoration-line underline-offset-4 transition-colors duration-150 hover:decoration-ink";
+const linkCls =
+  "text-ink underline decoration-line underline-offset-4 transition-colors duration-150 hover:decoration-ink";
 
 export default function Confidentialite() {
   return (
@@ -31,8 +32,8 @@ export default function Confidentialite() {
         <Card title="Comment">
           <p>Le strict nécessaire : on ne demande que ce qui sert à vérifier, à tester ou à payer.</p>
           <p>
-            Les documents de preuve ne sont jamais publics. Seule l&apos;équipe de vérification y a accès, et ils ne sont
-            gardés que le temps utile.
+            Les documents de preuve ne sont jamais publics. Seule l&apos;équipe de vérification y a accès, et ils ne
+            sont gardés que le temps utile.
           </p>
         </Card>
         <Card title="Ton consentement">

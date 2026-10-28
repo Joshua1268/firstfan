@@ -7,6 +7,9 @@ dependencies = [
     "django==6.1.2",
     "django-pg8000==0.0.5",
     "djangorestframework==3.18.3",
+    "groq==1.7.0",
+    "httpx==0.28.1",
+    "mistralai==3.6.0",
     "pg8000==1.31.5",
 ]
 

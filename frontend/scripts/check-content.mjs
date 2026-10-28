@@ -5,11 +5,14 @@ import { fileURLToPath } from "node:url";
 const CURRENCY = String.raw`(?:fcfa|cfa|xof|francs?|euros?|dollars?|€|\$(?!\{)|f|k)`;
 const NUM = String.raw`\d{1,3}(?:[   .,]\d{3})+|\d+`;
 
-// Après la devise, ni lettre ni chiffre : « 9f3a…c21e » (hash) ou « #0f0 » ne sont pas des montants.
+// No letter or digit after the currency, so hashes and hex colors are not amounts.
 const RULES = [
   {
     rule: "amount",
-    re: new RegExp(String.raw`(?<![\p{L}\p{N}])(?:${NUM})[   ]?${CURRENCY}(?![\p{L}\p{N}])|[€$][   ]?(?:${NUM})`, "giu"),
+    re: new RegExp(
+      String.raw`(?<![\p{L}\p{N}])(?:${NUM})[   ]?${CURRENCY}(?![\p{L}\p{N}])|[€$][   ]?(?:${NUM})`,
+      "giu",
+    ),
   },
   { rule: "emoji", re: /(?![\u00a9\u00ae\u2122])\p{Extended_Pictographic}/gu },
   { rule: "arrow", re: /[\u2190-\u21ff\u27f0-\u27ff\u2900-\u297f]/gu },
@@ -26,7 +29,11 @@ export function scan(text) {
 
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".html", ".mdx"]);
 
+// Logged-in areas: amounts are allowed there.
+const PRIVATE_ROUTES = new Set(["src/app/dev", "src/app/testeur", "src/app/paiement"]);
+
 function* walk(path) {
+  if (PRIVATE_ROUTES.has(path)) return;
   if (statSync(path).isDirectory()) {
     for (const entry of readdirSync(path)) yield* walk(join(path, entry));
   } else if (EXTENSIONS.has(extname(path))) {
@@ -57,6 +64,5 @@ function main(targets) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  // Par défaut : tout le texte affiché (composants et pages, landing comprise).
-  main(args.length > 0 ? args : ["src/components", "src/app"]);
+  main(args.length > 0 ? args : ["src/features/landing", "src/features/testers-landing", "src/ui", "src/app"]);
 }

@@ -27,6 +27,8 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 
 # Must be set explicitly outside DEBUG: true for the demo, false in real production.
 DEMO_MODE = env_bool("DEMO_MODE", True)
+# Password of the demo dev account; generated and printed once when empty.
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "")
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY == DEV_SECRET_KEY:
@@ -72,6 +74,8 @@ INSTALLED_APPS = [
     "public",
     "projects",
     "campaigns",
+    "payments",
+    "tracking",
 ]
 
 MIDDLEWARE = [
@@ -163,6 +167,15 @@ SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
 # Whole XOF amounts.
 PRICE_PER_TESTER_XOF = int(os.environ.get("PRICE_PER_TESTER_XOF", "5000"))
 TESTER_REWARD_XOF = int(os.environ.get("TESTER_REWARD_XOF", "3500"))
+# Only "simule" exists for now: the hook for a real aggregator.
+PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "simule")
+
+# Tester ranking: Groq first, then Mistral; ranking by rules when no key is set.
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
+MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL", "mistral-small-latest")
+MATCHING_TIMEOUT_S = float(os.environ.get("MATCHING_TIMEOUT_S", "8"))
 
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
@@ -181,6 +194,7 @@ REST_FRAMEWORK = {
         # Read by the Next server (15 s cache), not by each visitor.
         "public_stats": os.environ.get("THROTTLE_PUBLIC_STATS", "240/min"),
         "login": os.environ.get("THROTTLE_LOGIN", "10/min"),
+        "track": os.environ.get("THROTTLE_TRACK", "120/min"),
     },
     # Caddy is the only proxy, so the client IP is the last X-Forwarded-For entry.
     "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),

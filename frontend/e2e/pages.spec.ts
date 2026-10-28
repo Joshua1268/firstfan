@@ -1,19 +1,23 @@
 import { expect, test } from "./fixtures";
 import { scan } from "./helpers";
 
-/** Toutes les URL internes (hors ancres) des liens de la page, avec leur nombre d'occurrences. */
+// Internal link URLs on the page (no anchors), with their count.
 async function internalHrefs(page: import("@playwright/test").Page) {
-  return page.locator("a[href]").evaluateAll((els) =>
-    [...new Set(els.map((e) => e.getAttribute("href")!).filter((h) => h.startsWith("/") && !h.startsWith("//")))],
-  );
+  return page
+    .locator("a[href]")
+    .evaluateAll((els) => [
+      ...new Set(els.map((e) => e.getAttribute("href")!).filter((h) => h.startsWith("/") && !h.startsWith("//"))),
+    ]);
 }
 
-test("the API rewrite keeps Django's trailing slash: /api/health/ answers 200 JSON through Next", async ({ request }) => {
+test("the API rewrite keeps Django's trailing slash: /api/health/ answers 200 JSON through Next", async ({
+  request,
+}) => {
   const res = await request.get("/api/health/", { maxRedirects: 0 });
   expect(res.status()).toBe(200);
   expect(res.headers()["content-type"]).toContain("application/json");
   expect(await res.json()).toEqual({ status: "ok", db: true });
-  // Sans barre finale : une seule redirection de Django, puis 200 (aucune boucle).
+  // Without the trailing slash: one Django redirect, then 200, no loop.
   const bare = await request.get("/api/health", { maxRedirects: 3 });
   expect(bare.status()).toBe(200);
 });
@@ -22,7 +26,12 @@ test("public stats answer through the same origin, with and without trailing sla
   for (const path of ["/api/public/stats", "/api/public/stats/"]) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status(), path).toBe(200);
-    expect(Object.keys(await res.json()).sort()).toEqual(["apps_tested", "demo", "tests_in_progress", "verified_testers"]);
+    expect(Object.keys(await res.json()).sort()).toEqual([
+      "apps_tested",
+      "demo",
+      "tests_in_progress",
+      "verified_testers",
+    ]);
   }
 });
 
@@ -53,7 +62,7 @@ for (const p of PAGES) {
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(p.h1);
     await expect(page.locator("main")).toContainText(p.text);
-    // Placeholder honnête : aucun champ qui ferait croire qu'une inscription ou une connexion fonctionne.
+    // Placeholder: no field that would suggest sign-up or login already works.
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Retour à l'accueil" }).first()).toBeVisible();
     expect(await scan(await page.locator("body").innerText())).toEqual([]);

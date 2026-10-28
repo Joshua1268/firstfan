@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { heroBadge } from "./hero-badge";
 
-const s = (tests_in_progress: number, verified_testers: number) => ({ tests_in_progress, verified_testers, apps_tested: 0, demo: true });
+const s = (tests_in_progress: number, verified_testers: number) => ({
+  tests_in_progress,
+  verified_testers,
+  apps_tested: 0,
+  demo: true,
+});
 
 describe("heroBadge", () => {
   it("shows tests in progress when there are some", () => {
