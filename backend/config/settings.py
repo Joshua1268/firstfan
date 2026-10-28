@@ -58,7 +58,12 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = "same-origin"
 else:
-    CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+    # Next dev and e2e servers proxy /api here with the browser's Origin.
+    CSRF_TRUSTED_ORIGINS = env_list(
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,http://127.0.0.1:3100,http://127.0.0.1:3101,"
+        "http://127.0.0.1:3200,http://127.0.0.1:3201,http://127.0.0.1:3300",
+    )
 
 
 INSTALLED_APPS = [
