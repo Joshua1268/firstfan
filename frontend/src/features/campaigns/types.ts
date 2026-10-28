@@ -55,3 +55,33 @@ export type TesterCandidate = {
 export type TesterCandidates = { source: string; candidates: TesterCandidate[] };
 
 export type Checkout = { reference: string; redirect_url: string };
+
+export type Proof = { id: number; answer: string; capture_url: string; updated_at: string };
+
+export type TestStep = { order: number; instruction: string; proof: Proof | null };
+
+export type WouldPay = "yes" | "maybe" | "no";
+
+export type Feedback = { usefulness: number; blockers: string; would_pay: WouldPay; comment: string };
+
+export type TesterInvitationSummary = {
+  id: number;
+  project_name: string;
+  target_profession: string;
+  steps_total: number;
+  steps_done: number;
+  status: InvitationStatus;
+  reward_xof: number;
+  created_at: string;
+};
+
+export type TesterInvitationDetail = TesterInvitationSummary & {
+  project_description: string;
+  nda_accepted_at: string | null;
+  // Null until the confidentiality commitment is accepted.
+  test_url: string | null;
+  steps: TestStep[];
+  feedback: Feedback | null;
+};
+
+export type SubmitInput = Feedback & { dev_score: number; dev_comment: string };
