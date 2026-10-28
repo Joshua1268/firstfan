@@ -44,13 +44,22 @@ export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
           nouveaux profils sont vérifiés chaque semaine.
         </p>
       ) : (
-        <PickerForm campaign={campaign} candidates={data.candidates} />
+        // The rules ranking writes its reason from the stats the card already shows.
+        <PickerForm campaign={campaign} candidates={data.candidates} showReasons={data.source !== "rules"} />
       )}
     </section>
   );
 }
 
-function PickerForm({ campaign, candidates }: { campaign: CampaignDetail; candidates: TesterCandidate[] }) {
+function PickerForm({
+  campaign,
+  candidates,
+  showReasons,
+}: {
+  campaign: CampaignDetail;
+  candidates: TesterCandidate[];
+  showReasons: boolean;
+}) {
   const router = useRouter();
   const [selected, setSelected] = useState(() => candidates.filter((c) => c.selected).map((c) => c.id));
   const [busy, setBusy] = useState(false);
@@ -80,6 +89,7 @@ function PickerForm({ campaign, candidates }: { campaign: CampaignDetail; candid
               <TesterCard
                 tester={tester}
                 checked={checked}
+                showReason={showReasons}
                 disabled={busy || (full && !checked)}
                 onToggle={() => setSelected(toggleTester(selected, tester.id, campaign.testers_wanted))}
               />

@@ -9,11 +9,13 @@ const rating = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximu
 export function TesterCard({
   tester,
   checked,
+  showReason,
   disabled,
   onToggle,
 }: {
   tester: TesterCandidate;
   checked: boolean;
+  showReason: boolean;
   disabled: boolean;
   onToggle: () => void;
 }) {
@@ -67,7 +69,9 @@ export function TesterCard({
               {tests} test{tests > 1 ? "s" : ""} validé{tests > 1 ? "s" : ""}
             </span>
           </span>
-          {tester.reason && <span className="text-[14px] leading-[1.5] text-ink-muted">{tester.reason}</span>}
+          {showReason && tester.reason && (
+            <span className="text-[14px] leading-[1.5] text-ink-muted">{tester.reason}</span>
+          )}
         </span>
       </span>
     </label>
