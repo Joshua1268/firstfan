@@ -3,7 +3,7 @@
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
-import { CheckIcon } from "./icons";
+import { CheckIcon } from "@/ui/icons";
 
 const JOBS = [
   "Comptable",

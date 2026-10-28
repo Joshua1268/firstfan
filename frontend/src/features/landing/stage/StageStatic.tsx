@@ -2,7 +2,7 @@
 
 import { animate, useInView, useMotionValue, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
-import { ChevronIcon } from "../icons";
+import { ChevronIcon } from "@/ui/icons";
 import { Break } from "./Break";
 import { NAV } from "./copy";
 import { StageProvider, useStageValues } from "./context";

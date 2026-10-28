@@ -29,7 +29,11 @@ export function scan(text) {
 
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".html", ".mdx"]);
 
+// Logged-in areas: amounts are allowed there.
+const PRIVATE_ROUTES = new Set(["src/app/dev", "src/app/testeur", "src/app/paiement"]);
+
 function* walk(path) {
+  if (PRIVATE_ROUTES.has(path)) return;
   if (statSync(path).isDirectory()) {
     for (const entry of readdirSync(path)) yield* walk(join(path, entry));
   } else if (EXTENSIONS.has(extname(path))) {
@@ -60,5 +64,5 @@ function main(targets) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  main(args.length > 0 ? args : ["src/components", "src/app"]);
+  main(args.length > 0 ? args : ["src/features/landing", "src/features/testers-landing", "src/ui", "src/app"]);
 }

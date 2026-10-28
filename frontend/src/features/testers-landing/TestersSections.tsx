@@ -14,9 +14,9 @@ import {
   ShieldIcon,
   SparkIcon,
   StarIcon,
-} from "@/components/landing/icons";
-import { PhoneDemo } from "@/components/landing/ProSection";
-import { containerCls, h2Cls, Kicker, leadCls, riseVariants, useReveal } from "@/components/landing/reveal";
+} from "@/ui/icons";
+import { PhoneDemo } from "@/features/landing/ProSection";
+import { containerCls, h2Cls, Kicker, leadCls, riseVariants, useReveal } from "@/features/landing/reveal";
 import { APPLY_HREF, APPLY_LABEL } from "./apply";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;

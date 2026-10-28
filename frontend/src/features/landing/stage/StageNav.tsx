@@ -2,7 +2,7 @@
 
 import { motion, useMotionValueEvent, type MotionValue } from "motion/react";
 import { useState } from "react";
-import { ChevronIcon } from "../icons";
+import { ChevronIcon } from "@/ui/icons";
 import { useStage } from "./context";
 import { NAV } from "./copy";
 import { sceneIndexAt, sceneStart, type SceneId } from "./scenes";

@@ -4,7 +4,7 @@ import { motion, useAnimationControls, useInView } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { dur, spring } from "@/lib/motion-tokens";
-import { ClockIcon, ShieldIcon, StarIcon } from "./icons";
+import { ClockIcon, ShieldIcon, StarIcon } from "@/ui/icons";
 import { containerCls, h2Cls, Kicker, riseVariants, useReveal, useReduce } from "./reveal";
 
 const HASH = "9f3a…c21e";

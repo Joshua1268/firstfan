@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { spring } from "@/lib/motion-tokens";
-import { ArrowIcon, ChatIcon, CheckIcon, CopyIcon } from "./icons";
+import { ArrowIcon, ChatIcon, CheckIcon, CopyIcon } from "@/ui/icons";
 import { containerCls, h2Cls, Kicker, useReduce } from "./reveal";
 import { CodeAvatar } from "./stage/avatars";
 

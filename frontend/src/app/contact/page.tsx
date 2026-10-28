@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/components/site/PageShell";
+import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Contact · ${PRODUCT_NAME}` };

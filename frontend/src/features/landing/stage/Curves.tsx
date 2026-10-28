@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useId } from "react";
 import { dur } from "@/lib/motion-tokens";
-import { CheckIcon } from "../icons";
+import { CheckIcon } from "@/ui/icons";
 import { InkRing, useStamp } from "./CardProofs";
 import { go, useLayoutValue, useStage, useThreshold } from "./context";
 import { CURVES } from "./copy";

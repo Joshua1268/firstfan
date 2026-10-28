@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Card, PageShell } from "@/components/site/PageShell";
+import { Card, PageShell } from "@/ui/PageShell";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Confidentialité · ${PRODUCT_NAME}` };
