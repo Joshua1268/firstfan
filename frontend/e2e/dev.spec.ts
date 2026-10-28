@@ -75,6 +75,31 @@ test("the printable certificate shows the fingerprint", async ({ page }, testInf
   await expect(page.locator("header")).toBeHidden();
 });
 
+test("the scenario editor keeps the keyboard focus and flags every empty field", async ({ page }, testInfo) => {
+  await signUpDev(page, uniqueEmail("dev-steps", testInfo));
+  await page.goto("/dev/projets/nouveau");
+  await page.getByLabel("Nom de l'app").fill("Agenda Pro");
+  await page.getByLabel("Lien de l'app").fill("https://agenda.example");
+  await page.getByLabel("Description").fill("Rendez-vous pour les cabinets.");
+  await page.getByRole("button", { name: "Déposer mon app" }).click();
+  await expect(page).toHaveURL(/\/dev\/projets\/\d+$/);
+
+  await page.getByRole("button", { name: "Créer la campagne" }).click();
+  await expect(page.getByText("Choisis un métier.")).toBeVisible();
+  await expect(page.getByLabel("Étape 1", { exact: true })).toHaveAccessibleDescription(/Remplis chaque étape/);
+
+  await page.getByRole("button", { name: "Ajouter une étape" }).click();
+  await expect(page.getByLabel("Étape 2", { exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "Retirer l'étape 2" }).click();
+  await expect(page.getByLabel("Étape 1", { exact: true })).toBeFocused();
+
+  await page.getByLabel("Étape 1", { exact: true }).fill("Prends un rendez-vous");
+  await page.getByRole("button", { name: "Ajouter une étape" }).click();
+  await page.getByRole("button", { name: "Descendre l'étape 1" }).click();
+  await expect(page.getByLabel("Étape 2", { exact: true })).toBeFocused();
+  await expect(page.getByLabel("Étape 2", { exact: true })).toHaveValue("Prends un rendez-vous");
+});
+
 test("an unknown project shows a clear message", async ({ page }, testInfo) => {
   await signUpDev(page, uniqueEmail("dev-404", testInfo));
   await page.goto("/dev/projets/999999999");
