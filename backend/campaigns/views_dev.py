@@ -9,6 +9,7 @@ from payments.providers import get_provider
 from payments.services import start_checkout
 from projects.models import Project
 
+from .matching import tester_candidates
 from .models import Campaign
 from .serializers import (
     CampaignCreateSerializer,
@@ -17,7 +18,7 @@ from .serializers import (
     SelectionSerializer,
     TesterCandidateSerializer,
 )
-from .services import create_campaign, select_testers, tester_candidates
+from .services import create_campaign, select_testers
 
 
 def get_campaign_detail(pk: int, owner) -> Campaign:
@@ -56,9 +57,10 @@ class CampaignTestersView(APIView):
 
     def get(self, request, pk):
         campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
-        candidates, recommended_ids, selected_ids = tester_candidates(campaign)
-        context = {"recommended_ids": recommended_ids, "selected_ids": selected_ids}
-        return Response(TesterCandidateSerializer(candidates, many=True, context=context).data)
+        source, candidates = tester_candidates(campaign)
+        return Response(
+            {"source": source, "candidates": TesterCandidateSerializer(candidates, many=True).data}
+        )
 
 
 class CampaignSelectionView(APIView):

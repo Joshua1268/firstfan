@@ -167,6 +167,13 @@ TESTER_REWARD_XOF = int(os.environ.get("TESTER_REWARD_XOF", "3500"))
 # Only "simule" exists for now: the hook for a real aggregator.
 PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "simule")
 
+# Tester ranking: Groq first, then Mistral; ranking by rules when no key is set.
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
+MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL", "mistral-small-latest")
+MATCHING_TIMEOUT_S = float(os.environ.get("MATCHING_TIMEOUT_S", "8"))
+
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
