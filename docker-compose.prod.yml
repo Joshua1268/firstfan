@@ -1,5 +1,6 @@
 # Production on a single VPS: docker compose -f docker-compose.prod.yml up -d --build
 # Only Caddy publishes ports (80 and 443). No source mount, no dev server.
+# The database is external (DATABASE_* in .env); add --profile localdb to run one here.
 
 name: firstfan-prod
 
@@ -12,10 +13,12 @@ x-logging: &logging
 services:
   db:
     image: postgres:16-alpine
+    profiles: [localdb]
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-firstfan}
       POSTGRES_USER: ${POSTGRES_USER:-firstfan}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
+      # Not ":?": compose reads this even when the localdb profile is off.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -34,18 +37,21 @@ services:
     env_file: .env
     environment:
       DEBUG: "false"
-      DATABASE_HOST: db
-      DATABASE_PORT: "5432"
-      DATABASE_NAME: ${POSTGRES_DB:-firstfan}
-      DATABASE_USER: ${POSTGRES_USER:-firstfan}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
+      DATABASE_HOST: ${DATABASE_HOST:?DATABASE_HOST manquant dans .env}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:?DATABASE_NAME manquant dans .env}
+      DATABASE_USER: ${DATABASE_USER:?DATABASE_USER manquant dans .env}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD manquant dans .env}
     volumes:
       # Private uploads: never served directly, only through views that check access.
       - media:/app/media
       - static:/app/staticfiles
+      # Holds the git-ignored provider CA (deploy/db-ca.pem) when the database needs one.
+      - ./deploy:/app/deploy:ro
     depends_on:
       db:
         condition: service_healthy
+        required: false
     healthcheck:
       # "backend" is in ALLOWED_HOSTS, "localhost" is not.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://backend:8000/api/health/', timeout=3)"]
