@@ -1,5 +1,6 @@
 # Production on a single VPS: docker compose -f docker-compose.prod.yml up -d --build
-# Only Caddy publishes ports (80 and 443). No source mount, no dev server.
+# No published port: the server's existing nginx reaches backend and frontend through the
+# external PROXY_NETWORK (deploy/nginx/firstfan.conf). No source mount, no dev server.
 # The database is external (DATABASE_* in .env); add --profile localdb to run one here.
 
 name: firstfan-prod
@@ -45,7 +46,6 @@ services:
     volumes:
       # Private uploads: never served directly, only through views that check access.
       - media:/app/media
-      - static:/app/staticfiles
       # Holds the git-ignored provider CA (deploy/db-ca.pem) when the database needs one.
       - ./deploy:/app/deploy:ro
     depends_on:
@@ -59,6 +59,11 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    networks:
+      default:
+      proxy:
+        # Unique names: other stacks on the proxy network may have a "backend" service.
+        aliases: [firstfan-backend]
     restart: unless-stopped
     logging: *logging
 
@@ -84,36 +89,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      default:
+      proxy:
+        aliases: [firstfan-frontend]
     restart: unless-stopped
     logging: *logging
 
-  caddy:
-    image: caddy:2-alpine
-    environment:
-      DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - static:/srv/static:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    logging: *logging
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:?PROXY_NETWORK manquant dans .env}
 
 volumes:
   pgdata:
   media:
-  static:
-  caddy_data:
-  caddy_config:
