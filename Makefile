@@ -1,18 +1,27 @@
-BACKEND = docker compose exec -T backend uv run
+DEV = docker compose --profile dev
+# Same project name as before the compose files were merged: keeps the existing media volume.
+PROD = docker compose -p firstfan-prod --profile prod
+BACKEND = $(DEV) exec -T backend uv run
 # run, not exec: frontend targets work even when only db and backend are up.
-FRONTEND = docker compose run --rm --no-deps frontend
+FRONTEND = $(DEV) run --rm --no-deps frontend
 
-.PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check prod-up licenses
+.PHONY: up down logs logs-back logs-front migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check prod-up prod-logs licenses
 
 # -V: fresh node_modules volume after a dependency change.
 up:
-	docker compose up -d --build -V
+	$(DEV) up -d --build -V
 
 down:
-	docker compose down
+	$(DEV) down
 
 logs:
-	docker compose logs -f
+	$(DEV) logs -f
+
+logs-back:
+	$(DEV) logs -f backend
+
+logs-front:
+	$(DEV) logs -f frontend
 
 migrate:
 	$(BACKEND) python manage.py migrate
@@ -55,9 +64,12 @@ fmt-front:
 
 check: lint test
 
-# Production, on the server, with the root .env filled from .env.prod.example.
+# Production, on the server, with the root .env filled from .env.example.
 prod-up:
-	docker compose -f docker-compose.prod.yml up -d --build
+	$(PROD) up -d --build
+
+prod-logs:
+	$(PROD) logs -f --tail 200
 
 licenses:
 	./scripts/check_licenses.sh
