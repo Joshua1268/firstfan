@@ -30,7 +30,7 @@ services:
     restart: unless-stopped
     logging: *logging
 
-  backend:
+  firstfan-backend:
     build:
       context: ./backend
       target: prod
@@ -53,21 +53,19 @@ services:
         condition: service_healthy
         required: false
     healthcheck:
-      # "backend" is in ALLOWED_HOSTS, "localhost" is not.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://backend:8000/api/health/', timeout=3)"]
+      # "firstfan-backend" is in ALLOWED_HOSTS, "localhost" is not.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://firstfan-backend:8000/api/health/', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 30s
-    networks:
-      default:
-      proxy:
-        # Unique names: other stacks on the proxy network may have a "backend" service.
-        aliases: [firstfan-backend]
+    # Prefixed service names: compose registers each name on the shared proxy network,
+    # where other stacks may also have a "backend" or "frontend".
+    networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
 
-  frontend:
+  firstfan-frontend:
     build:
       context: ./frontend
       target: prod
@@ -75,13 +73,13 @@ services:
         NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
     image: firstfan-frontend:prod
     environment:
-      API_INTERNAL_URL: http://backend:8000
+      API_INTERNAL_URL: http://firstfan-backend:8000
       NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
       # Docker sets HOSTNAME to the container id, which the Next server would bind to.
       HOSTNAME: 0.0.0.0
       PORT: "3000"
     depends_on:
-      backend:
+      firstfan-backend:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
@@ -89,10 +87,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    networks:
-      default:
-      proxy:
-        aliases: [firstfan-frontend]
+    networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
 
