@@ -1,5 +1,6 @@
 # Production on a single VPS: docker compose -f docker-compose.prod.yml up -d --build
-# Only Caddy publishes ports (80 and 443). No source mount, no dev server.
+# No published port: the server's existing nginx reaches backend and frontend through the
+# external PROXY_NETWORK (deploy/nginx/firstfan.conf). No source mount, no dev server.
 # The database is external (DATABASE_* in .env); add --profile localdb to run one here.
 
 name: firstfan-prod
@@ -29,7 +30,7 @@ services:
     restart: unless-stopped
     logging: *logging
 
-  backend:
+  firstfan-backend:
     build:
       context: ./backend
       target: prod
@@ -45,7 +46,6 @@ services:
     volumes:
       # Private uploads: never served directly, only through views that check access.
       - media:/app/media
-      - static:/app/staticfiles
       # Holds the git-ignored provider CA (deploy/db-ca.pem) when the database needs one.
       - ./deploy:/app/deploy:ro
     depends_on:
@@ -53,16 +53,19 @@ services:
         condition: service_healthy
         required: false
     healthcheck:
-      # "backend" is in ALLOWED_HOSTS, "localhost" is not.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://backend:8000/api/health/', timeout=3)"]
+      # "firstfan-backend" is in ALLOWED_HOSTS, "localhost" is not.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://firstfan-backend:8000/api/health/', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 30s
+    # Prefixed service names: compose registers each name on the shared proxy network,
+    # where other stacks may also have a "backend" or "frontend".
+    networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
 
-  frontend:
+  firstfan-frontend:
     build:
       context: ./frontend
       target: prod
@@ -70,13 +73,13 @@ services:
         NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
     image: firstfan-frontend:prod
     environment:
-      API_INTERNAL_URL: http://backend:8000
+      API_INTERNAL_URL: http://firstfan-backend:8000
       NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
       # Docker sets HOSTNAME to the container id, which the Next server would bind to.
       HOSTNAME: 0.0.0.0
       PORT: "3000"
     depends_on:
-      backend:
+      firstfan-backend:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
@@ -84,36 +87,15 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
 
-  caddy:
-    image: caddy:2-alpine
-    environment:
-      DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - static:/srv/static:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    logging: *logging
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:?PROXY_NETWORK manquant dans .env}
 
 volumes:
   pgdata:
   media:
-  static:
-  caddy_data:
-  caddy_config:
