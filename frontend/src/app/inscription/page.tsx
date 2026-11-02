@@ -1,74 +1,84 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { RegisterForm } from "@/features/accounts/RegisterForm";
+import type { Role } from "@/features/accounts/types";
+import { PRODUCT_NAME } from "@/lib/brand";
 import { CheckIcon } from "@/ui/icons";
 import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
-import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Inscription · ${PRODUCT_NAME}` };
 
-type Role = "dev" | "tester";
-
-const ROLES: Record<Role, { kicker: string; lead: string; points: string[]; other: { href: string; label: string } }> =
+const ROLES: Record<Role, { kicker: string; title: string; points: string[]; other: { href: string; label: string } }> =
   {
     dev: {
       kicker: "Inscription · Développeur",
-      lead: "Le parcours dev est en cours de construction. Dès l'ouverture, tu pourras faire tester ton app par des pros vérifiés de ton métier cible.",
+      title: "Fais tester ton app.",
       points: [
         "Déposer ton app, horodatée dès le dépôt.",
         "Choisir les métiers de tes testeurs.",
         "Savoir qui l'utilise encore à J7 et à J30.",
       ],
-      other: { href: "/inscription?role=tester", label: "Voir le côté testeur" },
+      other: { href: "/inscription?role=tester", label: "Je veux plutôt tester des apps" },
     },
     tester: {
       kicker: "Inscription · Testeur",
-      lead: "Le parcours testeur est en cours de construction. Dès l'ouverture, tu pourras tester des apps pensées pour ton métier.",
+      title: "Teste des apps de ton métier.",
       points: [
         "Prouver ton métier une fois, pour obtenir le badge vérifié.",
         "Tester des apps avec un parcours guidé, preuves à l'appui.",
         "Être rémunéré en mobile money après validation de ton test.",
       ],
-      other: { href: "/inscription?role=dev", label: "Voir le côté dev" },
+      other: { href: "/inscription?role=dev", label: "Je veux plutôt faire tester mon app" },
     },
   };
 
 export default async function Inscription({ searchParams }: { searchParams: Promise<{ role?: string | string[] }> }) {
   const raw = (await searchParams).role;
   const role = raw === "dev" || raw === "tester" ? raw : null;
-  const r = role ? ROLES[role] : null;
 
+  if (!role) {
+    return (
+      <PageShell
+        kicker="Inscription"
+        title="Qui es-tu ?"
+        lead="Choisis ton compte : tu pourras commencer tout de suite."
+      >
+        <Actions>
+          <PrimaryLink href="/inscription?role=dev">Je suis développeur</PrimaryLink>
+          <SecondaryLink href="/inscription?role=tester">Je teste et je suis rémunéré</SecondaryLink>
+        </Actions>
+        <Link
+          href="/connexion"
+          className="mt-6 inline-flex min-h-11 items-center text-[15px] text-ink-muted underline underline-offset-4 hover:text-ink"
+        >
+          Déjà un compte ? Connecte-toi
+        </Link>
+      </PageShell>
+    );
+  }
+
+  const r = ROLES[role];
   return (
-    <PageShell
-      kicker={r?.kicker ?? "Inscription"}
-      title="Les inscriptions ouvrent bientôt."
-      lead={
-        r?.lead ??
-        "Les comptes dev et testeur sont en cours de construction. Aucun formulaire n'est ouvert pour l'instant : rien ne t'est demandé ici."
-      }
-    >
-      {r ? (
-        <ul className="hero-lift-12 mt-10 grid max-w-[60ch] gap-3 md:mt-12">
-          {r.points.map((p) => (
-            <li key={p} className="flex items-start gap-3 text-[16px] leading-[1.6] text-ink">
-              <CheckIcon size={22} className="mt-px shrink-0 text-accent" />
-              {p}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <p className="mt-8 max-w-[60ch] text-[14px] leading-snug text-ink-muted">
-        Aucun formulaire n&apos;est ouvert pour l&apos;instant : aucune donnée n&apos;est collectée sur cette page.
-      </p>
-      <Actions>
-        <PrimaryLink href="/">Retour à l&apos;accueil</PrimaryLink>
-        {r ? (
-          <SecondaryLink href={r.other.href}>{r.other.label}</SecondaryLink>
-        ) : (
-          <>
-            <SecondaryLink href="/inscription?role=dev">Je suis développeur</SecondaryLink>
-            <SecondaryLink href="/inscription?role=tester">Je teste et je suis rémunéré</SecondaryLink>
-          </>
-        )}
-      </Actions>
+    <PageShell kicker={r.kicker} title={r.title}>
+      <div className="mt-10 grid gap-12 md:mt-14 md:grid-cols-[minmax(0,480px)_minmax(0,1fr)] md:gap-20">
+        <RegisterForm role={role} />
+        <aside className="flex flex-col gap-6 md:border-l md:border-line md:pl-12">
+          <ul className="grid gap-3">
+            {r.points.map((p) => (
+              <li key={p} className="flex items-start gap-3 text-[16px] leading-[1.6] text-ink">
+                <CheckIcon size={22} className="mt-px shrink-0 text-accent" />
+                {p}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href={r.other.href}
+            className="inline-flex min-h-11 items-center self-start text-[15px] text-ink-muted underline underline-offset-4 hover:text-ink"
+          >
+            {r.other.label}
+          </Link>
+        </aside>
+      </div>
     </PageShell>
   );
 }

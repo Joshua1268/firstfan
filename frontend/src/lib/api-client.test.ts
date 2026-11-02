@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiFetch } from "./api-client";
+import { ApiError, apiFetch, asApiError, formMessage } from "./api-client";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -112,5 +112,35 @@ describe("apiFetch", () => {
     const error = await apiErrorOf(apiFetch("/api/a/"));
     expect(error.status).toBe(500);
     expect(error.detail).toBeNull();
+  });
+});
+
+describe("asApiError", () => {
+  it("keeps an ApiError as is", () => {
+    const error = new ApiError(400, { email: ["Adresse invalide."] });
+    expect(asApiError(error)).toBe(error);
+  });
+
+  it("turns a network failure into a readable ApiError", () => {
+    const error = asApiError(new TypeError("Failed to fetch"));
+    expect(error.status).toBe(0);
+    expect(error.detail).toBe("Connexion impossible. Vérifie ton réseau et réessaie.");
+  });
+});
+
+describe("formMessage", () => {
+  it("is empty without an error or when a field explains it", () => {
+    expect(formMessage(undefined)).toBeNull();
+    expect(formMessage(new ApiError(400, { email: ["Adresse invalide."] }))).toBeNull();
+  });
+
+  it("uses the API detail", () => {
+    expect(formMessage(new ApiError(400, { detail: "Email ou mot de passe incorrect." }))).toBe(
+      "Email ou mot de passe incorrect.",
+    );
+  });
+
+  it("falls back to a generic message when the API gives no reason", () => {
+    expect(formMessage(new ApiError(403, null))).toBe("Une erreur est survenue. Réessaie dans un instant.");
   });
 });

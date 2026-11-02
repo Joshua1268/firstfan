@@ -1,3 +1,6 @@
+import { execFileSync } from "node:child_process";
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
+
 type Box = { x: number; y: number; width: number; height: number } | null;
 
 export type Finding = { rule: string; match: string; index: number };
@@ -15,7 +18,7 @@ export function overlaps(a: Box, b: Box): boolean {
 }
 
 // Scrolls so the raw stage progress equals p; the smoothed progress catches up afterwards.
-export async function scrollStageTo(page: import("@playwright/test").Page, p: number) {
+export async function scrollStageTo(page: Page, p: number) {
   await waitForLiveStage(page);
   await page.evaluate((target) => {
     const stage = document.querySelector<HTMLElement>("[data-stage]");
@@ -27,6 +30,116 @@ export async function scrollStageTo(page: import("@playwright/test").Page, p: nu
 }
 
 // The animated stage loads after hydration; never use this with reduced motion, where it never loads.
-export async function waitForLiveStage(page: import("@playwright/test").Page) {
+export async function waitForLiveStage(page: Page) {
   await page.locator("[data-stage-loaded]").waitFor({ state: "attached", timeout: 15_000 });
+}
+
+export const PASSWORD = "Sol1de-pass!";
+
+export function uniqueEmail(prefix: string, testInfo: { project: { name: string } }) {
+  return `${prefix}-${testInfo.project.name}-${Date.now()}@e2e.test`;
+}
+
+export async function signUpDev(page: Page, email: string) {
+  await page.goto("/inscription?role=dev");
+  await page.getByLabel("Prénom").fill("Awa");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Mot de passe").fill(PASSWORD);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page).toHaveURL(/\/dev$/);
+}
+
+// Smallest valid PNG (1 x 1 pixel): the API checks the first bytes of every capture.
+export const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+// Uses the e2e_tester command of the Docker backend (DEBUG only): the tester is verified and available.
+// With a password, the tester can also log in.
+export function createVerifiedTester(email: string, profession: string, password?: string) {
+  const args = ["compose", "exec", "-T", "backend", "uv", "run", "python", "manage.py", "e2e_tester"];
+  args.push("--email", email, "--profession", profession);
+  if (password) args.push("--password", password);
+  execFileSync("docker", args);
+}
+
+// What the admin does when a tester disputes a decision: the test goes back to the dev.
+export function reopenTest(invitationId: number) {
+  const code = `from campaigns.models import Invitation; from campaigns.services import reopen_test; reopen_test(Invitation.objects.get(pk=${invitationId}))`;
+  execFileSync("docker", ["compose", "exec", "-T", "backend", "uv", "run", "python", "manage.py", "shell", "-c", code]);
+}
+
+export const SCENARIO = [
+  "Crée une facture pour un client",
+  "Ajoute une dépense avec son justificatif",
+  "Exporte le bilan du mois",
+];
+
+// Django rotates the CSRF token at login: read the cookie again before every write.
+async function postAs(
+  request: APIRequestContext,
+  path: string,
+  options: { data?: unknown; multipart?: Record<string, string | { name: string; mimeType: string; buffer: Buffer }> },
+) {
+  const { cookies } = await request.storageState();
+  const token = cookies.find((c) => c.name === "csrftoken")?.value ?? "";
+  const res = await request.post(path, { ...options, headers: { "X-CSRFToken": token } });
+  expect(res.ok(), `${path}: ${await res.text()}`).toBe(true);
+  return res.status() === 204 ? null : res.json();
+}
+
+// A verified tester (who can log in with PASSWORD) and a dev whose paid campaign invites them.
+export async function seedOpenCampaign(request: APIRequestContext, testerEmail: string) {
+  createVerifiedTester(testerEmail, "Comptable", PASSWORD);
+  await request.get("/api/auth/csrf/");
+  await postAs(request, "/api/auth/register/", {
+    data: { email: `dev-${testerEmail}`, password: PASSWORD, first_name: "Awa", role: "dev" },
+  });
+  const project = await postAs(request, "/api/projects/", {
+    multipart: { name: "Compta Express", url: "https://compta.example/app", description: "Factures et dépenses." },
+  });
+  const campaign = await postAs(request, `/api/projects/${project.id}/campaigns/`, {
+    data: { target_profession: "Comptable", testers_wanted: 1, steps: SCENARIO },
+  });
+  const { candidates } = await (await request.get(`/api/campaigns/${campaign.id}/testers/`)).json();
+  const name = testerEmail.split("@")[0].toLowerCase();
+  const tester = candidates.find((c: { first_name: string }) => c.first_name.toLowerCase() === name);
+  await postAs(request, `/api/campaigns/${campaign.id}/selection/`, { data: { tester_ids: [tester.id] } });
+  const { reference } = await postAs(request, `/api/campaigns/${campaign.id}/checkout/`, {});
+  await postAs(request, `/api/payments/${reference}/simulate/`, { data: { outcome: "paid" } });
+  return { campaignId: campaign.id as number };
+}
+
+// The tester of seedOpenCampaign accepts, sends a proof for the first `steps` steps and, when all are done, the test.
+export async function playSeededTest(request: APIRequestContext, testerEmail: string, steps = SCENARIO.length) {
+  await postAs(request, "/api/auth/login/", { data: { email: testerEmail, password: PASSWORD } });
+  const [invitation] = await (await request.get("/api/tester/invitations/")).json();
+  await postAs(request, `/api/tester/invitations/${invitation.id}/accept/`, { data: { nda: true } });
+  for (let order = 1; order <= steps; order++) {
+    await postAs(request, `/api/tester/invitations/${invitation.id}/steps/${order}/`, {
+      multipart: {
+        answer: `Fait pour l'étape ${order}.`,
+        capture: { name: "capture.png", mimeType: "image/png", buffer: TINY_PNG },
+      },
+    });
+  }
+  if (steps < SCENARIO.length) return;
+  await postAs(request, `/api/tester/invitations/${invitation.id}/submit/`, {
+    data: {
+      usefulness: 4,
+      blockers: "Le bouton d'export est caché.",
+      would_pay: "maybe",
+      comment: "Pratique pour mes clients.",
+      dev_score: 5,
+      dev_comment: "Merci !",
+    },
+  });
+}
+
+export async function logIn(page: Page, email: string) {
+  await page.goto("/connexion");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Mot de passe").fill(PASSWORD);
+  await page.getByRole("button", { name: "Se connecter" }).click();
 }

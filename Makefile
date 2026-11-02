@@ -2,7 +2,7 @@ BACKEND = docker compose exec -T backend uv run
 # run, not exec: frontend targets work even when only db and backend are up.
 FRONTEND = docker compose run --rm --no-deps frontend
 
-.PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check
+.PHONY: up down logs migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check prod-up licenses
 
 # -V: fresh node_modules volume after a dependency change.
 up:
@@ -22,8 +22,9 @@ seed:
 
 test: test-back test-front
 
+# Tests check the real throttle rates, not the relaxed ones of the dev container.
 test-back:
-	$(BACKEND) pytest -q
+	$(BACKEND) env -u THROTTLE_LOGIN -u THROTTLE_ANON pytest -q
 
 test-front:
 	$(FRONTEND) pnpm test
@@ -53,3 +54,10 @@ fmt-front:
 	$(FRONTEND) pnpm format
 
 check: lint test
+
+# Production, on the server, with the root .env filled from .env.prod.example.
+prod-up:
+	docker compose -f docker-compose.prod.yml up -d --build
+
+licenses:
+	./scripts/check_licenses.sh
