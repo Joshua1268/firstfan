@@ -121,6 +121,11 @@ async function createDraftCampaign(page: Page, testersWanted: number) {
   await expect(page).toHaveURL(/\/dev\/campagnes\/\d+$/);
 }
 
+// The dev backend ranks testers with Groq then Mistral, each capped at 8 s (MATCHING_TIMEOUT_S): wait for both plus a margin.
+// A test can load the list twice, so it gets more than the default 30 s.
+const RANKING = { timeout: 20_000 };
+const RANKING_TEST_TIMEOUT = 60_000;
+
 // Other runs leave verified testers behind: each test picks its own by a unique name.
 function newTesters(count: number, testInfo: { project: { name: string } }) {
   const stamp = `${testInfo.project.name}-${Date.now()}`;
@@ -132,11 +137,12 @@ function newTesters(count: number, testInfo: { project: { name: string } }) {
 }
 
 test("a dev picks two testers, pays and the invitations are sent", async ({ page }, testInfo) => {
+  test.setTimeout(RANKING_TEST_TIMEOUT);
   const testers = newTesters(2, testInfo);
   await signUpDev(page, uniqueEmail("dev-pick", testInfo));
   await createDraftCampaign(page, 3);
 
-  await expect(page.getByText("0 sur 3")).toBeVisible();
+  await expect(page.getByText("0 sur 3")).toBeVisible(RANKING);
   for (const tester of testers) await page.getByRole("checkbox", { name: tester }).check();
   await expect(page.getByText("2 sur 3")).toBeVisible();
   await page.getByRole("button", { name: "Payer et envoyer les invitations" }).click();
@@ -158,10 +164,12 @@ test("a dev picks two testers, pays and the invitations are sent", async ({ page
 });
 
 test("a cancelled payment keeps the campaign in draft", async ({ page }, testInfo) => {
+  test.setTimeout(RANKING_TEST_TIMEOUT);
   const [tester] = newTesters(1, testInfo);
   await signUpDev(page, uniqueEmail("dev-cancel", testInfo));
   await createDraftCampaign(page, 1);
 
+  await expect(page.getByRole("checkbox", { name: tester })).toBeVisible(RANKING);
   await page.getByRole("checkbox", { name: tester }).check();
   const pay = page.getByRole("button", { name: "Payer et envoyer les invitations" });
 
@@ -180,5 +188,5 @@ test("a cancelled payment keeps the campaign in draft", async ({ page }, testInf
   await expect(page).toHaveURL(/\/dev\/campagnes\/\d+$/);
   await expect(page.getByText("Brouillon", { exact: true })).toBeVisible();
   await expect(page.getByText(/Paiement annulé/)).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: tester })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: tester })).toBeChecked(RANKING);
 });
