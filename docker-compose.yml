@@ -1,6 +1,19 @@
+# Two profiles, never run together:
+# - dev: local Postgres, Django runserver and Next dev server, source mounted (make up).
+# - prod: on the VPS (make prod-up). No published port: the server's nginx reaches both services
+#   through the external PROXY_NETWORK (deploy/nginx/firstfan.conf). The database is external
+#   (DATABASE_* in the root .env).
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
+    profiles: [dev]
     ports:
       - "55432:5432"
     environment:
@@ -19,16 +32,19 @@ services:
     build:
       context: ./backend
       target: dev
+    profiles: [dev]
     command: uv run python manage.py runserver 0.0.0.0:8010
     env_file:
-      - path: .env
-        required: false
       - path: backend/.env
         required: false
     environment:
       UV_PROJECT_ENVIRONMENT: /opt/venv
+      DEBUG: "true"
       DATABASE_HOST: db
       DATABASE_PORT: "5432"
+      DATABASE_NAME: cadev
+      DATABASE_USER: cadev
+      DATABASE_PASSWORD: cadev
       # The e2e suite logs in and signs up from one IP far more than the real limits allow.
       THROTTLE_LOGIN: 1000/min
       THROTTLE_ANON: 1000/min
@@ -44,10 +60,8 @@ services:
     build:
       context: ./frontend
       target: dev
+    profiles: [dev]
     command: pnpm dev -H 0.0.0.0
-    env_file:
-      - path: .env
-        required: false
     environment:
       API_INTERNAL_URL: http://backend:8010
       # File events do not cross the macOS volume reliably.
@@ -61,5 +75,67 @@ services:
     depends_on:
       - backend
 
+  firstfan-backend:
+    build:
+      context: ./backend
+      target: prod
+    image: firstfan-backend:prod
+    profiles: [prod]
+    # Required: compose stops here on the server if the root .env is missing.
+    env_file: .env
+    environment:
+      # Django refuses to start without SECRET_KEY, ALLOWED_HOSTS and DEMO_MODE when DEBUG is false.
+      DEBUG: "false"
+    volumes:
+      # Private uploads: never served directly, only through views that check access.
+      - media:/app/media
+      # Holds the git-ignored provider CA (deploy/db-ca.pem) when the database needs one.
+      - ./deploy:/app/deploy:ro
+    healthcheck:
+      # "firstfan-backend" is in ALLOWED_HOSTS, "localhost" is not.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://firstfan-backend:8000/api/health/', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # Prefixed service names: compose registers each name on the shared proxy network,
+    # where other stacks may also have a "backend" or "frontend".
+    networks: [default, proxy]
+    restart: unless-stopped
+    logging: *logging
+
+  firstfan-frontend:
+    build:
+      context: ./frontend
+      target: prod
+      args:
+        NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+    image: firstfan-frontend:prod
+    profiles: [prod]
+    environment:
+      API_INTERNAL_URL: http://firstfan-backend:8000
+      NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+      # Docker sets HOSTNAME to the container id, which the Next server would bind to.
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      firstfan-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [default, proxy]
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-web_network}
+
 volumes:
   cadev_pgdata:
+  media:
