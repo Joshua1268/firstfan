@@ -22,8 +22,9 @@ seed:
 
 test: test-back test-front
 
+# Tests check the real throttle rates, not the relaxed ones of the dev container.
 test-back:
-	$(BACKEND) pytest -q
+	$(BACKEND) env -u THROTTLE_LOGIN -u THROTTLE_ANON pytest -q
 
 test-front:
 	$(FRONTEND) pnpm test

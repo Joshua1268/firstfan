@@ -29,6 +29,9 @@ services:
       UV_PROJECT_ENVIRONMENT: /opt/venv
       DATABASE_HOST: db
       DATABASE_PORT: "5432"
+      # The e2e suite logs in and signs up from one IP far more than the real limits allow.
+      THROTTLE_LOGIN: 1000/min
+      THROTTLE_ANON: 1000/min
     volumes:
       - ./backend:/app
     ports:
