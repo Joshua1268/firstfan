@@ -8,7 +8,6 @@ DOCKER_IMAGES = [
     ("python:3.13-slim", "PSF-2.0"),
     ("node:22-slim", "MIT"),
     ("postgres:16-alpine", "PostgreSQL"),
-    ("caddy:2-alpine", "Apache-2.0"),
     ("ghcr.io/astral-sh/uv", "MIT OR Apache-2.0"),
 ]
 

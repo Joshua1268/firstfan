@@ -43,7 +43,7 @@ if not DEBUG:
     if "DEMO_MODE" not in os.environ:
         raise ImproperlyConfigured("DEMO_MODE doit être défini explicitement quand DEBUG est faux.")
 
-    # Caddy terminates TLS and sends X-Forwarded-Proto.
+    # nginx terminates TLS and sends X-Forwarded-Proto.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -54,7 +54,7 @@ if not DEBUG:
         )
     SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
-    # Caddy redirects to https; the internal /api/health/ probe stays on http.
+    # nginx redirects to https; the internal /api/health/ probe stays on http.
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = "same-origin"
@@ -219,6 +219,6 @@ REST_FRAMEWORK = {
         "login": os.environ.get("THROTTLE_LOGIN", "10/min"),
         "track": os.environ.get("THROTTLE_TRACK", "120/min"),
     },
-    # Caddy is the only proxy, so the client IP is the last X-Forwarded-For entry.
+    # nginx is the only proxy, so the client IP is the last X-Forwarded-For entry.
     "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),
 }
