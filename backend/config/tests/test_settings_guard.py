@@ -45,12 +45,15 @@ def test_complete_production_env_starts_hardened():
     ("overrides", "message"),
     [
         ({"SECRET_KEY": None}, "SECRET_KEY"),
+        ({"SECRET_KEY": ""}, "SECRET_KEY"),
         ({"SECRET_KEY": "dev-insecure-key-change-me"}, "SECRET_KEY"),
         ({"ALLOWED_HOSTS": None}, "ALLOWED_HOSTS"),
         ({"ALLOWED_HOSTS": "*"}, "ALLOWED_HOSTS"),
         ({"ALLOWED_HOSTS": "nom.example,*"}, "ALLOWED_HOSTS"),
         ({"DEMO_MODE": None}, "DEMO_MODE"),
+        ({"DEMO_MODE": ""}, "DEMO_MODE"),
         ({"CSRF_TRUSTED_ORIGINS": None}, "CSRF_TRUSTED_ORIGINS"),
+        ({"CSRF_TRUSTED_ORIGINS": ""}, "CSRF_TRUSTED_ORIGINS"),
     ],
 )
 def test_incomplete_production_env_refuses_to_start(overrides, message):
@@ -65,6 +68,18 @@ def test_debug_keeps_dev_defaults():
     )
     assert r.returncode == 0, r.stderr
     assert "BrowsableAPIRenderer" in r.stdout
+
+
+def test_debug_treats_blank_values_as_unset():
+    # The .env template leaves prod-only keys blank in dev.
+    probe = (
+        "import django; django.setup(); from django.conf import settings as s; "
+        "print(s.SECRET_KEY, s.CSRF_TRUSTED_ORIGINS[0])"
+    )
+    blank = dict.fromkeys(("SECRET_KEY", "ALLOWED_HOSTS", "DEMO_MODE", "CSRF_TRUSTED_ORIGINS"), "")
+    r = run_settings(probe, DEBUG="true", **blank)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == "dev-insecure-key-change-me http://localhost:3000"
 
 
 STATIC_PROBE = "import django; django.setup(); from django.conf import settings as s; print(s.STATIC_ROOT)"
