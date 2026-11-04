@@ -9,18 +9,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TRUE_VALUES = ("1", "true", "yes", "on")
 
 
+# An empty value counts as unset: the single .env template leaves prod-only keys blank.
+def env(name, default=""):
+    return os.environ.get(name, "").strip() or default
+
+
 def env_bool(name, default):
-    value = os.environ.get(name)
-    return default if value is None else value.strip().lower() in TRUE_VALUES
+    value = env(name)
+    return default if not value else value.lower() in TRUE_VALUES
 
 
 def env_list(name, default=""):
-    return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
+    return [item.strip() for item in env(name, default).split(",") if item.strip()]
 
 
 DEV_SECRET_KEY = "dev-insecure-key-change-me"
 
-SECRET_KEY = os.environ.get("SECRET_KEY", DEV_SECRET_KEY)
+SECRET_KEY = env("SECRET_KEY", DEV_SECRET_KEY)
 
 DEBUG = env_bool("DEBUG", True)
 
@@ -29,7 +34,7 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 # Must be set explicitly outside DEBUG: true for the demo, false in real production.
 DEMO_MODE = env_bool("DEMO_MODE", True)
 # Password of the demo dev account; generated and printed once when empty.
-DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "")
+DEMO_PASSWORD = env("DEMO_PASSWORD", "")
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY == DEV_SECRET_KEY:
@@ -40,7 +45,7 @@ if not DEBUG:
         raise ImproperlyConfigured(
             "ALLOWED_HOSTS doit lister les domaines servis (sans « * ») quand DEBUG est faux."
         )
-    if "DEMO_MODE" not in os.environ:
+    if not env("DEMO_MODE"):
         raise ImproperlyConfigured("DEMO_MODE doit être défini explicitement quand DEBUG est faux.")
 
     # nginx terminates TLS and sends X-Forwarded-Proto.
@@ -52,7 +57,7 @@ if not DEBUG:
         raise ImproperlyConfigured(
             "CSRF_TRUSTED_ORIGINS doit lister les origines https du site quand DEBUG est faux."
         )
-    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
     # nginx redirects to https; the internal /api/health/ probe stays on http.
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
@@ -118,13 +123,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django_pg8000",
-        "NAME": os.environ.get("DATABASE_NAME", "cadev"),
-        "USER": os.environ.get("DATABASE_USER", "cadev"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD", "cadev"),
-        "HOST": os.environ.get("DATABASE_HOST", "localhost"),
-        "PORT": os.environ.get("DATABASE_PORT", "5432"),
+        "NAME": env("DATABASE_NAME", "cadev"),
+        "USER": env("DATABASE_USER", "cadev"),
+        "PASSWORD": env("DATABASE_PASSWORD", "cadev"),
+        "HOST": env("DATABASE_HOST", "localhost"),
+        "PORT": env("DATABASE_PORT", "5432"),
         # Reusing connections saves the round trips of each new one to a remote database.
-        "CONN_MAX_AGE": int(os.environ.get("CONN_MAX_AGE", "0")),
+        "CONN_MAX_AGE": int(env("CONN_MAX_AGE", "0")),
         "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {},
     }
@@ -133,7 +138,7 @@ DATABASES = {
 if env_bool("DATABASE_SSL", False):
     # Verified TLS; managed providers often sign with their own CA.
     DATABASES["default"]["OPTIONS"]["ssl_context"] = ssl.create_default_context(
-        cafile=os.environ.get("DATABASE_SSL_ROOT_CERT") or None
+        cafile=env("DATABASE_SSL_ROOT_CERT") or None
     )
 
 
@@ -182,23 +187,23 @@ AUTH_USER_MODEL = "accounts.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "FirstFan")
+PRODUCT_NAME = env("PRODUCT_NAME", "FirstFan")
 
 # Public address of the site, used in the tracking script snippet.
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
+SITE_URL = env("SITE_URL", "http://localhost:3000").rstrip("/")
 
 # Whole XOF amounts.
-PRICE_PER_TESTER_XOF = int(os.environ.get("PRICE_PER_TESTER_XOF", "5000"))
-TESTER_REWARD_XOF = int(os.environ.get("TESTER_REWARD_XOF", "3500"))
+PRICE_PER_TESTER_XOF = int(env("PRICE_PER_TESTER_XOF", "5000"))
+TESTER_REWARD_XOF = int(env("TESTER_REWARD_XOF", "3500"))
 # Only "simule" exists for now: the hook for a real aggregator.
-PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "simule")
+PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", "simule")
 
 # Tester ranking: Groq first, then Mistral; ranking by rules when no key is set.
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
-MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
-MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL", "mistral-small-latest")
-MATCHING_TIMEOUT_S = float(os.environ.get("MATCHING_TIMEOUT_S", "8"))
+GROQ_API_KEY = env("GROQ_API_KEY", "")
+GROQ_MODEL = env("GROQ_MODEL", "openai/gpt-oss-120b")
+MISTRAL_API_KEY = env("MISTRAL_API_KEY", "")
+MISTRAL_MODEL = env("MISTRAL_MODEL", "mistral-small-latest")
+MATCHING_TIMEOUT_S = float(env("MATCHING_TIMEOUT_S", "8"))
 
 # Closed by default: a public view must declare AllowAny.
 REST_FRAMEWORK = {
@@ -212,13 +217,13 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": os.environ.get("THROTTLE_ANON", "60/min"),
-        "user": os.environ.get("THROTTLE_USER", "300/min"),
+        "anon": env("THROTTLE_ANON", "60/min"),
+        "user": env("THROTTLE_USER", "300/min"),
         # Read by the Next server (15 s cache), not by each visitor.
-        "public_stats": os.environ.get("THROTTLE_PUBLIC_STATS", "240/min"),
-        "login": os.environ.get("THROTTLE_LOGIN", "10/min"),
-        "track": os.environ.get("THROTTLE_TRACK", "120/min"),
+        "public_stats": env("THROTTLE_PUBLIC_STATS", "240/min"),
+        "login": env("THROTTLE_LOGIN", "10/min"),
+        "track": env("THROTTLE_TRACK", "120/min"),
     },
     # nginx is the only proxy, so the client IP is the last X-Forwarded-For entry.
-    "NUM_PROXIES": None if DEBUG else int(os.environ.get("NUM_PROXIES", "1")),
+    "NUM_PROXIES": None if DEBUG else int(env("NUM_PROXIES", "1")),
 }
