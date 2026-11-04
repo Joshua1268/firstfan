@@ -1,8 +1,7 @@
-# Two profiles, never run together:
-# - dev: local Postgres, Django runserver and Next dev server, source mounted (make up).
-# - prod: on the VPS (make prod-up). No published port: the server's nginx reaches both services
-#   through the external PROXY_NETWORK (deploy/nginx/firstfan.conf). The database is external
-#   (DATABASE_* in the root .env).
+# Same services everywhere. ENV in the root .env picks the image target (dev or prod),
+# hence the start command and DEBUG. The database is external: PostgreSQL on the host in dev,
+# the managed one in prod (DATABASE_* in backend/.env).
+name: firstfan
 
 x-logging: &logging
   driver: json-file
@@ -11,88 +10,22 @@ x-logging: &logging
     max-file: "3"
 
 services:
-  db:
-    image: postgres:16-alpine
-    profiles: [dev]
-    ports:
-      - "55432:5432"
-    environment:
-      POSTGRES_DB: cadev
-      POSTGRES_USER: cadev
-      POSTGRES_PASSWORD: cadev
-    volumes:
-      - cadev_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cadev -d cadev"]
-      interval: 2s
-      timeout: 5s
-      retries: 15
-
-  backend:
-    build:
-      context: ./backend
-      target: dev
-    profiles: [dev]
-    command: uv run python manage.py runserver 0.0.0.0:8010
-    env_file:
-      - path: backend/.env
-        required: false
-    environment:
-      UV_PROJECT_ENVIRONMENT: /opt/venv
-      DEBUG: "true"
-      DATABASE_HOST: db
-      DATABASE_PORT: "5432"
-      DATABASE_NAME: cadev
-      DATABASE_USER: cadev
-      DATABASE_PASSWORD: cadev
-      # The e2e suite logs in and signs up from one IP far more than the real limits allow.
-      THROTTLE_LOGIN: 1000/min
-      THROTTLE_ANON: 1000/min
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8010:8010"
-    depends_on:
-      db:
-        condition: service_healthy
-
-  frontend:
-    build:
-      context: ./frontend
-      target: dev
-    profiles: [dev]
-    command: pnpm dev -H 0.0.0.0
-    environment:
-      API_INTERNAL_URL: http://backend:8010
-      # File events do not cross the macOS volume reliably.
-      WATCHPACK_POLLING: "true"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
   firstfan-backend:
     build:
       context: ./backend
-      target: prod
-    image: firstfan-backend:prod
-    profiles: [prod]
-    # Required: compose stops here on the server if the root .env is missing.
-    env_file: .env
-    environment:
-      # Django refuses to start without SECRET_KEY, ALLOWED_HOSTS and DEMO_MODE when DEBUG is false.
-      DEBUG: "false"
+      target: ${ENV:-dev}
+    image: firstfan-backend:${ENV:-dev}
+    env_file: backend/.env
+    ports:
+      # Loopback only: in prod, the server's nginx goes through the proxy network.
+      - "127.0.0.1:${BACKEND_PORT:-8010}:8000"
     volumes:
       # Private uploads: never served directly, only through views that check access.
       - media:/app/media
       # Holds the git-ignored provider CA (deploy/db-ca.pem) when the database needs one.
       - ./deploy:/app/deploy:ro
     healthcheck:
-      # "firstfan-backend" is in ALLOWED_HOSTS, "localhost" is not.
+      # "firstfan-backend" must be in ALLOWED_HOSTS, "localhost" need not be.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://firstfan-backend:8000/api/health/', timeout=3)"]
       interval: 15s
       timeout: 5s
@@ -103,21 +36,27 @@ services:
     networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
+    develop:
+      watch:
+        - path: ./backend
+          target: /app
+          action: sync
+          ignore: [.venv/, media/, staticfiles/]
+        - path: ./backend/uv.lock
+          action: rebuild
 
   firstfan-frontend:
     build:
       context: ./frontend
-      target: prod
+      target: ${ENV:-dev}
       args:
         NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
-    image: firstfan-frontend:prod
-    profiles: [prod]
+    image: firstfan-frontend:${ENV:-dev}
     environment:
       API_INTERNAL_URL: http://firstfan-backend:8000
       NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
-      # Docker sets HOSTNAME to the container id, which the Next server would bind to.
-      HOSTNAME: 0.0.0.0
-      PORT: "3000"
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
     depends_on:
       firstfan-backend:
         condition: service_healthy
@@ -126,10 +65,18 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
+    develop:
+      watch:
+        - path: ./frontend
+          target: /app
+          action: sync
+          ignore: [node_modules/, .next/, test-results/, playwright-report/]
+        - path: ./frontend/pnpm-lock.yaml
+          action: rebuild
 
 networks:
   proxy:
@@ -137,5 +84,4 @@ networks:
     name: ${PROXY_NETWORK:-web_network}
 
 volumes:
-  cadev_pgdata:
   media:

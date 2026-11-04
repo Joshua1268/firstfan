@@ -2,10 +2,15 @@ FROM python:3.13-slim AS dev
 
 COPY --from=ghcr.io/astral-sh/uv:0.8.23 /uv /uvx /bin/
 
-# Keep the venv outside /app so the host .venv mounted with the code is never used.
+# Keep the venv outside /app, where the code is copied and synced.
+# Relaxed throttles: the e2e suite logs in and signs up from one IP far more than the real limits allow.
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_LINK_MODE=copy \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    DEBUG=true \
+    THROTTLE_LOGIN=1000/min \
+    THROTTLE_ANON=1000/min
 
 WORKDIR /app
 
@@ -14,8 +19,8 @@ RUN uv sync --frozen --no-install-project
 
 COPY . .
 
-EXPOSE 8010
-CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8010"]
+EXPOSE 8000
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 
 FROM python:3.13-slim AS prod
@@ -25,7 +30,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.8.23 /uv /bin/
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_LINK_MODE=copy \
     PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    DEBUG=false
 
 WORKDIR /app
 

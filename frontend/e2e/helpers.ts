@@ -58,7 +58,7 @@ export const TINY_PNG = Buffer.from(
 // Uses the e2e_tester command of the Docker backend (DEBUG only): the tester is verified and available.
 // With a password, the tester can also log in.
 export function createVerifiedTester(email: string, profession: string, password?: string) {
-  const args = ["compose", "exec", "-T", "backend", "uv", "run", "python", "manage.py", "e2e_tester"];
+  const args = ["compose", "exec", "-T", "firstfan-backend", "python", "manage.py", "e2e_tester"];
   args.push("--email", email, "--profession", profession);
   if (password) args.push("--password", password);
   execFileSync("docker", args);
@@ -67,7 +67,7 @@ export function createVerifiedTester(email: string, profession: string, password
 // What the admin does when a tester disputes a decision: the test goes back to the dev.
 export function reopenTest(invitationId: number) {
   const code = `from campaigns.models import Invitation; from campaigns.services import reopen_test; reopen_test(Invitation.objects.get(pk=${invitationId}))`;
-  execFileSync("docker", ["compose", "exec", "-T", "backend", "uv", "run", "python", "manage.py", "shell", "-c", code]);
+  execFileSync("docker", ["compose", "exec", "-T", "firstfan-backend", "python", "manage.py", "shell", "-c", code]);
 }
 
 export const SCENARIO = [

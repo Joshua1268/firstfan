@@ -122,7 +122,7 @@ DATABASES = {
         "USER": os.environ.get("DATABASE_USER", "cadev"),
         "PASSWORD": os.environ.get("DATABASE_PASSWORD", "cadev"),
         "HOST": os.environ.get("DATABASE_HOST", "localhost"),
-        "PORT": os.environ.get("DATABASE_PORT", "55432"),
+        "PORT": os.environ.get("DATABASE_PORT", "5432"),
         # Reusing connections saves the round trips of each new one to a remote database.
         "CONN_MAX_AGE": int(os.environ.get("CONN_MAX_AGE", "0")),
         "CONN_HEALTH_CHECKS": True,
