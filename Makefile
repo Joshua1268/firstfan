@@ -12,11 +12,14 @@ FRONTEND_CHECK = $(RUN) firstfan-frontend
 BACKEND_FIX = $(RUN) -v ./backend:/app firstfan-backend
 FRONTEND_FIX = $(RUN) -v ./frontend:/app -v /app/node_modules firstfan-frontend
 
-.PHONY: up down logs logs-back logs-front migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check build watch licenses
+.PHONY: network up down logs logs-back logs-front migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check build watch licenses
 
 # The proxy network is external: created here on the Mac, already there on the server.
-up:
+# Every target that starts a container needs it, compose refuses to run without it.
+network:
 	docker network inspect $(PROXY_NETWORK) >/dev/null 2>&1 || docker network create $(PROXY_NETWORK)
+
+up: network
 	$(COMPOSE) up -d --build
 
 # Hot reload in dev, no code volume: compose copies each saved file into the running containers.
@@ -26,7 +29,7 @@ watch:
 down:
 	$(COMPOSE) down
 
-build:
+build: network
 	$(COMPOSE) build
 
 logs:
@@ -47,10 +50,10 @@ seed:
 test: test-back test-front
 
 # Tests check the real throttle rates, not the relaxed ones of the dev container.
-test-back:
+test-back: network
 	$(BACKEND_CHECK) env -u THROTTLE_LOGIN -u THROTTLE_ANON pytest -q
 
-test-front:
+test-front: network
 	$(FRONTEND_CHECK) pnpm test
 
 e2e:
@@ -58,11 +61,11 @@ e2e:
 
 lint: lint-back lint-front
 
-lint-back:
+lint-back: network
 	$(BACKEND_CHECK) ruff check .
 	$(BACKEND_CHECK) ruff format --check .
 
-lint-front:
+lint-front: network
 	$(FRONTEND_CHECK) pnpm lint
 	$(FRONTEND_CHECK) pnpm format:check
 	$(FRONTEND_CHECK) pnpm typecheck
@@ -70,11 +73,11 @@ lint-front:
 
 fmt: fmt-back fmt-front
 
-fmt-back:
+fmt-back: network
 	$(BACKEND_FIX) ruff check --fix-only .
 	$(BACKEND_FIX) ruff format .
 
-fmt-front:
+fmt-front: network
 	$(FRONTEND_FIX) pnpm format
 
 check: build lint test
