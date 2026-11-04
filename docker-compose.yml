@@ -1,6 +1,3 @@
-# Same services everywhere, one root .env for compose and Django. ENV picks the image target
-# (dev or prod), hence the start command and DEBUG. The database is external: PostgreSQL on
-# the host in dev, the managed one in prod.
 name: firstfan
 
 x-logging: &logging
