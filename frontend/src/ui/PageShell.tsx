@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { LEGAL_LINKS } from "@/lib/site-links";
 import { ArrowIcon } from "@/ui/icons";
 import { Logo } from "@/ui/Logo";
+import { MakerCredit } from "./MakerCredit";
 
 // Same classes as reveal.tsx, whose client constants a server component cannot import.
 const containerCls = "mx-auto w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] px-[var(--grid-margin)]";
@@ -57,7 +58,10 @@ export function PageShell({
         <div className={`${containerCls} flex flex-col gap-4 md:flex-row md:items-center md:justify-between`}>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
             <Logo size={28} className="text-ink" />
-            <p>Construit à Abidjan, pour les devs, par les devs.</p>
+            <div>
+              <p>Construit à Abidjan, pour les devs, par les devs.</p>
+              <MakerCredit />
+            </div>
           </div>
           <ul className="flex flex-wrap gap-x-6">
             {LEGAL_LINKS.map((l) => (

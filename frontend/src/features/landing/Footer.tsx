@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { footerLinks, type SitePage } from "@/lib/site-links";
 import { Logo } from "@/ui/Logo";
+import { MakerCredit } from "@/ui/MakerCredit";
 import { containerCls, useReduce } from "./reveal";
 
 export function Footer({ page = "home" }: { page?: SitePage }) {
@@ -25,6 +26,7 @@ export function Footer({ page = "home" }: { page?: SitePage }) {
           <Logo size={28} className="text-ink" />
           <p className="mt-4">Construit à Abidjan, pour les devs, par les devs.</p>
           <p className="mt-3">Paiements via un agrégateur mobile money.</p>
+          <MakerCredit className="mt-3" />
         </div>
         <nav aria-label="Liens du pied de page">
           <ul className="flex flex-col gap-1 md:flex-row md:flex-wrap md:gap-x-6">
