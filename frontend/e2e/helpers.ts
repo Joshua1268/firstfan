@@ -137,6 +137,16 @@ export async function playSeededTest(request: APIRequestContext, testerEmail: st
   });
 }
 
+// The dev of seedOpenCampaign validates the test sent by playSeededTest: the tester is credited.
+export async function validateSeededTest(request: APIRequestContext, testerEmail: string) {
+  const [invitation] = await (await request.get("/api/tester/invitations/")).json();
+  await postAs(request, "/api/auth/login/", { data: { email: `dev-${testerEmail}`, password: PASSWORD } });
+  await postAs(request, `/api/invitations/${invitation.id}/validate/`, {
+    data: { decision: "validated", score: 5, comment: "" },
+  });
+  return { invitationId: invitation.id as number };
+}
+
 export async function logIn(page: Page, email: string) {
   await page.goto("/connexion");
   await page.getByLabel("Email").fill(email);
