@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Geist, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // Only latin is preloaded (latin-ext slowed LCP). Archivo stays preloaded: its condensed fallback would shift the H1.
@@ -31,6 +32,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: PRODUCT_NAME,
   description: `${PRODUCT_NAME} met en relation les développeurs qui ont une application à faire tester avec des professionnels vérifiés du métier visé, rémunérés pour chaque test validé.`,
 };
