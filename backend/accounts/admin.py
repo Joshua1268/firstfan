@@ -8,7 +8,7 @@ from .models import TesterProfile, User
 
 @admin.register(User)
 class CadevUserAdmin(UserAdmin):
-    fieldsets = UserAdmin.fieldsets + (("CADEV", {"fields": ("role",)}),)
+    fieldsets = UserAdmin.fieldsets + (("FirstFan", {"fields": ("role",)}),)
     list_display = ("username", "email", "role", "is_staff")
 
 

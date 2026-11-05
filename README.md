@@ -4,8 +4,6 @@
 
 FirstFan met en relation des développeurs qui ont une app web et zéro vrai utilisateur avec des professionnels vérifiés du métier visé : comptables, restauratrices, commerçants, livreurs... Ces professionnels testent l'app pour de vrai, laissent des preuves de leur passage et un avis honnête. Ceux qui l'adoptent deviennent ses premiers clients, et FirstFan mesure qui revient.
 
-Projet CADEV 2026, groupe Côte d'Ivoire.
-
 ## Le problème
 
 Un développeur construit un MVP, le montre, entend « c'est super »... et personne ne l'utilise. Sans vrais utilisateurs ni retours honnêtes, il abandonne ou recommence. FirstFan lui donne accès directement aux personnes pour qui l'app est faite.
