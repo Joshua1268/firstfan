@@ -20,9 +20,7 @@ export function LiveBadge({
         </span>
       </p>
       {demo && (
-        <p className="font-mono text-[11px] uppercase leading-none tracking-[0.12em] text-ink-muted">
-          Données de démo CADEV
-        </p>
+        <p className="font-mono text-[11px] uppercase leading-none tracking-[0.12em] text-ink-muted">Données de démo</p>
       )}
     </div>
   );

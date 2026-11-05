@@ -57,7 +57,7 @@ export function PageShell({
         <div className={`${containerCls} flex flex-col gap-4 md:flex-row md:items-center md:justify-between`}>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
             <Logo size={28} className="text-ink" />
-            <p>Projet CADEV 2026 · Groupe Côte d&apos;Ivoire</p>
+            <p>Construit à Abidjan, pour les devs, par les devs.</p>
           </div>
           <ul className="flex flex-wrap gap-x-6">
             {LEGAL_LINKS.map((l) => (

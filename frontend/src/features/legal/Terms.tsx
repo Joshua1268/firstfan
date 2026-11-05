@@ -59,7 +59,7 @@ export function Terms() {
 
       <TextSection title="Paiements">
         <p>
-          Le testeur est rémunéré après validation de son test par le développeur. Pendant la démo CADEV 2026, tous les
+          Le testeur est rémunéré après validation de son test par le développeur. Pour l&apos;instant, tous les
           paiements et retraits sont simulés : aucun argent réel ne circule.
         </p>
       </TextSection>

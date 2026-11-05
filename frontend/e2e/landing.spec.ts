@@ -611,7 +611,7 @@ test("api down", { tag: "@api-down" }, async ({ page }) => {
 
 test("demo label when demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Données de démo CADEV").first()).toBeVisible();
+  await expect(page.getByText("Données de démo").first()).toBeVisible();
 });
 
 test("live section shows only the non-zero server counters and the demo mention", async ({ page, request }) => {
@@ -625,7 +625,7 @@ test("live section shows only the non-zero server counters and the demo mention"
   for (const v of await live.locator("[data-live-counter] .sr-only").allTextContents())
     expect(Number(v)).toBeGreaterThan(0);
   await expect(live).not.toContainText(/(?<!\d)0 (tests? en cours|apps? testées?)/);
-  await expect(live).toContainText("Données de démo CADEV · mises à jour toutes les 15 s");
+  await expect(live).toContainText("Données de démo · mises à jour toutes les 15 s");
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
 });
 
