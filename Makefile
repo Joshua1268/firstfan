@@ -1,5 +1,6 @@
 -include .env
 PROXY_NETWORK ?= web_network
+export DEMO_PASSWORD
 
 COMPOSE = docker compose
 BACKEND = $(COMPOSE) exec -T firstfan-backend
@@ -50,7 +51,7 @@ test-front: network
 	$(FRONTEND_CHECK) pnpm test
 
 e2e:
-	cd frontend && DEMO_PASSWORD=$(DEMO_PASSWORD) pnpm exec playwright test
+	cd frontend && pnpm exec playwright test
 
 lint: lint-back lint-front
 
