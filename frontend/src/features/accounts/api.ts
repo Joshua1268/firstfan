@@ -29,3 +29,7 @@ export function getTesterProfile(): Promise<TesterProfile> {
 export function updateTesterProfile(form: FormData): Promise<TesterProfile> {
   return apiFetch("/api/tester/profile/", { method: "PATCH", body: form });
 }
+
+export function getGoogleStatus(): Promise<{ enabled: boolean }> {
+  return apiFetch("/api/auth/google/");
+}
