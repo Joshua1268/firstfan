@@ -18,10 +18,15 @@ export function footerLinks(page: SitePage): SiteLink[] {
     { href: homeAnchor(page, "comment-ca-marche"), label: "Comment ça marche" },
     { href: "/testeurs", label: "Devenir testeur" },
     { href: homeAnchor(page, "entre-devs"), label: "Pour les devs" },
-    { href: "/confidentialite", label: "Confidentialité" },
-    { href: "/contact", label: "Contact" },
+    ...LEGAL_LINKS,
   ];
 }
+
+export const LEGAL_LINKS: SiteLink[] = [
+  { href: "/confidentialite", label: "Confidentialité" },
+  { href: "/conditions", label: "Conditions d'utilisation" },
+  { href: "/contact", label: "Contact" },
+];
 
 export const PAGE_CTA: Record<SitePage, SiteLink> = {
   home: { href: "/inscription?role=dev", label: "Je suis développeur" },

@@ -32,7 +32,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: PRODUCT_NAME,
-  description: `${PRODUCT_NAME} : fais tester ton application par des professionnels vérifiés.`,
+  description: `${PRODUCT_NAME} met en relation les développeurs qui ont une application à faire tester avec des professionnels vérifiés du métier visé, rémunérés pour chaque test validé.`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LEGAL_LINKS } from "@/lib/site-links";
 import { ArrowIcon } from "@/ui/icons";
 import { Logo } from "@/ui/Logo";
 
@@ -59,22 +60,16 @@ export function PageShell({
             <p>Projet CADEV 2026 · Groupe Côte d&apos;Ivoire</p>
           </div>
           <ul className="flex flex-wrap gap-x-6">
-            <li>
-              <Link
-                href="/confidentialite"
-                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
-              >
-                Confidentialité
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/contact"
-                className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
-              >
-                Contact
-              </Link>
-            </li>
+            {LEGAL_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className="inline-flex min-h-11 items-center transition-colors duration-150 hover:text-ink"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </footer>
@@ -114,3 +109,29 @@ export function Card({ title, children }: { title: string; children: ReactNode }
     </section>
   );
 }
+
+// One titled block of a long text page (privacy policy, terms).
+export function TextSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="border-t border-line pt-8 md:grid md:grid-cols-12 md:gap-x-[var(--grid-gutter)]">
+      <h2 className="text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink md:col-span-4">
+        {title}
+      </h2>
+      <div className="mt-4 max-w-[65ch] space-y-4 text-[16px] leading-[1.6] text-ink-muted md:col-span-8 md:mt-1 [&_li]:pl-1 [&_strong]:font-semibold [&_strong]:text-ink [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export function TextSections({ updated, children }: { updated: string; children: ReactNode }) {
+  return (
+    <div className="mt-12 md:mt-16">
+      <p className={kickerCls}>Mis à jour le {updated}</p>
+      <div className="mt-8 space-y-10 md:space-y-12">{children}</div>
+    </div>
+  );
+}
+
+export const textLinkCls =
+  "text-ink underline decoration-line underline-offset-4 transition-colors duration-150 hover:decoration-ink";

@@ -7,6 +7,7 @@ import { LiveSection } from "@/features/landing/LiveSection";
 import { MobileCtaBar } from "@/features/landing/MobileCtaBar";
 import { Nav } from "@/features/landing/Nav";
 import { ProSection } from "@/features/landing/ProSection";
+import { Purpose } from "@/features/landing/Purpose";
 import { REVEAL_NO_JS } from "@/features/landing/reveal-nojs";
 import { Stage } from "@/features/landing/stage/Stage";
 import { Trust } from "@/features/landing/Trust";
@@ -21,6 +22,7 @@ export default async function Home() {
       <Nav />
       <main>
         <Hero stats={stats} />
+        <Purpose />
         <JobsMarquee />
         <Stage />
         <ProSection />
