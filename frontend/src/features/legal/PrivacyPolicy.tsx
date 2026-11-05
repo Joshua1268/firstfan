@@ -56,7 +56,8 @@ export function PrivacyPolicy() {
           script envoie seulement l&apos;adresse de la page et le projet concerné, avec la date. Si tu es arrivé par un
           lien de test {PRODUCT_NAME}, il garde le jeton de ce lien dans le stockage local de ton navigateur pour
           rattacher tes visites suivantes à ton test. Il ne pose aucun cookie, ne lit ni ton nom ni ce que tu saisis.
-          Ton adresse IP sert seulement à limiter les abus et n&apos;est pas enregistrée.
+          Ton adresse IP n&apos;est pas enregistrée avec tes visites. Le serveur la garde seulement dans ses journaux
+          techniques, pour une courte durée, afin d&apos;assurer la sécurité du site et de limiter les abus.
         </p>
       </TextSection>
 
@@ -150,7 +151,11 @@ export function PrivacyPolicy() {
 
       <TextSection title="Conservation et sécurité">
         <ul>
-          <li>Tes données sont gardées tant que ton compte existe, puis supprimées avec lui.</li>
+          <li>
+            Tes données sont gardées tant que ton compte existe. Pour supprimer ton compte, fais-en la demande (voir
+            plus bas). Les traces de paiement (gains, retraits et numéro mobile money utilisé) peuvent être conservées
+            après la suppression, pour le suivi comptable et en cas de litige.
+          </li>
           <li>
             Les documents de preuve et les captures ne sont jamais publics : ils passent uniquement par des accès
             réservés aux personnes concernées et à l&apos;équipe de vérification.
