@@ -100,3 +100,12 @@ test("a wrong password shows a clear message", async ({ page }) => {
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.locator("main").getByRole("alert")).toHaveText("Email ou mot de passe incorrect.");
 });
+
+test("the Google button stays hidden while Google sign-in is off", async ({ page }) => {
+  for (const path of ["/connexion", "/inscription?role=tester"]) {
+    const status = page.waitForResponse((r) => r.url().endsWith("/api/auth/google/"));
+    await page.goto(path);
+    expect(await (await status).json()).toEqual({ enabled: false });
+    await expect(page.getByText("Continuer avec Google")).toHaveCount(0);
+  }
+});
