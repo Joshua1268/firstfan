@@ -6,6 +6,9 @@ import { formatXof } from "@/lib/money";
 import { CheckIcon, ClockIcon, LockIcon } from "@/ui/icons";
 import type { TesterInvitationDetail } from "../types";
 
+const linkCls =
+  "inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline";
+
 // Where a finished invitation stands: sent and waiting, paid, refused by the dev, or declined.
 export function TestSummary({ invitation, focusTitle }: { invitation: TesterInvitationDetail; focusTitle: boolean }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -29,12 +32,16 @@ export function TestSummary({ invitation, focusTitle }: { invitation: TesterInvi
         {summary.title}
       </h2>
       <p className="max-w-[46ch] text-[16px] leading-[1.6] text-ink-muted">{summary.text(invitation)}</p>
-      <Link
-        href="/testeur"
-        className="inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline"
-      >
-        Retour à mes invitations
-      </Link>
+      <div className="flex flex-col items-start gap-1 md:flex-row md:gap-6">
+        {invitation.status === "validated" && (
+          <Link href="/testeur/gains" className={linkCls}>
+            Voir mes gains
+          </Link>
+        )}
+        <Link href="/testeur" className={linkCls}>
+          Retour à mes invitations
+        </Link>
+      </div>
     </section>
   );
 }
