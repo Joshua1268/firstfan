@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { googleMessage } from "@/features/accounts/google";
 import { RegisterForm } from "@/features/accounts/RegisterForm";
 import type { Role } from "@/features/accounts/types";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { FormAlert } from "@/ui/FormAlert";
 import { CheckIcon } from "@/ui/icons";
 import { Actions, PageShell, PrimaryLink, SecondaryLink } from "@/ui/PageShell";
 
@@ -32,9 +34,19 @@ const ROLES: Record<Role, { kicker: string; title: string; points: string[]; oth
     },
   };
 
-export default async function Inscription({ searchParams }: { searchParams: Promise<{ role?: string | string[] }> }) {
-  const raw = (await searchParams).role;
-  const role = raw === "dev" || raw === "tester" ? raw : null;
+export default async function Inscription({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string | string[]; google?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const role = params.role === "dev" || params.role === "tester" ? params.role : null;
+  const googleError = googleMessage(params.google);
+  const alert = googleError && (
+    <div className="mt-8 max-w-[480px]">
+      <FormAlert message={googleError} />
+    </div>
+  );
 
   if (!role) {
     return (
@@ -43,6 +55,7 @@ export default async function Inscription({ searchParams }: { searchParams: Prom
         title="Qui es-tu ?"
         lead="Choisis ton compte : tu pourras commencer tout de suite."
       >
+        {alert}
         <Actions>
           <PrimaryLink href="/inscription?role=dev">Je suis développeur</PrimaryLink>
           <SecondaryLink href="/inscription?role=tester">Je teste et je suis rémunéré</SecondaryLink>
@@ -60,6 +73,7 @@ export default async function Inscription({ searchParams }: { searchParams: Prom
   const r = ROLES[role];
   return (
     <PageShell kicker={r.kicker} title={r.title}>
+      {alert}
       <div className="mt-10 grid gap-12 md:mt-14 md:grid-cols-[minmax(0,480px)_minmax(0,1fr)] md:gap-20">
         <RegisterForm role={role} />
         <aside className="flex flex-col gap-6 md:border-l md:border-line md:pl-12">
