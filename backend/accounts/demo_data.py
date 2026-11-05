@@ -1,3 +1,5 @@
+from pathlib import Path
+
 # (first name, initial, profession, city, verified, rating)
 DEMO_TESTERS = [
     ("Awa", "K", "Comptable", "Plateau", True, "4.90"),
@@ -16,7 +18,19 @@ DEMO_TESTERS = [
     ("Kouassi", "E", "Comptable", "Marcory", True, "4.60"),
 ]
 
-DEMO_DEV = {"username": "demo-dev", "email": "demo-dev@firstfan.demo", "first_name": "Kader"}
+DEMO_DEV = {"email": "demo-dev@firstfan.demo", "first_name": "Kader"}
+# Username used before logins switched to the email; renamed on the next seed.
+LEGACY_DEV_USERNAME = "demo-dev"
+
+DEMO_TESTER = {
+    "email": "demo-testeur@firstfan.demo",
+    "first_name": "Aya",
+    "last_name": "K.",
+    "profession": "Comptable",
+    "city": "Cocody",
+    "momo_number": "0700000050",
+    "linkedin_url": "https://www.linkedin.com/in/firstfan-demo",
+}
 
 DEMO_PROJECT = {
     "name": "Compta Express (démo)",
@@ -32,16 +46,15 @@ DEMO_STEPS = [
     "Envoie une relance pour une facture en retard.",
 ]
 
-# 1 x 1 transparent PNG, used as step capture.
-DEMO_CAPTURE = (
-    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4"
-    b"\x89\x00\x00\x00\x0bIDATx\x9cc`\x00\x02\x00\x00\x05\x00\x01z^\xab?\x00\x00\x00\x00IEND\xaeB`\x82"
-)
+# One screenshot per scenario step.
+DEMO_CAPTURES = [Path(__file__).parent / "demo_assets" / f"step-{i}.png" for i in (1, 2, 3)]
 
 # One test per invited tester. Return days are counted from the test start and give
 # a mixed adoption table: back at J1 and J7 then gone, back at J7 only, too early to tell.
+# Statuses leave one test to validate and one still in progress.
 DEMO_TESTS = [
     {
+        "status": "validated",
         "started_days_ago": 35,
         "return_days": [0.1, 2, 10],
         "answers": ["Compte créé en 2 minutes.", "Facture saisie sans souci.", "Relance envoyée par SMS."],
@@ -55,6 +68,7 @@ DEMO_TESTS = [
         "tester_score": 5,
     },
     {
+        "status": "submitted",
         "started_days_ago": 12,
         "return_days": [0.1, 8],
         "answers": ["Compte créé.", "Le champ TVA m'a bloqué un moment.", "Relance envoyée."],
@@ -65,19 +79,11 @@ DEMO_TESTS = [
             "comment": "",
         },
         "dev_score": 4,
-        "tester_score": 4,
     },
     {
+        "status": "accepted",
         "started_days_ago": 3,
         "return_days": [0.1, 1.5],
-        "answers": ["Compte créé.", "Facture saisie.", "Je n'ai pas trouvé le bouton tout de suite."],
-        "feedback": {
-            "usefulness": 4,
-            "blockers": "Le bouton de relance est caché dans le menu.",
-            "would_pay": "yes",
-            "comment": "Pratique sur téléphone.",
-        },
-        "dev_score": 5,
-        "tester_score": 5,
+        "answers": ["Compte créé.", "Facture saisie, le PDF sort bien."],
     },
 ]
