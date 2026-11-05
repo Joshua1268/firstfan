@@ -50,7 +50,7 @@ test-front: network
 	$(FRONTEND_CHECK) pnpm test
 
 e2e:
-	cd frontend && pnpm exec playwright test
+	cd frontend && DEMO_PASSWORD=$(DEMO_PASSWORD) pnpm exec playwright test
 
 lint: lint-back lint-front
 

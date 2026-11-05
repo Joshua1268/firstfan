@@ -147,9 +147,9 @@ export async function validateSeededTest(request: APIRequestContext, testerEmail
   return { invitationId: invitation.id as number };
 }
 
-export async function logIn(page: Page, email: string) {
+export async function logIn(page: Page, email: string, password = PASSWORD) {
   await page.goto("/connexion");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
+  await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
 }
