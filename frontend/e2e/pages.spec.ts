@@ -38,7 +38,14 @@ test("public stats answer through the same origin, with and without trailing sla
 test("every CTA, nav and footer link of the landing leads to a real page (no 404)", async ({ page, request }) => {
   await page.goto("/");
   const hrefs = await internalHrefs(page);
-  for (const expected of ["/inscription?role=dev", "/testeurs", "/connexion", "/confidentialite", "/contact"])
+  for (const expected of [
+    "/inscription?role=dev",
+    "/testeurs",
+    "/connexion",
+    "/confidentialite",
+    "/conditions",
+    "/contact",
+  ])
     expect(hrefs).toContain(expected);
   for (const href of hrefs) {
     const res = await request.get(href);
@@ -47,7 +54,8 @@ test("every CTA, nav and footer link of the landing leads to a real page (no 404
 });
 
 const PAGES = [
-  { path: "/confidentialite", h1: "Tes données, en clair.", text: "Version provisoire" },
+  { path: "/confidentialite", h1: "Tes données, en clair.", text: "Connexion avec Google" },
+  { path: "/conditions", h1: "Les règles du jeu.", text: "Contenus interdits" },
   { path: "/contact", h1: "Écris-nous.", text: "Par e-mail" },
 ] as const;
 
@@ -61,11 +69,32 @@ for (const p of PAGES) {
     // Information pages only: forms live on /inscription and /connexion.
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Retour à l'accueil" }).first()).toBeVisible();
+    for (const label of ["Confidentialité", "Conditions d'utilisation", "Contact"])
+      await expect(page.locator("footer").getByRole("link", { name: label })).toBeVisible();
     expect(await scan(await page.locator("body").innerText())).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     for (const href of await internalHrefs(page)) expect((await request.get(href)).status(), href).toBe(200);
   });
 }
+
+test("privacy policy is final and states the Google data use", async ({ page }) => {
+  await page.goto("/confidentialite");
+  const main = page.locator("main");
+  await expect(main).not.toContainText(/provisoire|aucune donnée/i);
+  await expect(main).toContainText("Mis à jour le 5 novembre 2026");
+  await expect(main).toContainText("exigences d'utilisation limitée");
+  await expect(
+    main.getByRole("link", { name: "Règles relatives aux données utilisateur des services d'API Google" }),
+  ).toHaveAttribute("href", "https://developers.google.com/terms/api-services-user-data-policy");
+  await expect(main).toContainText("jamais utilisées pour entraîner un modèle d'IA");
+  await expect(main).toContainText("ne génère et ne modifie aucune image");
+});
+
+test("terms forbid non-consensual intimate content", async ({ page }) => {
+  await page.goto("/conditions");
+  await expect(page.locator("main")).toContainText("sans son accord, y compris un contenu généré ou modifié par IA");
+  await expect(page.locator("main")).toContainText("Mis à jour le 5 novembre 2026");
+});
 
 test("contact page publishes no personal address", async ({ page }) => {
   await page.goto("/contact");

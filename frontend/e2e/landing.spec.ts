@@ -46,6 +46,20 @@ test("hero copy is server-rendered and its single CTA is clickable", async ({ pa
   await expect(hero.locator("a[href*='role=tester']")).toHaveCount(0);
 });
 
+test("states what the service does right after the hero", async ({ page }) => {
+  await page.goto("/");
+  const purpose = page.locator("section#ce-que-fait");
+  await expect(purpose).toHaveAttribute("aria-labelledby", "purpose-title");
+  await expect(purpose).toContainText("met en relation des développeurs qui ont une application à faire tester");
+  await expect(purpose).toContainText("La connexion avec Google sert uniquement à t'identifier");
+  expect(await page.evaluate(() => document.querySelector("#hero")?.nextElementSibling?.id)).toBe("ce-que-fait");
+  for (const [name, href] of [
+    ["Confidentialité", "/confidentialite"],
+    ["Conditions d'utilisation", "/conditions"],
+  ] as const)
+    await expect(page.locator("footer").getByRole("link", { name })).toHaveAttribute("href", href);
+});
+
 test("mobile layout", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile");
   await page.goto("/");
@@ -564,6 +578,7 @@ test("no js", async ({ browser }, info) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("#pro")).toContainText(/métier/i);
   for (const [sel, text] of [
+    ["#ce-que-fait", "met en relation des développeurs"],
     ["#pro", "Ton métier vaut de l'argent. Ici, il est payé."],
     ["#pro", "Devenir testeur"],
     ["#en-direct", "Chaque chiffre vient d'un vrai test, pas d'un formulaire."],
