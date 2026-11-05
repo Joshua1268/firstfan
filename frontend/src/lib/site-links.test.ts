@@ -16,6 +16,12 @@ describe("site links", () => {
       expect(footerLinks(page).find((l) => l.label === "Devenir testeur")?.href).toBe("/testeurs");
     }
   });
+  it("links the legal pages from every footer", () => {
+    for (const page of ["home", "testeurs"] as const)
+      expect(footerLinks(page).map((l) => l.href)).toEqual(
+        expect.arrayContaining(["/confidentialite", "/conditions", "/contact"]),
+      );
+  });
   it("gives each page one action for its own audience", () => {
     expect(PAGE_CTA.home).toEqual({ href: "/inscription?role=dev", label: "Je suis développeur" });
     expect(PAGE_CTA.testeurs).toEqual({ href: "/inscription?role=tester", label: "Proposer mon profil" });
