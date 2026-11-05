@@ -23,9 +23,7 @@ export function Footer({ page = "home" }: { page?: SitePage }) {
       <div className={`${containerCls} flex flex-col gap-8 md:flex-row md:items-start md:justify-between`}>
         <div className="max-w-[52ch]">
           <Logo size={28} className="text-ink" />
-          <p className="mt-4">
-            Construit à Abidjan, pour les devs, par les devs · Projet CADEV 2026 · Groupe Côte d&apos;Ivoire
-          </p>
+          <p className="mt-4">Construit à Abidjan, pour les devs, par les devs.</p>
           <p className="mt-3">Paiements via un agrégateur mobile money.</p>
         </div>
         <nav aria-label="Liens du pied de page">

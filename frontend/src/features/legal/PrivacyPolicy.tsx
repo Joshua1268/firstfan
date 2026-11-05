@@ -11,8 +11,8 @@ export function PrivacyPolicy() {
       <TextSection title="Qui est responsable">
         <p>
           {PRODUCT_NAME} est une plateforme qui met en relation des développeurs qui ont une application à faire tester
-          avec des professionnels vérifiés du métier visé. Elle est éditée par l&apos;équipe {PRODUCT_NAME} du projet
-          CADEV 2026 (groupe Côte d&apos;Ivoire), responsable des données décrites ici.
+          avec des professionnels vérifiés du métier visé. Elle est éditée par l&apos;équipe {PRODUCT_NAME}, basée à
+          Abidjan, responsable des données décrites ici.
         </p>
         <p>
           Pour toute question sur tes données, <ContactLine />.
@@ -144,8 +144,8 @@ export function PrivacyPolicy() {
           <li>Google pour la connexion, si tu la choisis.</li>
         </ul>
         <p>
-          Rien n&apos;est revendu. Pendant la démo CADEV 2026, les paiements sont simulés : aucun prestataire de
-          paiement ne reçoit tes données.
+          Rien n&apos;est revendu. Pour l&apos;instant, les paiements sont simulés : aucun prestataire de paiement ne
+          reçoit tes données.
         </p>
       </TextSection>
 
