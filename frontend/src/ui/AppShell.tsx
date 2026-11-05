@@ -4,15 +4,17 @@ import { Logo } from "@/ui/Logo";
 
 const containerCls = "mx-auto w-full max-w-[calc(960px+2*var(--grid-margin))] px-[var(--grid-margin)]";
 
-// Frame of the logged-in spaces: logo, link to the space home, and a slot for the logout button.
+// Frame of the logged-in spaces: logo, link to the space home, extra links, and a slot for the logout button.
 export function AppShell({
   spaceHref,
   spaceLabel,
+  links = [],
   actions,
   children,
 }: {
   spaceHref: string;
   spaceLabel: string;
+  links?: { href: string; label: string }[];
   actions: ReactNode;
   children: ReactNode;
 }) {
@@ -24,12 +26,22 @@ export function AppShell({
             <Logo variant="mark" size={32} className="md:hidden" />
             <Logo size={32} className="hidden md:block" />
           </Link>
+          {/* On a phone the logo already leads home: the label gives its room to the links. */}
           <Link
             href={spaceHref}
-            className="inline-flex min-h-11 items-center font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted transition-colors duration-150 hover:text-ink"
+            className={`${links.length > 0 ? "hidden sm:inline-flex" : "inline-flex"} min-h-11 items-center font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted transition-colors duration-150 hover:text-ink`}
           >
             {spaceLabel}
           </Link>
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex min-h-11 items-center text-[14px] font-medium text-ink underline-offset-4 hover:underline"
+            >
+              {link.label}
+            </Link>
+          ))}
           <div className="ml-auto">{actions}</div>
         </nav>
       </header>
