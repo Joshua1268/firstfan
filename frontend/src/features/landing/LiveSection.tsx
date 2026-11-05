@@ -228,7 +228,7 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
             </p>
             {data?.demo && (
               <p className="mt-3 font-mono text-[12px] uppercase leading-snug tracking-[0.12em] text-ink-muted">
-                Données de démo CADEV · mises à jour toutes les 15 s
+                Données de démo · mises à jour toutes les 15 s
               </p>
             )}
             {data && offline && lastUpdate && (
