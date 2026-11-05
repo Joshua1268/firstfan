@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from django.contrib.auth import authenticate, login, logout
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from core.permissions import IsTester
 
+from . import google
 from .models import TesterProfile
 from .professions import PROFESSIONS
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer, TesterProfileSerializer
@@ -57,6 +58,61 @@ class LoginView(APIView):
             raise ValidationError({"detail": "Email ou mot de passe incorrect."})
         login(request, user)
         return Response(MeSerializer(user).data)
+
+
+class GoogleStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"enabled": google.is_enabled()})
+
+
+def google_error_redirect(code: str) -> HttpResponseRedirect:
+    page = "/inscription" if code in ("inconnu", "consentement") else "/connexion"
+    return HttpResponseRedirect(f"{page}?google={code}")
+
+
+class GoogleStartView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
+    def get(self, request):
+        params = request.query_params
+        try:
+            url = google.start(
+                request.session,
+                intent=params.get("intent", ""),
+                role=params.get("role", ""),
+                consent=params.get("consent") == "1",
+                next_path=params.get("next", ""),
+            )
+        except google.GoogleError as e:
+            return google_error_redirect(e.code)
+        return HttpResponseRedirect(url)
+
+
+class GoogleCallbackView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
+    def get(self, request):
+        params = request.query_params
+        if "error" in params:
+            request.session.pop(google.SESSION_KEY, None)
+            return google_error_redirect("annule")
+        try:
+            user, target = google.finish(
+                request.session, code=params.get("code", ""), state=params.get("state", "")
+            )
+        except google.GoogleError as e:
+            return google_error_redirect(e.code)
+        except ValidationError:
+            # Same email signed up at the same moment.
+            return google_error_redirect("invalide")
+        login(request, user)
+        return HttpResponseRedirect(target)
 
 
 class LogoutView(APIView):

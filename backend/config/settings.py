@@ -192,6 +192,10 @@ PRODUCT_NAME = env("PRODUCT_NAME", "FirstFan")
 # Public address of the site, used in the tracking script snippet.
 SITE_URL = env("SITE_URL", "http://localhost:3000").rstrip("/")
 
+# Sign in with Google; disabled when either value is empty.
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", "")
+
 # Whole XOF amounts.
 PRICE_PER_TESTER_XOF = int(env("PRICE_PER_TESTER_XOF", "5000"))
 TESTER_REWARD_XOF = int(env("TESTER_REWARD_XOF", "3500"))
