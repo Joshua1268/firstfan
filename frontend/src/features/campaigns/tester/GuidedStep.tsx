@@ -112,12 +112,11 @@ export function GuidedStep({
         label="Capture d'écran"
         name="capture"
         accept="image/jpeg,image/png,image/webp"
-        capture="environment"
         error={fieldError("capture")}
         hint={
           step.proof
             ? "Une capture est déjà enregistrée. Choisis une image seulement pour la remplacer."
-            : "Montre l'écran où tu es arrivé : JPEG, PNG ou WebP, 5 Mo maximum."
+            : "Montre l'écran où tu es arrivé : choisis une capture dans ta galerie ou prends une photo. JPEG, PNG ou WebP, 5 Mo maximum."
         }
       />
       {step.proof && (

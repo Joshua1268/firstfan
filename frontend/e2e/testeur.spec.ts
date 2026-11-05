@@ -18,6 +18,8 @@ async function doStep(page: Page, number: number) {
     `Étape ${number} sur 3 ${SCENARIO[number - 1]}`,
   );
   await page.getByLabel("Ta réponse").fill(`C'est fait pour l'étape ${number}.`);
+  // No capture attribute: on a phone the tester picks a screenshot from the gallery.
+  await expect(page.getByLabel("Capture d'écran")).not.toHaveAttribute("capture");
   await page
     .getByLabel("Capture d'écran")
     .setInputFiles({ name: "capture.png", mimeType: "image/png", buffer: TINY_PNG });
