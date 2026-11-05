@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CampaignForm } from "@/features/campaigns/dev/CampaignForm";
 import { CampaignList } from "@/features/campaigns/dev/CampaignList";
 import { ProjectOverview } from "@/features/projects/ProjectOverview";
+import { AdoptionTable } from "@/features/tracking/AdoptionTable";
 import { PRODUCT_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Projet · ${PRODUCT_NAME}` };
@@ -16,6 +17,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <h2 className={h2Cls}>Campagnes</h2>
         <CampaignList projectId={projectId} />
       </section>
+      <AdoptionTable projectId={projectId} />
       <section className="flex max-w-[720px] flex-col gap-6 border-t border-line pt-10">
         <h2 className={h2Cls}>Nouvelle campagne</h2>
         <CampaignForm projectId={projectId} />
