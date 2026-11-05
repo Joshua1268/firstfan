@@ -9,7 +9,12 @@ export const metadata: Metadata = { title: `Espace testeur · ${PRODUCT_NAME}` }
 
 export default function TesterLayout({ children }: { children: ReactNode }) {
   return (
-    <AppShell spaceHref="/testeur" spaceLabel="Espace testeur" actions={<LogoutButton />}>
+    <AppShell
+      spaceHref="/testeur"
+      spaceLabel="Espace testeur"
+      links={[{ href: "/testeur/gains", label: "Mes gains" }]}
+      actions={<LogoutButton />}
+    >
       <RequireRole role="tester">{children}</RequireRole>
     </AppShell>
   );

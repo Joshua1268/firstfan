@@ -7,7 +7,7 @@ from .models import TesterProfile, User
 EMAIL_TAKEN = "Un compte existe déjà avec cet email."
 
 
-def register_user(*, email: str, password: str, first_name: str, role: str, consent: bool) -> User:
+def register_user(*, email: str, password: str | None, first_name: str, role: str, consent: bool) -> User:
     email = email.lower()
     if role == User.Role.TESTER and not consent:
         raise ValidationError({"consent": ["Ton accord est nécessaire pour devenir testeur."]})

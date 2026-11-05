@@ -39,7 +39,7 @@ async function loadHome() {
   return { me, profile };
 }
 
-// children: the invitation list, given by the page.
+// children: the balance and the invitation list, given by the page.
 export function TesterHome({ children }: { children: ReactNode }) {
   const { data, error, reload } = useApi(loadHome);
   if (error) return <LoadFailed message={error.detail ?? "Impossible de charger ton espace."} onRetry={reload} />;

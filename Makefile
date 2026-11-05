@@ -1,5 +1,6 @@
 -include .env
 PROXY_NETWORK ?= web_network
+export DEMO_PASSWORD
 
 COMPOSE = docker compose
 BACKEND = $(COMPOSE) exec -T firstfan-backend

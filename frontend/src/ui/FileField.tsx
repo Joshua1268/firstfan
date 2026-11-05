@@ -9,7 +9,6 @@ export function FileField({
   name,
   accept,
   multiple = false,
-  capture,
   error,
   hint,
 }: {
@@ -17,8 +16,6 @@ export function FileField({
   name: string;
   accept: string;
   multiple?: boolean;
-  // On a phone, opens the camera directly.
-  capture?: "environment" | "user";
   error?: string;
   hint?: ReactNode;
 }) {
@@ -65,7 +62,6 @@ export function FileField({
               name={name}
               accept={accept}
               multiple={multiple}
-              capture={capture}
               onChange={(e) => choose(Array.from(e.target.files ?? []))}
               className="absolute inset-0 cursor-pointer opacity-0"
             />

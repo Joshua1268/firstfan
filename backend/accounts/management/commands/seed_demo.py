@@ -8,16 +8,18 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.demo_data import (
-    DEMO_CAPTURE,
+    DEMO_CAPTURES,
     DEMO_DEV,
     DEMO_PROFESSION,
     DEMO_PROJECT,
     DEMO_STEPS,
+    DEMO_TESTER,
     DEMO_TESTERS,
     DEMO_TESTS,
+    LEGACY_DEV_USERNAME,
 )
 from accounts.models import TesterProfile, User
-from campaigns.models import Campaign, Invitation
+from campaigns.models import Campaign, Invitation, StepProof
 from campaigns.services import (
     accept_invitation,
     create_campaign,
@@ -43,9 +45,11 @@ class Command(BaseCommand):
     def handle(self, *args, force=False, **options):
         if not settings.DEMO_MODE and not force:
             raise CommandError("DEMO_MODE est désactivé : relancer avec --force pour amorcer quand même.")
+        self.generated_password = ""
         created = self.seed_testers()
         dev, dev_created = self.seed_dev()
-        created += dev_created
+        tester_created = self.seed_demo_tester()
+        created += dev_created + tester_created
         if not Project.objects.filter(owner=dev, name=DEMO_PROJECT["name"]).exists():
             self.seed_scenario(dev)
             created += 1
@@ -56,6 +60,28 @@ class Command(BaseCommand):
                 f"{created} créés à cette exécution."
             )
         )
+        self.print_logins()
+
+    def print_logins(self) -> None:
+        self.stdout.write(f"Compte dev de démo : {DEMO_DEV['email']}")
+        self.stdout.write(f"Compte testeur de démo : {DEMO_TESTER['email']}")
+        if self.generated_password:
+            self.stdout.write(f"Mot de passe généré (affiché une seule fois) : {self.generated_password}")
+        elif settings.DEMO_PASSWORD:
+            self.stdout.write("Mot de passe : la valeur de DEMO_PASSWORD.")
+        else:
+            self.stdout.write("Mot de passe : celui affiché au premier amorçage.")
+
+    def set_demo_password(self, user: User, created: bool) -> None:
+        # Without DEMO_PASSWORD, existing accounts keep the password shown at their creation.
+        password = settings.DEMO_PASSWORD
+        if not password and not created:
+            return
+        if not password:
+            self.generated_password = self.generated_password or secrets.token_urlsafe(12)
+            password = self.generated_password
+        user.set_password(password)
+        user.save(update_fields=["password"])
 
     def seed_testers(self) -> int:
         created = 0
@@ -82,22 +108,41 @@ class Command(BaseCommand):
         return created
 
     def seed_dev(self) -> tuple[User, bool]:
+        email = DEMO_DEV["email"]
+        # Login authenticates with username=email, as register_user creates it.
+        if not User.objects.filter(username=email).exists():
+            User.objects.filter(username=LEGACY_DEV_USERNAME).update(username=email)
         dev, created = User.objects.get_or_create(
-            username=DEMO_DEV["username"],
+            username=email,
+            defaults={"email": email, "first_name": DEMO_DEV["first_name"], "role": User.Role.DEV},
+        )
+        self.set_demo_password(dev, created)
+        return dev, created
+
+    def seed_demo_tester(self) -> bool:
+        email = DEMO_TESTER["email"]
+        tester, created = User.objects.get_or_create(
+            username=email,
             defaults={
-                "email": DEMO_DEV["email"],
-                "first_name": DEMO_DEV["first_name"],
-                "role": User.Role.DEV,
+                "email": email,
+                "first_name": DEMO_TESTER["first_name"],
+                "last_name": DEMO_TESTER["last_name"],
+                "role": User.Role.TESTER,
             },
         )
-        password = settings.DEMO_PASSWORD
-        if created and not password:
-            password = secrets.token_urlsafe(12)
-            self.stdout.write(f"Compte dev de démo : {dev.email}. Mot de passe : {password}")
-        if password:
-            dev.set_password(password)
-            dev.save(update_fields=["password"])
-        return dev, created
+        self.set_demo_password(tester, created)
+        now = timezone.now()
+        profile, _ = TesterProfile.objects.get_or_create(user=tester)
+        profile.profession = DEMO_TESTER["profession"]
+        profile.city = DEMO_TESTER["city"]
+        profile.momo_number = DEMO_TESTER["momo_number"]
+        profile.linkedin_url = DEMO_TESTER["linkedin_url"]
+        profile.available = True
+        profile.consent_at = profile.consent_at or now
+        profile.verification = TesterProfile.Verification.VERIFIED
+        profile.verified_at = profile.verified_at or now
+        profile.save()
+        return created
 
     def seed_scenario(self, dev: User) -> None:
         project = create_project(owner=dev, captures=[], **DEMO_PROJECT)
@@ -107,28 +152,47 @@ class Command(BaseCommand):
             testers_wanted=len(DEMO_TESTS),
             steps=DEMO_STEPS,
         )
-        Campaign.objects.filter(pk=campaign.pk).update(is_demo=True)
         testers = eligible_testers(campaign).filter(username__startswith="demo-testeur-")[: len(DEMO_TESTS)]
         testers = list(testers)
         select_testers(campaign, [t.pk for t in testers])
         confirm_payment(start_checkout(campaign))
         for tester, test in zip(testers, DEMO_TESTS, strict=True):
             self.play_test(campaign.invitations.get(tester=tester), test)
+        # Backdate the project and campaign before the first test, so the certificate date makes sense.
+        first_start = timezone.now() - timedelta(days=max(t["started_days_ago"] for t in DEMO_TESTS))
+        created_at = first_start - timedelta(days=2)
+        Project.objects.filter(pk=project.pk).update(created_at=created_at, fingerprinted_at=created_at)
+        opened_at = first_start - timedelta(days=1)
+        Campaign.objects.filter(pk=campaign.pk).update(
+            is_demo=True, created_at=opened_at, opened_at=opened_at
+        )
+        campaign.invitations.update(created_at=opened_at)
 
     def play_test(self, invitation: Invitation, test: dict) -> None:
         session = accept_invitation(invitation, nda=True)
         for order, answer in enumerate(test["answers"], start=1):
-            capture = ContentFile(DEMO_CAPTURE, name="preuve.png")
+            path = DEMO_CAPTURES[order - 1]
+            capture = ContentFile(path.read_bytes(), name=path.name)
             save_step_proof(invitation, order, answer=answer, capture=capture)
-        submit_test(invitation, feedback=test["feedback"], dev_score=test["dev_score"], dev_comment="")
-        validate_test(
-            invitation, decision=Invitation.Status.VALIDATED, score=test["tester_score"], comment="Merci !"
-        )
+        if test["status"] != Invitation.Status.ACCEPTED:
+            submit_test(invitation, feedback=test["feedback"], dev_score=test["dev_score"], dev_comment="")
+        if test["status"] == Invitation.Status.VALIDATED:
+            validate_test(
+                invitation,
+                decision=Invitation.Status.VALIDATED,
+                score=test["tester_score"],
+                comment="Merci !",
+            )
         # Backdate the test so the adoption table has history to show.
         started = timezone.now() - timedelta(days=test["started_days_ago"])
         session.started_at = started
-        session.submitted_at = started + timedelta(hours=1)
+        if session.submitted_at:
+            session.submitted_at = started + timedelta(hours=1)
         session.save(update_fields=["started_at", "submitted_at"])
+        Invitation.objects.filter(pk=invitation.pk).update(nda_accepted_at=started)
+        for proof in session.proofs.select_related("step"):
+            proof_at = started + timedelta(minutes=5 * proof.step.order)
+            StepProof.objects.filter(pk=proof.pk).update(created_at=proof_at, updated_at=proof_at)
         project = invitation.campaign.project
         TrackEvent.objects.bulk_create(
             TrackEvent(
