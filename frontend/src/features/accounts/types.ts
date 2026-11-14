@@ -16,8 +16,6 @@ export type RegisterInput = {
   consent: boolean;
 };
 
-export type Verification = "pending" | "verified" | "rejected";
-
 export type TesterProfile = {
   profession: string;
   company: string;
@@ -25,7 +23,26 @@ export type TesterProfile = {
   linkedin_url: string;
   momo_number: string;
   available: boolean;
-  verification: Verification;
-  has_proof: boolean;
   rating_avg: number | null;
+};
+
+export type CheckStatus = "pending" | "verified" | "rejected";
+
+export type ProfessionCheck = {
+  id: number;
+  profession: string;
+  document_type: string;
+  document_label: string;
+  status: CheckStatus;
+  reject_reason: string;
+  created_at: string;
+  expires_at: string | null;
+};
+
+// documents: the pieces accepted for the tester's profession.
+export type ChecksOverview = {
+  profession: string;
+  status: CheckStatus | null;
+  documents: { value: string; label: string }[];
+  checks: ProfessionCheck[];
 };

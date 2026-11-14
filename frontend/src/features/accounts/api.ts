@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api-client";
-import type { Me, RegisterInput, TesterProfile } from "./types";
+import type { ChecksOverview, Me, ProfessionCheck, RegisterInput, TesterProfile } from "./types";
 
 export function register(input: RegisterInput): Promise<Me> {
   return apiFetch("/api/auth/register/", { method: "POST", json: input });
@@ -25,9 +25,17 @@ export function getTesterProfile(): Promise<TesterProfile> {
   return apiFetch("/api/tester/profile/");
 }
 
-// FormData, because the proof file travels with the other fields.
 export function updateTesterProfile(form: FormData): Promise<TesterProfile> {
   return apiFetch("/api/tester/profile/", { method: "PATCH", body: form });
+}
+
+export function getChecks(): Promise<ChecksOverview> {
+  return apiFetch("/api/tester/checks/");
+}
+
+// form holds document_type, document, consent and, if given, sponsor_email.
+export function submitCheck(form: FormData): Promise<ProfessionCheck> {
+  return apiFetch("/api/tester/checks/", { method: "POST", body: form });
 }
 
 export function getGoogleStatus(): Promise<{ enabled: boolean }> {
