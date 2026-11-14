@@ -86,7 +86,7 @@ test("the scenario editor keeps the keyboard focus and flags every empty field",
   await expect(page).toHaveURL(/\/dev\/projets\/\d+$/);
 
   await page.getByRole("button", { name: "Créer la campagne" }).click();
-  await expect(page.getByText("Choisis un métier.")).toBeVisible();
+  await expect(page.getByText("Choisis un métier ou « Tout public ».")).toBeVisible();
   await expect(page.getByLabel("Étape 1", { exact: true })).toHaveAccessibleDescription(/Remplis chaque étape/);
 
   await page.getByRole("button", { name: "Ajouter une étape" }).click();
