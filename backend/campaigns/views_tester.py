@@ -9,16 +9,25 @@ from rest_framework.views import APIView
 
 from core.permissions import IsTester
 
-from .models import Invitation, StepProof
+from .models import Campaign, Invitation, StepProof
 from .serializers import (
     AcceptSerializer,
+    ApplyInputSerializer,
     ProofSerializer,
+    RecruitingCampaignSerializer,
     StepProofInputSerializer,
     SubmitSerializer,
     TesterInvitationDetailSerializer,
     TesterInvitationSummarySerializer,
 )
-from .services import accept_invitation, decline_invitation, save_step_proof, submit_test
+from .services import (
+    accept_invitation,
+    apply_to_campaign,
+    decline_invitation,
+    recruiting_campaigns,
+    save_step_proof,
+    submit_test,
+)
 
 
 def tester_invitations(user):
@@ -41,6 +50,26 @@ class TesterInvitationListView(APIView):
     def get(self, request):
         invitations = tester_invitations(request.user).order_by("-created_at")
         return Response(TesterInvitationSummarySerializer(invitations, many=True).data)
+
+
+class RecruitingCampaignListView(APIView):
+    permission_classes = [IsAuthenticated, IsTester]
+
+    def get(self, request):
+        campaigns = recruiting_campaigns(request.user)
+        return Response(RecruitingCampaignSerializer(campaigns, many=True).data)
+
+
+class ApplyView(APIView):
+    permission_classes = [IsAuthenticated, IsTester]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, pk):
+        campaign = get_object_or_404(Campaign, pk=pk, status=Campaign.Status.DRAFT, is_demo=False)
+        serializer = ApplyInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        apply_to_campaign(campaign, request.user, check=serializer.check_data())
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TesterInvitationDetailView(APIView):

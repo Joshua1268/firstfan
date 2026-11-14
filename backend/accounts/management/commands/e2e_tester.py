@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from accounts.models import TesterProfile, User
 from accounts.professions import PROFESSIONS
+from accounts.services import grant_check
 
 
 class Command(BaseCommand):
@@ -37,7 +38,6 @@ class Command(BaseCommand):
         profile.linkedin_url = profile.linkedin_url or "https://www.linkedin.com/in/e2e"
         profile.available = True
         profile.consent_at = profile.consent_at or timezone.now()
-        profile.verification = TesterProfile.Verification.VERIFIED
-        profile.verified_at = profile.verified_at or timezone.now()
         profile.save()
+        grant_check(user, profession)
         self.stdout.write(self.style.SUCCESS(f"Testeur {email} prêt ({profession})."))

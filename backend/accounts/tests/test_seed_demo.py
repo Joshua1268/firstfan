@@ -6,7 +6,7 @@ from django.core.management import CommandError, call_command
 from django.utils import timezone
 
 from accounts.management.commands.seed_demo import DEMO_TESTERS
-from accounts.models import TesterProfile, User
+from accounts.models import ProfessionCheck, TesterProfile, User
 from campaigns.models import Campaign, Feedback, Invitation, Rating, StepProof
 from campaigns.services import eligible_testers
 from payments.models import Earning
@@ -44,9 +44,8 @@ def test_seed_demo_refuses_outside_demo_mode(db, settings):
         call_command("seed_demo")
     assert not User.objects.exists()
     call_command("seed_demo", "--force")
-    assert (
-        TesterProfile.objects.filter(verification=TesterProfile.Verification.VERIFIED).count() == VERIFIED + 1
-    )
+    verified = ProfessionCheck.objects.filter(status=ProfessionCheck.Status.VERIFIED)
+    assert verified.values("tester").distinct().count() == VERIFIED + 1
 
 
 def test_seed_demo_profiles_have_momo_and_are_available(db, settings):

@@ -13,6 +13,7 @@ from tracking.services import last_event_by_invitation
 from .matching import tester_candidates
 from .models import Campaign, Invitation
 from .serializers import (
+    AwaitingCheckSerializer,
     CampaignCreateSerializer,
     CampaignDetailSerializer,
     CampaignSummarySerializer,
@@ -21,7 +22,7 @@ from .serializers import (
     TesterCandidateSerializer,
     ValidateSerializer,
 )
-from .services import create_campaign, select_testers, validate_test
+from .services import applicants_awaiting_check, create_campaign, select_testers, validate_test
 
 
 def get_campaign_detail(pk: int, owner) -> Campaign:
@@ -62,7 +63,13 @@ class CampaignTestersView(APIView):
         campaign = get_object_or_404(Campaign, pk=pk, project__owner=request.user)
         source, candidates = tester_candidates(campaign)
         return Response(
-            {"source": source, "candidates": TesterCandidateSerializer(candidates, many=True).data}
+            {
+                "source": source,
+                "candidates": TesterCandidateSerializer(candidates, many=True).data,
+                "awaiting_check": AwaitingCheckSerializer(
+                    applicants_awaiting_check(campaign), many=True
+                ).data,
+            }
         )
 
 

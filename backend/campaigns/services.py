@@ -2,16 +2,17 @@ from decimal import Decimal
 
 from django.core.files import File
 from django.db import transaction
-from django.db.models import Avg, Count, F, Q, QuerySet
+from django.db.models import Avg, Count, Exists, F, OuterRef, Q, QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 
-from accounts.models import TesterProfile, User
+from accounts.models import ProfessionCheck, TesterProfile, User
+from accounts.services import check_status, holds_valid_check, submit_check
 from core.exceptions import Conflict
 from payments.services import credit_tester
 from projects.models import Project
 
-from .models import Campaign, Feedback, Invitation, Rating, ScenarioStep, StepProof, TestSession
+from .models import Application, Campaign, Feedback, Invitation, Rating, ScenarioStep, StepProof, TestSession
 
 
 def create_campaign(
@@ -28,26 +29,84 @@ def create_campaign(
     return campaign
 
 
+def registered_testers(campaign: Campaign) -> QuerySet[User]:
+    testers = User.objects.filter(role=User.Role.TESTER, tester_profile__available=True).exclude(
+        Q(tester_profile__profession="") | Q(tester_profile__momo_number="")
+    )
+    if campaign.target_profession:
+        testers = testers.filter(tester_profile__profession=campaign.target_profession)
+    return testers.exclude(pk=campaign.project.owner_id)
+
+
 def eligible_testers(campaign: Campaign) -> QuerySet[User]:
+    testers = registered_testers(campaign)
+    if campaign.target_profession:
+        testers = testers.filter(holds_valid_check(campaign.target_profession))
     return (
-        User.objects.filter(
-            role=User.Role.TESTER,
-            tester_profile__verification=TesterProfile.Verification.VERIFIED,
-            tester_profile__available=True,
-            tester_profile__profession=campaign.target_profession,
-        )
-        .exclude(pk=campaign.project.owner_id)
-        .select_related("tester_profile")
+        testers.select_related("tester_profile")
         .annotate(
-            completed_tests=Count("invitations", filter=Q(invitations__status=Invitation.Status.VALIDATED))
+            applied=Exists(Application.objects.filter(campaign=campaign, tester=OuterRef("pk"))),
+            completed_tests=Count("invitations", filter=Q(invitations__status=Invitation.Status.VALIDATED)),
         )
         .order_by(
+            F("applied").desc(),
             F("tester_profile__rating_avg").desc(nulls_last=True),
             "-completed_tests",
-            "tester_profile__verified_at",
             "pk",
         )
     )
+
+
+def applicants_awaiting_check(campaign: Campaign) -> QuerySet[User]:
+    """Applicants the dev cannot pick yet: their check is still with the team."""
+    if not campaign.target_profession:
+        return User.objects.none()
+    pending = ProfessionCheck.objects.filter(
+        tester=OuterRef("pk"), profession=campaign.target_profession, status=ProfessionCheck.Status.PENDING
+    )
+    return (
+        registered_testers(campaign)
+        .filter(applications__campaign=campaign)
+        .exclude(holds_valid_check(campaign.target_profession))
+        .filter(Exists(pending))
+        .select_related("tester_profile")
+        .order_by("applications__created_at")
+    )
+
+
+def recruiting_campaigns(tester: User) -> QuerySet[Campaign]:
+    profession = tester.tester_profile.profession
+    return (
+        Campaign.objects.filter(status=Campaign.Status.DRAFT, is_demo=False)
+        .filter(Q(target_profession="") | Q(target_profession=profession))
+        .exclude(project__owner=tester)
+        .select_related("project")
+        .annotate(
+            steps_total=Count("steps", distinct=True),
+            applied=Exists(Application.objects.filter(campaign=OuterRef("pk"), tester=tester)),
+        )
+        .order_by("-created_at")
+    )
+
+
+def apply_to_campaign(campaign: Campaign, tester: User, *, check: dict | None) -> Application:
+    profile = tester.tester_profile
+    if not profile.is_complete:
+        raise ValidationError({"detail": "Complète ton profil avant de postuler."})
+    if campaign.target_profession and campaign.target_profession != profile.profession:
+        raise NotFound()
+    with transaction.atomic():
+        campaign = Campaign.objects.select_for_update().get(pk=campaign.pk)
+        if campaign.status != Campaign.Status.DRAFT:
+            raise Conflict("Le recrutement de cette campagne est terminé.")
+        if campaign.target_profession:
+            status = check_status(tester, campaign.target_profession)
+            if status not in (ProfessionCheck.Status.VERIFIED, ProfessionCheck.Status.PENDING):
+                if check is None:
+                    raise ValidationError({"document": ["Ajoute une pièce qui prouve ton métier."]})
+                submit_check(tester, **check)
+        application, _ = Application.objects.get_or_create(campaign=campaign, tester=tester)
+    return application
 
 
 def select_testers(campaign: Campaign, tester_ids: list[int]) -> None:

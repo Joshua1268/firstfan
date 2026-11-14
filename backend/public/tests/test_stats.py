@@ -1,19 +1,20 @@
-from django.test import override_settings
+from datetime import timedelta
 
-from accounts.models import TesterProfile, User
+from django.test import override_settings
+from django.utils import timezone
+
+from accounts.services import grant_check
 from campaigns.models import Invitation
 from conftest import make_tester as make_campaign_tester
 
 
-def make_tester(username, verification):
-    user = User.objects.create_user(username=username, password="x", role=User.Role.TESTER)
-    return TesterProfile.objects.create(user=user, profession="QA", verification=verification)
-
-
 @override_settings(DEMO_MODE=True)
 def test_stats_counts_only_verified_testers(client, db):
-    make_tester("a", TesterProfile.Verification.VERIFIED)
-    make_tester("b", TesterProfile.Verification.PENDING)
+    verified = make_campaign_tester("a@x.ci")
+    grant_check(verified, "Médecin")
+    make_campaign_tester("b@x.ci", verified=False)
+    expired = make_campaign_tester("c@x.ci")
+    expired.profession_checks.update(expires_at=timezone.now() - timedelta(days=1))
     r = client.get("/api/public/stats/")
     assert r.status_code == 200
     assert r.json() == {"tests_in_progress": 0, "verified_testers": 1, "apps_tested": 0, "demo": True}

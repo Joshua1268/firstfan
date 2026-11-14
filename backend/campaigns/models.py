@@ -21,7 +21,8 @@ class Campaign(models.Model):
         CLOSED = "closed", "Terminée"
 
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="campaigns")
-    target_profession = models.CharField(max_length=120)
+    # Empty means any registered tester can take part, without a profession check.
+    target_profession = models.CharField(max_length=120, blank=True)
     testers_wanted = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
@@ -31,7 +32,7 @@ class Campaign(models.Model):
     opened_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.project} - {self.target_profession}"
+        return f"{self.project} - {self.target_profession or 'Tout public'}"
 
     @property
     def total_xof(self) -> int:
@@ -49,6 +50,20 @@ class ScenarioStep(models.Model):
 
     def __str__(self):
         return f"{self.order}. {self.instruction}"
+
+
+class Application(models.Model):
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="applications")
+    tester = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="applications"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["campaign", "tester"], name="unique_application")]
+
+    def __str__(self):
+        return f"{self.tester} - {self.campaign}"
 
 
 class Invitation(models.Model):

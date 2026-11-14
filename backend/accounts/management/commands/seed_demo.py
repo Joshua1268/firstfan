@@ -19,6 +19,7 @@ from accounts.demo_data import (
     LEGACY_DEV_USERNAME,
 )
 from accounts.models import TesterProfile, User
+from accounts.services import grant_check
 from campaigns.models import Campaign, Invitation, StepProof
 from campaigns.services import (
     accept_invitation,
@@ -85,7 +86,6 @@ class Command(BaseCommand):
 
     def seed_testers(self) -> int:
         created = 0
-        now = timezone.now()
         for i, (first, initial, profession, city, verified, rating) in enumerate(DEMO_TESTERS, start=1):
             user, was_created = User.objects.get_or_create(
                 username=f"demo-testeur-{i:02d}",
@@ -95,16 +95,15 @@ class Command(BaseCommand):
                 user.set_unusable_password()
                 user.save(update_fields=["password"])
                 created += 1
-            state = TesterProfile.Verification.VERIFIED if verified else TesterProfile.Verification.PENDING
             profile, _ = TesterProfile.objects.get_or_create(user=user, defaults={"profession": profession})
             profile.profession = profession
             profile.city = city
             profile.momo_number = f"07000000{i:02d}"
             profile.available = True
-            profile.verification = state
-            profile.verified_at = (profile.verified_at or now) if verified else None
             profile.rating_avg = rating
             profile.save()
+            if verified:
+                grant_check(user, profession)
         return created
 
     def seed_dev(self) -> tuple[User, bool]:
@@ -139,9 +138,8 @@ class Command(BaseCommand):
         profile.linkedin_url = DEMO_TESTER["linkedin_url"]
         profile.available = True
         profile.consent_at = profile.consent_at or now
-        profile.verification = TesterProfile.Verification.VERIFIED
-        profile.verified_at = profile.verified_at or now
         profile.save()
+        grant_check(tester, profile.profession)
         return created
 
     def seed_scenario(self, dev: User) -> None:
