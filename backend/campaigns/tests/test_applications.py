@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 
 from accounts.models import ProfessionCheck
 from campaigns.models import Application, Campaign
@@ -77,6 +80,8 @@ def test_recruiting_campaigns(newcomer_client, campaign):
     Campaign.objects.create(
         project=campaign.project, target_profession="Comptable", testers_wanted=1, status="open"
     )
+    stale = Campaign.objects.create(project=campaign.project, target_profession="", testers_wanted=1)
+    Campaign.objects.filter(pk=stale.pk).update(created_at=timezone.now() - timedelta(days=31))
     rows = newcomer_client.get("/api/tester/campaigns/").json()
     assert [r["id"] for r in rows] == [open_to_all.pk, campaign.pk]
     assert rows[1]["project"] == {"name": "Compta Express", "description": "Suivi des factures"}

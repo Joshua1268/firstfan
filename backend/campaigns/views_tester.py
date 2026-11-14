@@ -21,6 +21,7 @@ from .serializers import (
     TesterInvitationSummarySerializer,
 )
 from .services import (
+    RECRUITING_SHOWN,
     accept_invitation,
     apply_to_campaign,
     decline_invitation,
@@ -56,7 +57,7 @@ class RecruitingCampaignListView(APIView):
     permission_classes = [IsAuthenticated, IsTester]
 
     def get(self, request):
-        campaigns = recruiting_campaigns(request.user)
+        campaigns = recruiting_campaigns(request.user)[:RECRUITING_SHOWN]
         return Response(RecruitingCampaignSerializer(campaigns, many=True).data)
 
 

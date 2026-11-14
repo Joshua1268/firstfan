@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.core.files import File
@@ -74,10 +75,16 @@ def applicants_awaiting_check(campaign: Campaign) -> QuerySet[User]:
     )
 
 
+RECRUITING_DAYS = 30
+RECRUITING_SHOWN = 10
+
+
 def recruiting_campaigns(tester: User) -> QuerySet[Campaign]:
+    # A draft left unpaid for a month is most likely abandoned.
     profession = tester.tester_profile.profession
+    since = timezone.now() - timedelta(days=RECRUITING_DAYS)
     return (
-        Campaign.objects.filter(status=Campaign.Status.DRAFT, is_demo=False)
+        Campaign.objects.filter(status=Campaign.Status.DRAFT, is_demo=False, created_at__gte=since)
         .filter(Q(target_profession="") | Q(target_profession=profession))
         .exclude(project__owner=tester)
         .select_related("project")
