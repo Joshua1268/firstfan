@@ -64,14 +64,16 @@ def test_seed_demo_scenario_idempotent(db, settings):
     out = StringIO()
     call_command("seed_demo", stdout=out)
     assert "0 créés" in out.getvalue()
-    assert Project.objects.count() == 1 and Campaign.objects.count() == 1
+    assert Project.objects.count() == 1 and Campaign.objects.count() == 3
+    drafts = Campaign.objects.filter(status=Campaign.Status.DRAFT, is_demo=False)
+    assert sorted(drafts.values_list("target_profession", flat=True)) == ["", "Comptable"]
     assert TrackEvent.objects.count() == events > 0
     dev = User.objects.get(username=DEV_EMAIL)
     assert dev.email == DEV_EMAIL and dev.check_password(PASSWORD)
     project = Project.objects.get()
     assert project.owner == dev and project.name == "Compta Express (démo)"
-    campaign = Campaign.objects.get()
-    assert campaign.is_demo and campaign.target_profession == "Comptable"
+    campaign = Campaign.objects.get(is_demo=True)
+    assert campaign.target_profession == "Comptable"
     assert campaign.steps.count() == 3
     statuses = sorted(campaign.invitations.values_list("status", flat=True))
     assert statuses == [Invitation.Status.ACCEPTED, Invitation.Status.SUBMITTED, Invitation.Status.VALIDATED]
@@ -84,7 +86,7 @@ def test_seed_demo_has_exactly_one_test_to_validate(db, settings):
     settings.DEMO_MODE = True
     call_command("seed_demo")
     call_command("seed_demo")
-    campaign = Campaign.objects.get()
+    campaign = Campaign.objects.get(is_demo=True)
     assert campaign.invitations.filter(status=Invitation.Status.SUBMITTED).count() == 1
     in_progress = campaign.invitations.get(status=Invitation.Status.ACCEPTED)
     assert 0 < in_progress.session.proofs.count() < campaign.steps.count()
