@@ -87,3 +87,9 @@ DEMO_TESTS = [
         "answers": ["Compte créé.", "Facture saisie, le PDF sort bien."],
     },
 ]
+
+RECRUITING_STEPS = [
+    "Crée ton compte et ton premier client",
+    "Programme une relance de facture",
+    "Dis si tu utiliserais ces relances chaque semaine",
+]

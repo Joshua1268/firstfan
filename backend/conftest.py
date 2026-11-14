@@ -4,6 +4,7 @@ from django.test import Client
 from django.utils import timezone
 
 from accounts.models import TesterProfile, User
+from accounts.services import grant_check
 from campaigns.models import Campaign, ScenarioStep
 from projects.models import Project
 
@@ -63,8 +64,8 @@ def tester_user(db):
         city="Plateau",
         linkedin_url="https://www.linkedin.com/in/awa",
         momo_number="0700000001",
-        verification=TesterProfile.Verification.VERIFIED,
     )
+    grant_check(user, "Comptable")
     return user
 
 
@@ -77,13 +78,12 @@ def make_tester(email: str, profession: str = "Comptable", last_name: str = "", 
     user = User.objects.create_user(
         email, email, "Sol1de-pass!", first_name="Test", last_name=last_name, role=User.Role.TESTER
     )
-    fields = {
-        "profession": profession,
-        "momo_number": "0700000009",
-        "verification": TesterProfile.Verification.VERIFIED,
-        "verified_at": timezone.now(),
-    }
-    TesterProfile.objects.create(user=user, **(fields | profile))
+    verified = profile.pop("verified", True)
+    TesterProfile.objects.create(
+        user=user, **({"profession": profession, "momo_number": "0700000009"} | profile)
+    )
+    if verified:
+        grant_check(user, profession)
     return user
 
 

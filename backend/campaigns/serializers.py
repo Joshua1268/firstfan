@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from accounts.models import User
+from accounts.models import ProfessionCheck, User
 from accounts.professions import PROFESSIONS
 from core.uploads import validate_upload
 from projects.models import Project
@@ -21,7 +21,7 @@ class CampaignSummarySerializer(serializers.ModelSerializer):
 
 
 class CampaignCreateSerializer(serializers.Serializer):
-    target_profession = serializers.CharField(max_length=120)
+    target_profession = serializers.CharField(max_length=120, allow_blank=True)
     testers_wanted = serializers.IntegerField(min_value=1, max_value=10)
     steps = serializers.ListField(
         child=serializers.CharField(max_length=500),
@@ -34,7 +34,7 @@ class CampaignCreateSerializer(serializers.Serializer):
     )
 
     def validate_target_profession(self, value):
-        if value not in PROFESSIONS:
+        if value and value not in PROFESSIONS:
             raise serializers.ValidationError("Choisis un métier de la liste.")
         return value
 
@@ -118,6 +118,7 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source="tester_profile.city")
     rating_avg = serializers.SerializerMethodField()
     completed_tests = serializers.IntegerField()
+    applied = serializers.BooleanField(read_only=True)
     recommended = serializers.BooleanField(read_only=True)
     selected = serializers.BooleanField(read_only=True)
     reason = serializers.CharField(read_only=True)
@@ -132,6 +133,7 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
             "city",
             "rating_avg",
             "completed_tests",
+            "applied",
             "recommended",
             "selected",
             "reason",
@@ -143,6 +145,58 @@ class TesterCandidateSerializer(serializers.ModelSerializer):
     def get_rating_avg(self, user: User) -> float | None:
         rating = user.tester_profile.rating_avg
         return float(rating) if rating is not None else None
+
+
+class AwaitingCheckSerializer(serializers.ModelSerializer):
+    last_initial = serializers.SerializerMethodField()
+    city = serializers.CharField(source="tester_profile.city")
+
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_initial", "city"]
+
+    def get_last_initial(self, user: User) -> str:
+        return user.last_name[:1]
+
+
+class RecruitingCampaignSerializer(serializers.ModelSerializer):
+    project = serializers.SerializerMethodField()
+    steps_total = serializers.IntegerField()
+    applied = serializers.BooleanField()
+    reward_xof = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Campaign
+        fields = ["id", "project", "target_profession", "steps_total", "applied", "reward_xof", "created_at"]
+
+    def get_project(self, campaign: Campaign) -> dict:
+        project = campaign.project
+        return {"name": project.name, "description": project.description}
+
+    def get_reward_xof(self, campaign: Campaign) -> int:
+        return settings.TESTER_REWARD_XOF
+
+
+class ApplyInputSerializer(serializers.Serializer):
+    document_type = serializers.ChoiceField(choices=ProfessionCheck.Document.choices, required=False)
+    document = serializers.FileField(required=False)
+    sponsor_email = serializers.EmailField(required=False, default="")
+    consent = serializers.BooleanField(default=False)
+
+    def validate_document(self, f):
+        try:
+            validate_upload(f, allow_pdf=True)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.messages) from e
+        return f
+
+    def check_data(self) -> dict | None:
+        data = self.validated_data
+        if "document" not in data:
+            return None
+        if "document_type" not in data:
+            raise serializers.ValidationError({"document_type": ["Choisis le type de pièce."]})
+        return data
 
 
 class SelectionSerializer(serializers.Serializer):

@@ -34,7 +34,7 @@ def test_register_tester_requires_consent(client, db):
     assert r.json()["role"] == "tester" and r.json()["profile_complete"] is False
     profile = TesterProfile.objects.get(user__username="awa@x.ci")
     assert profile.consent_at is not None
-    assert profile.verification == TesterProfile.Verification.PENDING
+    assert not profile.user.profession_checks.exists()
 
 
 def test_register_rejects_admin_role(client, db):

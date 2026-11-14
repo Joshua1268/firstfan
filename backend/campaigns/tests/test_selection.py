@@ -1,10 +1,8 @@
-from datetime import timedelta
-
 import pytest
-from django.utils import timezone
 
 from accounts.models import TesterProfile
-from campaigns.models import Campaign, Invitation
+from accounts.services import grant_check
+from campaigns.models import Application, Campaign, Invitation
 from campaigns.services import eligible_testers
 from conftest import make_tester
 
@@ -16,22 +14,31 @@ def select(client, campaign, ids):
 
 
 def test_eligible_order(campaign):
-    now = timezone.now()
     low = make_tester("low@x.ci", rating_avg="4.10")
     unrated = make_tester("unrated@x.ci")
-    old_top = make_tester("old@x.ci", rating_avg="4.80", verified_at=now - timedelta(days=3))
-    new_top = make_tester("new@x.ci", rating_avg="4.80", verified_at=now)
-    busy_top = make_tester("busy@x.ci", rating_avg="4.80", verified_at=now)
+    first_top = make_tester("first@x.ci", rating_avg="4.80")
+    second_top = make_tester("second@x.ci", rating_avg="4.80")
+    busy_top = make_tester("busy@x.ci", rating_avg="4.80")
+    applicant = make_tester("applicant@x.ci", rating_avg="3.00")
+    Application.objects.create(campaign=campaign, tester=applicant)
     past = Campaign.objects.create(project=campaign.project, target_profession="Comptable", testers_wanted=1)
     Invitation.objects.create(campaign=past, tester=busy_top, status=Invitation.Status.VALIDATED)
-    assert list(eligible_testers(campaign)) == [busy_top, old_top, new_top, low, unrated]
+    assert list(eligible_testers(campaign)) == [applicant, busy_top, first_top, second_top, low, unrated]
 
 
 def test_owner_is_never_eligible(campaign, dev_user):
-    TesterProfile.objects.create(
-        user=dev_user, profession="Comptable", verification=TesterProfile.Verification.VERIFIED
-    )
+    TesterProfile.objects.create(user=dev_user, profession="Comptable", momo_number="0700000009")
+    grant_check(dev_user, "Comptable")
     assert dev_user not in eligible_testers(campaign)
+
+
+def test_open_campaign_takes_any_tester_without_check(campaign):
+    campaign.target_profession = ""
+    campaign.save()
+    unchecked = make_tester("unchecked@x.ci", profession="Couturière", verified=False)
+    no_momo = make_tester("nomomo@x.ci", momo_number="", verified=False)
+    assert list(eligible_testers(campaign)) == [unchecked]
+    assert no_momo not in eligible_testers(campaign)
 
 
 def test_testers_endpoint(dev_client, campaign):
@@ -49,9 +56,10 @@ def test_testers_endpoint(dev_client, campaign):
         "city": "Plateau",
         "rating_avg": 4.9,
         "completed_tests": 0,
+        "applied": False,
         "recommended": True,
         "selected": False,
-        "reason": "Profil Comptable vérifié, note 4,9, aucun test validé",
+        "reason": "Métier Comptable vérifié, note 4,9, aucun test validé",
     }
     assert [(r["recommended"], r["selected"]) for r in rows[1:]] == [(True, False), (False, True)]
     assert rows[2]["rating_avg"] is None
@@ -67,8 +75,7 @@ def test_select_testers_replaces_selection(dev_client, campaign):
 @pytest.mark.parametrize(
     "profile",
     [
-        {"verification": TesterProfile.Verification.PENDING},
-        {"verification": TesterProfile.Verification.REJECTED},
+        {"verified": False},
         {"available": False},
         {"profession": "Pharmacienne"},
     ],

@@ -38,9 +38,9 @@ def test_rules_fallback_without_key(monkeypatch, campaign, testers):
     result = rank_testers(campaign)
     assert result.source == "rules"
     assert result.picks == [
-        MatchPick(testers[0].pk, "Profil Comptable vérifié, note 4,8, 1 test validé"),
-        MatchPick(testers[1].pk, "Profil Comptable vérifié, note 4,2, 1 test validé"),
-        MatchPick(testers[2].pk, "Profil Comptable vérifié, pas encore noté, aucun test validé"),
+        MatchPick(testers[0].pk, "Métier Comptable vérifié, note 4,8, 1 test validé"),
+        MatchPick(testers[1].pk, "Métier Comptable vérifié, note 4,2, 1 test validé"),
+        MatchPick(testers[2].pk, "Métier Comptable vérifié, pas encore noté, aucun test validé"),
     ]
 
 
@@ -79,7 +79,7 @@ def test_ai_unknown_ids_dropped_and_missing_appended(settings, monkeypatch, page
     assert result.source == "groq"
     assert [p.tester_id for p in result.picks] == [second.pk, first.pk, third.pk]
     assert result.picks[0].reason == "x" * 140
-    assert result.picks[1].reason == "Profil Comptable vérifié, note 4,8, 1 test validé"
+    assert result.picks[1].reason == "Métier Comptable vérifié, note 4,8, 1 test validé"
 
 
 @pytest.mark.parametrize("reply", ["pas du json", '{"picks": [{"tester_id": 999999, "reason": "?"}]}', "[]"])
@@ -152,9 +152,10 @@ def test_testers_endpoint_shape(dev_client, campaign, testers):
         "city": "Plateau",
         "rating_avg": 4.8,
         "completed_tests": 1,
+        "applied": False,
         "recommended": True,
         "selected": False,
-        "reason": "Profil Comptable vérifié, note 4,8, 1 test validé",
+        "reason": "Métier Comptable vérifié, note 4,8, 1 test validé",
     }
     flags = [(c["recommended"], c["selected"]) for c in body["candidates"]]
     assert flags == [(True, False), (True, False), (False, True)]

@@ -17,8 +17,10 @@ from accounts.demo_data import (
     DEMO_TESTERS,
     DEMO_TESTS,
     LEGACY_DEV_USERNAME,
+    RECRUITING_STEPS,
 )
 from accounts.models import TesterProfile, User
+from accounts.services import grant_check
 from campaigns.models import Campaign, Invitation, StepProof
 from campaigns.services import (
     accept_invitation,
@@ -53,6 +55,7 @@ class Command(BaseCommand):
         if not Project.objects.filter(owner=dev, name=DEMO_PROJECT["name"]).exists():
             self.seed_scenario(dev)
             created += 1
+        self.seed_recruiting(dev)
         verified_count = sum(1 for t in DEMO_TESTERS if t[4])
         self.stdout.write(
             self.style.SUCCESS(
@@ -85,7 +88,6 @@ class Command(BaseCommand):
 
     def seed_testers(self) -> int:
         created = 0
-        now = timezone.now()
         for i, (first, initial, profession, city, verified, rating) in enumerate(DEMO_TESTERS, start=1):
             user, was_created = User.objects.get_or_create(
                 username=f"demo-testeur-{i:02d}",
@@ -95,16 +97,15 @@ class Command(BaseCommand):
                 user.set_unusable_password()
                 user.save(update_fields=["password"])
                 created += 1
-            state = TesterProfile.Verification.VERIFIED if verified else TesterProfile.Verification.PENDING
             profile, _ = TesterProfile.objects.get_or_create(user=user, defaults={"profession": profession})
             profile.profession = profession
             profile.city = city
             profile.momo_number = f"07000000{i:02d}"
             profile.available = True
-            profile.verification = state
-            profile.verified_at = (profile.verified_at or now) if verified else None
             profile.rating_avg = rating
             profile.save()
+            if verified:
+                grant_check(user, profession)
         return created
 
     def seed_dev(self) -> tuple[User, bool]:
@@ -139,9 +140,8 @@ class Command(BaseCommand):
         profile.linkedin_url = DEMO_TESTER["linkedin_url"]
         profile.available = True
         profile.consent_at = profile.consent_at or now
-        profile.verification = TesterProfile.Verification.VERIFIED
-        profile.verified_at = profile.verified_at or now
         profile.save()
+        grant_check(tester, profile.profession)
         return created
 
     def seed_scenario(self, dev: User) -> None:
@@ -167,6 +167,16 @@ class Command(BaseCommand):
             is_demo=True, created_at=opened_at, opened_at=opened_at
         )
         campaign.invitations.update(created_at=opened_at)
+
+    def seed_recruiting(self, dev: User) -> None:
+        # Two campaigns still choosing testers, so a new tester account has something to apply to.
+        project = Project.objects.get(owner=dev, name=DEMO_PROJECT["name"])
+        drafts = project.campaigns.filter(status=Campaign.Status.DRAFT)
+        for profession in (DEMO_PROFESSION, ""):
+            if not drafts.filter(target_profession=profession).exists():
+                create_campaign(
+                    project=project, target_profession=profession, testers_wanted=3, steps=RECRUITING_STEPS
+                )
 
     def play_test(self, invitation: Invitation, test: dict) -> None:
         session = accept_invitation(invitation, nda=True)
