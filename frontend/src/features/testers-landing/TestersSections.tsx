@@ -216,7 +216,7 @@ const TRUST: { icon: Icon; title: string; text: string; link?: { href: string; l
   {
     icon: ShieldIcon,
     title: "Ton métier, vérifié une fois",
-    text: "CV, LinkedIn ou justificatif : une personne de l'équipe vérifie, puis ton badge « Métier vérifié » parle pour toi.",
+    text: "Inscription libre. Pour une campagne de ton métier, tu montres une pièce : l'équipe vérifie, puis la supprime.",
   },
   {
     icon: StarIcon,

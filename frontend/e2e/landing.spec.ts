@@ -234,7 +234,7 @@ test("jobs marquee lists verified jobs", async ({ page }) => {
   await band.scrollIntoViewIfNeeded();
   await expect(band.getByText("MÉTIERS VÉRIFIÉS SUR")).toBeVisible();
   await expect(band.getByText("Comptable").first()).toBeVisible();
-  await expect(band.getByText("Métier vérifié par CV, LinkedIn ou justificatif.")).toBeVisible();
+  await expect(band.getByText("Métier prouvé par une pièce, vérifiée par l'équipe.")).toBeVisible();
   // The doubled content is decorative: screen readers read the list once.
   await expect(band.getByRole("listitem")).toHaveCount(14);
   await expect(page.locator("[data-marquee-track]")).toHaveCSS("animation-name", "marquee");
