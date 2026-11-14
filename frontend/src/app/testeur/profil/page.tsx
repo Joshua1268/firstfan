@@ -11,7 +11,7 @@ export default function TesterProfilePage() {
       <div className="flex flex-col gap-3">
         <SpaceTitle>Ton profil</SpaceTitle>
         <p className="text-[16px] leading-[1.6] text-ink-muted">
-          Ces informations servent à vérifier ton métier, puis à te payer après chaque test validé.
+          Ton métier sert à te proposer les bonnes campagnes, ton numéro à te payer après chaque test validé.
         </p>
       </div>
       <TesterProfileForm />

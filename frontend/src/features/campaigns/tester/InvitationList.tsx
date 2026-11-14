@@ -10,6 +10,7 @@ import { StatusPill } from "@/ui/StatusPill";
 import { getTesterInvitations } from "../api";
 import { TESTER_STATUS } from "../status";
 import type { TesterInvitationSummary } from "../types";
+import { audienceLabel } from "../audience";
 
 const h2Cls = "text-[length:var(--text-h3)] font-semibold leading-[var(--leading-h3)] text-ink";
 
@@ -61,7 +62,7 @@ function InvitationCard({ invitation }: { invitation: TesterInvitationSummary })
           {invitation.project_name}
         </span>
         <span className="text-[14px] text-ink-muted">
-          {invitation.target_profession} · {progress} · {formatXof(invitation.reward_xof)}
+          {audienceLabel(invitation.target_profession)} · {progress} · {formatXof(invitation.reward_xof)}
         </span>
       </div>
       <ChevronIcon

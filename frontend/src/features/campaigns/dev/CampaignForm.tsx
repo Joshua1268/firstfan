@@ -10,6 +10,7 @@ import { Button } from "@/ui/Button";
 import { Field, controlCls } from "@/ui/Field";
 import { FormAlert } from "@/ui/FormAlert";
 import { createCampaign } from "../api";
+import { OPEN_TO_ALL } from "../audience";
 import { MAX_STEP_LENGTH, canSubmit } from "../steps";
 import { StepsEditor } from "./StepsEditor";
 
@@ -36,7 +37,7 @@ export function CampaignForm({ projectId }: { projectId: number }) {
     setError(undefined);
     try {
       const campaign = await createCampaign(projectId, {
-        target_profession: profession,
+        target_profession: profession === OPEN_TO_ALL ? "" : profession,
         testers_wanted: Number(testers),
         steps: steps.map((s) => s.trim()),
       });
@@ -54,13 +55,7 @@ export function CampaignForm({ projectId }: { projectId: number }) {
         <Field
           label="Métier ciblé"
           error={fieldError("target_profession")}
-          hint={
-            professionsError ? (
-              <ProfessionsFailed onRetry={reloadProfessions} />
-            ) : (
-              "Seuls des testeurs vérifiés de ce métier seront invités."
-            )
-          }
+          hint={professionsError ? <ProfessionsFailed onRetry={reloadProfessions} /> : audienceHint(profession)}
         >
           {(control) => (
             <select
@@ -77,6 +72,7 @@ export function CampaignForm({ projectId }: { projectId: number }) {
                     ? "Métiers indisponibles"
                     : "Chargement des métiers..."}
               </option>
+              {professions && <option value={OPEN_TO_ALL}>{OPEN_TO_ALL} (aucune pièce demandée)</option>}
               {professions?.map((p) => (
                 <option key={p} value={p}>
                   {p}
@@ -112,11 +108,16 @@ export function CampaignForm({ projectId }: { projectId: number }) {
 // Same rules as the API, checked here so every empty field shows on the first submit.
 function checkFields(profession: string, testers: string, steps: string[]): Record<string, string[]> {
   const missing: Record<string, string[]> = {};
-  if (!profession) missing.target_profession = ["Choisis un métier."];
+  if (!profession) missing.target_profession = ["Choisis un métier ou « Tout public »."];
   const count = Number(testers);
   if (!Number.isInteger(count) || count < 1 || count > 10) missing.testers_wanted = ["Entre un nombre de 1 à 10."];
   if (!canSubmit(steps)) missing.steps = [`Remplis chaque étape (${MAX_STEP_LENGTH} caractères au plus).`];
   return missing;
+}
+
+function audienceHint(profession: string): string {
+  if (profession === OPEN_TO_ALL) return "Tout testeur inscrit peut postuler, sans pièce à fournir.";
+  return "Seuls des testeurs qui ont prouvé exercer ce métier, avec une pièce vérifiée par l'équipe, seront invités.";
 }
 
 function ProfessionsFailed({ onRetry }: { onRetry: () => void }) {

@@ -46,13 +46,27 @@ export type TesterCandidate = {
   city: string;
   rating_avg: number | null;
   completed_tests: number;
+  applied: boolean;
   recommended: boolean;
   selected: boolean;
   reason: string;
 };
 
+export type AwaitingCheck = { id: number; first_name: string; last_initial: string; city: string };
+
 // source: "groq", "mistral" or "rules", whichever ranked the candidates.
-export type TesterCandidates = { source: string; candidates: TesterCandidate[] };
+// awaiting_check: applicants the dev can pick once the team has checked their piece.
+export type TesterCandidates = { source: string; candidates: TesterCandidate[]; awaiting_check: AwaitingCheck[] };
+
+export type RecruitingCampaign = {
+  id: number;
+  project: { name: string; description: string };
+  target_profession: string;
+  steps_total: number;
+  applied: boolean;
+  reward_xof: number;
+  created_at: string;
+};
 
 export type Checkout = { reference: string; redirect_url: string };
 

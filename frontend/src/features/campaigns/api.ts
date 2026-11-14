@@ -6,6 +6,7 @@ import type {
   Checkout,
   LiveRow,
   Proof,
+  RecruitingCampaign,
   SubmitInput,
   TesterCandidates,
   TesterInvitationDetail,
@@ -69,4 +70,13 @@ export function saveStepProof(id: number, order: number, form: FormData): Promis
 
 export function submitTest(id: number, input: SubmitInput): Promise<void> {
   return apiFetch(`/api/tester/invitations/${id}/submit/`, { method: "POST", json: input });
+}
+
+export function getRecruitingCampaigns(): Promise<RecruitingCampaign[]> {
+  return apiFetch("/api/tester/campaigns/");
+}
+
+// form is empty, or holds the piece (document_type, document, consent, sponsor_email) when one is asked.
+export function applyToCampaign(id: number, form: FormData): Promise<void> {
+  return apiFetch(`/api/tester/campaigns/${id}/apply/`, { method: "POST", body: form });
 }
