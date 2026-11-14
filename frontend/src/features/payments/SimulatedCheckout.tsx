@@ -15,6 +15,7 @@ import { NotFoundNotice } from "@/ui/NotFoundNotice";
 import { ShieldIcon } from "@/ui/icons";
 import { getCampaign } from "@/features/campaigns/api";
 import { getPayment, simulatePayment } from "./api";
+import { audienceLabel } from "@/features/campaigns/audience";
 
 export function SimulatedCheckout({ reference }: { reference: string }) {
   const router = useRouter();
@@ -99,7 +100,7 @@ function CampaignName({ campaignId }: { campaignId: number }) {
   if (!campaign) return null;
   return (
     <p className="text-[16px] font-medium text-ink [overflow-wrap:anywhere]">
-      {campaign.project.name} · {campaign.target_profession}
+      {campaign.project.name} · {audienceLabel(campaign.target_profession)}
     </p>
   );
 }

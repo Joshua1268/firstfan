@@ -11,6 +11,7 @@ import { SparkIcon, StarIcon } from "@/ui/icons";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { Loading } from "@/ui/Loading";
 import { getTesterCandidates, selectTesters, startCheckout } from "../api";
+import { AwaitingCheckList } from "./AwaitingCheckList";
 import { rankedByAi, rankingLabel, selectionCount, toggleTester } from "../selection";
 import type { CampaignDetail, TesterCandidate } from "../types";
 import { CandidateCard } from "./CandidateCard";
@@ -28,8 +29,10 @@ export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
           Choisis tes testeurs
         </h2>
         <p className="max-w-[60ch] text-[15px] text-ink-muted">
-          Des professionnels vérifiés du métier {campaign.target_profession}, disponibles maintenant. Les invitations
-          partent dès que le paiement est confirmé.
+          {campaign.target_profession
+            ? `Des testeurs qui ont prouvé exercer le métier ${campaign.target_profession}.`
+            : "Des testeurs inscrits, de tous métiers."}{" "}
+          Ceux qui ont postulé passent en premier. Les invitations partent dès que le paiement est confirmé.
         </p>
       </div>
       {campaign.payment?.status === "failed" && (
@@ -40,10 +43,13 @@ export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
       ) : !data ? (
         <Loading label="Recherche des testeurs disponibles..." />
       ) : data.candidates.length === 0 ? (
-        <p className="rounded-[var(--radius-card)] border border-dashed border-line px-5 py-6 text-[15px] text-ink-muted">
-          Aucun testeur vérifié n&apos;est disponible pour ce métier pour l&apos;instant. Reviens un peu plus tard : de
-          nouveaux profils sont vérifiés chaque semaine.
-        </p>
+        <>
+          <p className="rounded-[var(--radius-card)] border border-dashed border-line px-5 py-6 text-[15px] text-ink-muted">
+            Aucun testeur n&apos;est encore disponible pour cette campagne. Elle est visible des testeurs : reviens un
+            peu plus tard pour voir qui a postulé.
+          </p>
+          <AwaitingCheckList testers={data.awaiting_check} />
+        </>
       ) : (
         <>
           <p className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted">
@@ -55,6 +61,7 @@ export function TesterPicker({ campaign }: { campaign: CampaignDetail }) {
             {rankingLabel(data.source)}
           </p>
           {/* The rules ranking writes its reason from the stats the card already shows. */}
+          <AwaitingCheckList testers={data.awaiting_check} />
           <PickerForm campaign={campaign} candidates={data.candidates} showReasons={data.source !== "rules"} />
         </>
       )}

@@ -18,6 +18,7 @@ import { GuidedStep } from "./GuidedStep";
 import { NdaStep } from "./NdaStep";
 import { StepTrail } from "./StepTrail";
 import { TestSummary } from "./TestSummary";
+import { audienceLabel } from "../audience";
 
 export function InvitationPage({ invitationId }: { invitationId: number }) {
   const { data: invitation, error, reload } = useApi(() => getTesterInvitation(invitationId));
@@ -41,7 +42,7 @@ export function InvitationPage({ invitationId }: { invitationId: number }) {
       <header className="flex flex-col items-start gap-3">
         <BackLink href="/testeur">Mes invitations</BackLink>
         <p className="font-mono text-[12px] uppercase tracking-[var(--tracking-kicker)] text-ink-muted">
-          {invitation.target_profession}
+          {audienceLabel(invitation.target_profession)}
         </p>
         <SpaceTitle>{invitation.project_name}</SpaceTitle>
         <StatusPill tone={status.tone}>{status.label}</StatusPill>

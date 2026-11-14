@@ -1,5 +1,6 @@
 import { TesterHome } from "@/features/accounts/TesterHome";
 import { InvitationList } from "@/features/campaigns/tester/InvitationList";
+import { RecruitingList } from "@/features/campaigns/tester/RecruitingList";
 import { BalanceLink } from "@/features/payments/BalanceLink";
 
 export default function TesterSpace() {
@@ -7,6 +8,7 @@ export default function TesterSpace() {
     <TesterHome>
       <BalanceLink />
       <InvitationList />
+      <RecruitingList />
     </TesterHome>
   );
 }
