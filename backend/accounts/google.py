@@ -93,8 +93,7 @@ def exchange_code(code: str) -> dict:
         raise GoogleError("invalide") from e
 
 
-# The id_token comes straight from Google's token endpoint over HTTPS,
-# so OpenID Connect allows reading it without checking the signature.
+# Fetched from Google over HTTPS, so no signature check is needed.
 def read_claims(id_token: str) -> dict:
     try:
         payload = id_token.split(".")[1]

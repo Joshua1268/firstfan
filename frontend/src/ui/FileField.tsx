@@ -43,7 +43,7 @@ export function FileField({
     <Field label={label} error={error} hint={hint}>
       {(control) => (
         <div className="flex flex-col gap-3">
-          {/* The real input covers the box, invisible: the browser's own button text would not be in French. */}
+          {/* Invisible input over the box: the native button text is not French. */}
           <div
             className={`relative flex min-h-14 items-center gap-4 rounded-[var(--radius-label)] border border-dashed ${error ? "border-danger" : "border-line"} bg-surface-2 px-3 py-2 transition-colors duration-150 focus-within:border-accent hover:border-ink/40`}
           >

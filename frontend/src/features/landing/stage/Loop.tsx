@@ -15,7 +15,7 @@ import { go, useRingRadius, useStage, useStepValue, useThreshold } from "./conte
 import { LOOP } from "./copy";
 import type { StageLayout } from "./layout";
 
-// Scene A: the ring turns once while praise bubbles appear and fall. The arcs live in Break.
+// The arcs live in Break.
 
 // Angle of each label, in LOOP.labels order.
 const LABEL_DEG = [90, 180, 270, 360];
@@ -38,7 +38,7 @@ export function activeLabel(rotate: number) {
   return (((Math.round((180 - rotate) / 90) % 4) + 4) % 4) as 0 | 1 | 2 | 3;
 }
 
-// The ring moves back at the break and stays sharp through scene B; it fades to the blurred layer from 0.22.
+// Fades to the blurred layer from 0.22.
 export function useRecess(p: MotionValue<number>) {
   const { recess, layout } = useStage();
   const scrub = useTransform(p, [0.19, 0.22], [0, 1], { clamp: true });
@@ -184,7 +184,7 @@ type RingFrame = { cx: MotionValue<number>; cy: MotionValue<number>; rotate: Mot
 const CLEAR_GAP = 6;
 const CLEAR_RAMP = 14;
 
-// Gap in px (positive when apart) to the nearest label; a bubble fades while a label crosses it.
+// Positive when apart; a bubble fades while a label crosses it.
 export function labelGap(
   bubble: { x: number; y: number; w: number; h: number },
   ring: { cx: number; cy: number; r: number; rotate: number },

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Lists the production licences (backend image and frontend dependencies) into docs/LICENCES.md.
-# Exits 1 on a GPL licence, psycopg, or a real sharp build.
+# Exits 1 on a GPL licence, psycopg or a real sharp build.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

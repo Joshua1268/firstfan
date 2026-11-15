@@ -8,7 +8,7 @@ import { CARD } from "./copy";
 import { CARD_H, CARD_W } from "./layout";
 import { cardPose } from "./pose";
 
-// One motion.div that is never unmounted and crosses the whole story; grey and color are two fading layers.
+// Never unmounted: one element crosses the whole story.
 
 type Tone = "gray" | "color";
 

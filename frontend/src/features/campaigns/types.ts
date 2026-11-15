@@ -54,8 +54,7 @@ export type TesterCandidate = {
 
 export type AwaitingCheck = { id: number; first_name: string; last_initial: string; city: string };
 
-// source: "groq", "mistral" or "rules", whichever ranked the candidates.
-// awaiting_check: applicants the dev can pick once the team has checked their piece.
+// awaiting_check: applicants whose piece is not checked yet.
 export type TesterCandidates = { source: string; candidates: TesterCandidate[]; awaiting_check: AwaitingCheck[] };
 
 export type RecruitingCampaign = {

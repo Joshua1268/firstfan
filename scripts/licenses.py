@@ -1,5 +1,4 @@
-# Runs inside the backend production image: reads the Node licence list (pnpm JSON) on stdin,
-# prints the licence table in Markdown and exits 1 on a forbidden licence or package.
+# Reads the pnpm licence list on stdin; exits 1 on a forbidden licence.
 import json
 import sys
 from importlib.metadata import distributions

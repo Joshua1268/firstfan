@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FormAlert } from "@/ui/FormAlert";
 
-// An object that does not exist, or belongs to someone else: the API answers 404 for both.
+// The API answers 404 for missing and foreign objects.
 export function NotFoundNotice({
   message,
   backHref,

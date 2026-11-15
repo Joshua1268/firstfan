@@ -12,7 +12,6 @@ async function loadRecruiting() {
   return { campaigns, checks };
 }
 
-// Campaigns still choosing their testers: open to all, or aimed at the tester's profession.
 export function RecruitingList() {
   const { data, error, reload } = useApi(loadRecruiting);
   if (error) return <LoadFailed message={error.detail ?? "Impossible de charger les campagnes."} onRetry={reload} />;

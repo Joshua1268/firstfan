@@ -28,8 +28,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-    # Prefixed service names: compose registers each name on the shared proxy network,
-    # where other stacks may also have a "backend" or "frontend".
+    # Other stacks on the proxy network may also have a "backend".
     networks: [default, proxy]
     restart: unless-stopped
     logging: *logging
@@ -71,7 +70,7 @@ services:
         - path: ./frontend
           target: /app
           action: sync
-          ignore: [node_modules/, .next/, test-results/, playwright-report/]
+          ignore: [node_modules/, .next/, test-results/]
         - path: ./frontend/pnpm-lock.yaml
           action: rebuild
 

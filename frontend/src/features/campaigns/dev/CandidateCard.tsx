@@ -4,8 +4,7 @@ import type { TesterCandidate } from "../types";
 
 const rating = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-// The real checkbox is invisible and covers the whole card, so the tap target is the card.
-// Its bottom scroll margin keeps a focused card clear of the sticky pay bar.
+// Invisible checkbox over the card; its scroll margin clears the pay bar.
 export function CandidateCard({
   tester,
   checked,

@@ -49,9 +49,7 @@ DEMO_STEPS = [
 # One screenshot per scenario step.
 DEMO_CAPTURES = [Path(__file__).parent / "demo_assets" / f"step-{i}.png" for i in (1, 2, 3)]
 
-# One test per invited tester. Return days are counted from the test start and give
-# a mixed adoption table: back at J1 and J7 then gone, back at J7 only, too early to tell.
-# Statuses leave one test to validate and one still in progress.
+# Mixed adoption table: back at J1 and J7, at J7 only, too early to tell.
 DEMO_TESTS = [
     {
         "status": "validated",

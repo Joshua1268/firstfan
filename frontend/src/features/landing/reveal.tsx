@@ -4,7 +4,7 @@ import type { Variants } from "motion/react";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { spring } from "@/lib/motion-tokens";
 
-// Reveal helpers for the sections below the stage. Without JS, REVEAL_NO_JS shows the final state.
+// Without JS, REVEAL_NO_JS shows the final state.
 
 // False during hydration, like the server HTML, then the real value.
 export function useReduce() {

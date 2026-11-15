@@ -13,7 +13,7 @@ const DOT = { type: "spring", stiffness: 500, damping: 38 } as const;
 
 export const anchorId = (scene: SceneId) => `histoire-${scene}`;
 
-// Real anchor targets, so stops work before the animated stage loads; then a click scrolls smoothly.
+// Real anchors, so stops work before the stage loads.
 export function StageAnchors() {
   return (
     <>

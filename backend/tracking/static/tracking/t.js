@@ -1,9 +1,4 @@
-/*
- * FirstFan tracking script: <script src=".../t.js" data-project="KEY" async></script>
- * Keeps the tester token (?ff_t=) so later visits stay linked to the tester,
- * then sends {k, t, u} on load and on each page change, once per 30 s per url.
- * It never throws: it must never break the host app.
- */
+// Usage: <script src=".../t.js" data-project="KEY" async></script>
 (function () {
   try {
     var script = document.currentScript;

@@ -3,7 +3,7 @@ import { StarIcon } from "@/ui/icons";
 
 const SCORES = [1, 2, 3, 4, 5];
 
-// Five native radio buttons drawn as stars: arrow keys move between them, as in any radio group.
+// Native radios, so arrow keys work.
 export function Stars({
   label,
   name,
