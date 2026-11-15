@@ -13,5 +13,6 @@ urlpatterns = [
     path("auth/me/", views.MeView.as_view()),
     path("professions/", views.ProfessionList.as_view()),
     path("tester/profile/", views.TesterProfileView.as_view()),
-    path("tester/profile/proof/", views.TesterProofView.as_view()),
+    path("tester/checks/", views.TesterChecksView.as_view()),
+    path("checks/<int:pk>/document/", views.CheckDocumentView.as_view()),
 ]

@@ -1,5 +1,4 @@
 import pytest
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 
 from accounts.models import TesterProfile, User
@@ -47,8 +46,6 @@ def test_profile_get(tester_client):
         "linkedin_url": "https://www.linkedin.com/in/awa",
         "momo_number": "0700000001",
         "available": True,
-        "verification": "verified",
-        "has_proof": False,
         "rating_avg": None,
     }
 
@@ -58,24 +55,18 @@ def test_profile_patch_and_complete(new_tester_client):
     assert c.get("/api/auth/me/").json()["profile_complete"] is False
     r = patch_json(c, {"profession": "Astronaute"})
     assert r.status_code == 400 and "profession" in r.json()
-    r = patch_json(c, {"profession": "Comptable", "momo_number": "0700000009", "company": "Cabinet K"})
+    r = patch_json(c, {"profession": "Comptable", "company": "Cabinet K"})
     assert r.status_code == 200 and r.json()["company"] == "Cabinet K"
     assert c.get("/api/auth/me/").json()["profile_complete"] is False
-    r = patch_multipart(c, {"proof": SimpleUploadedFile("diplome.pdf", PDF), "available": "false"})
-    assert r.status_code == 200 and r.json()["has_proof"] is True and r.json()["available"] is False
+    r = patch_multipart(c, {"momo_number": "0700000009", "available": "false"})
+    assert r.status_code == 200 and r.json()["available"] is False
     assert c.get("/api/auth/me/").json()["profile_complete"] is True
 
 
-def test_profile_rejects_fake_proof(tester_client):
-    r = patch_multipart(tester_client, {"proof": SimpleUploadedFile("diplome.pdf", b"not a pdf at all")})
-    assert r.status_code == 400 and "Format refusé" in r.json()["proof"][0]
-
-
-def test_profile_verification_read_only(new_tester_client):
-    r = patch_json(new_tester_client, {"verification": "verified", "rating_avg": "5.00"})
-    assert r.status_code == 200 and r.json()["verification"] == "pending"
-    profile = TesterProfile.objects.get(user__username="yao@x.ci")
-    assert profile.verification == TesterProfile.Verification.PENDING and profile.rating_avg is None
+def test_profile_rating_read_only(new_tester_client):
+    r = patch_json(new_tester_client, {"rating_avg": "5.00"})
+    assert r.status_code == 200 and r.json()["rating_avg"] is None
+    assert TesterProfile.objects.get(user__username="yao@x.ci").rating_avg is None
 
 
 def test_dev_cannot_read_tester_profile(dev_client):
@@ -85,36 +76,6 @@ def test_dev_cannot_read_tester_profile(dev_client):
 
 def test_anonymous_cannot_read_tester_profile(client, db):
     assert client.get(URL).status_code == 403
-
-
-def test_proof_download_owner_only(tester_client, tester_user, dev_client, dev_user):
-    proof_url = URL + "proof/"
-    assert tester_client.get(proof_url).status_code == 404
-    patch_multipart(tester_client, {"proof": SimpleUploadedFile("diplome.pdf", PDF)})
-    r = tester_client.get(proof_url)
-    assert r.status_code == 200 and b"".join(r.streaming_content) == PDF
-    assert r["Content-Disposition"] == 'attachment; filename="justificatif.pdf"'
-    assert dev_client.get(proof_url).status_code == 404
-    assert dev_client.get(f"{proof_url}?user={tester_user.id}").status_code == 404
-    dev_user.is_staff = True
-    dev_user.save()
-    assert dev_client.get(f"{proof_url}?user={tester_user.id}").status_code == 200
-    assert dev_client.get(f"{proof_url}?user=abc").status_code == 404
-
-
-def test_proof_stored_under_random_name(tester_client, tester_user):
-    patch_multipart(tester_client, {"proof": SimpleUploadedFile("Mon Diplome.PDF", PDF)})
-    name = TesterProfile.objects.get(user=tester_user).proof.name
-    assert name.startswith("proofs/") and name.endswith(".pdf") and "Diplome" not in name
-
-
-def test_proof_replace_deletes_old_file(tester_client, tester_user):
-    patch_multipart(tester_client, {"proof": SimpleUploadedFile("a.pdf", PDF)})
-    old = TesterProfile.objects.get(user=tester_user).proof
-    patch_multipart(tester_client, {"proof": SimpleUploadedFile("b.pdf", PDF)})
-    new = TesterProfile.objects.get(user=tester_user).proof
-    assert new.name != old.name
-    assert not old.storage.exists(old.name) and new.storage.exists(new.name)
 
 
 def test_tester_without_profile_gets_404(client, db):

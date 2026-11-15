@@ -14,6 +14,7 @@ import type { CampaignDetail } from "../types";
 import { InvitationList } from "./InvitationList";
 import { LiveBoard } from "./LiveBoard";
 import { TesterPicker } from "./TesterPicker";
+import { audienceLabel } from "../audience";
 
 export function CampaignPage({ campaignId }: { campaignId: number }) {
   const { data: campaign, error, reload } = useApi(() => getCampaign(campaignId));
@@ -28,7 +29,7 @@ export function CampaignPage({ campaignId }: { campaignId: number }) {
     <div className="flex flex-col gap-10">
       <header className="flex flex-col items-start gap-3">
         <BackLink href={`/dev/projets/${campaign.project.id}`}>{campaign.project.name}</BackLink>
-        <SpaceTitle>{campaign.target_profession}</SpaceTitle>
+        <SpaceTitle>{audienceLabel(campaign.target_profession)}</SpaceTitle>
         <div className="flex flex-wrap items-center gap-3">
           <StatusPill tone={status.tone}>{status.label}</StatusPill>
           {campaign.is_demo && <StatusPill tone="waiting">Données de démo</StatusPill>}

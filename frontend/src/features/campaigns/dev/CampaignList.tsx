@@ -9,6 +9,7 @@ import { Loading } from "@/ui/Loading";
 import { StatusPill } from "@/ui/StatusPill";
 import { getProjectCampaigns } from "../api";
 import { CAMPAIGN_STATUS } from "../status";
+import { audienceLabel } from "../audience";
 
 export function CampaignList({ projectId }: { projectId: number }) {
   const { data: campaigns, error, reload } = useApi(() => getProjectCampaigns(projectId));
@@ -30,7 +31,7 @@ export function CampaignList({ projectId }: { projectId: number }) {
               href={`/dev/campagnes/${c.id}`}
               className="group flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 rounded-[var(--radius-card)] border border-line bg-surface/60 px-5 py-4 transition-colors duration-150 hover:border-ink/40"
             >
-              <span className="text-[17px] font-semibold text-ink">{c.target_profession}</span>
+              <span className="text-[17px] font-semibold text-ink">{audienceLabel(c.target_profession)}</span>
               <span className="text-[14px] text-ink-muted">
                 {c.testers_wanted} testeur{c.testers_wanted > 1 ? "s" : ""} · {formatDateTime(c.created_at)}
               </span>

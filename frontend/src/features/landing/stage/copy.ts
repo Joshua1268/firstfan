@@ -42,7 +42,7 @@ export type Step = { kicker: string; title: string; dev: string; pro: string };
 export const STEP1: Step = {
   kicker: "01 · TU CHOISIS TES TESTEURS",
   title: "Des pros de ton métier cible. Vérifiés.",
-  dev: "CV, LinkedIn ou justificatif : on vérifie le métier avant tout. Tu choisis, on te recommande les mieux notés.",
+  dev: "Carte pro, attestation ou registre : on vérifie le métier avant le test. Tu choisis, on recommande les mieux notés.",
   pro: "Ton métier est vérifié une fois. Après, ce sont les devs qui viennent te chercher.",
 };
 

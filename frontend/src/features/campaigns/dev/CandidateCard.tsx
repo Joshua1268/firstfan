@@ -51,6 +51,11 @@ export function CandidateCard({
           <span id={`${id}-name`} className="text-[17px] font-semibold text-ink [overflow-wrap:anywhere]">
             {name}
           </span>
+          {tester.applied && (
+            <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-kicker)] text-ink">
+              A postulé
+            </span>
+          )}
           {tester.recommended && (
             <span className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[var(--tracking-kicker)] text-accent">
               <SparkIcon size={14} />

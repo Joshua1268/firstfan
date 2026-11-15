@@ -16,10 +16,18 @@ from rest_framework.views import APIView
 from core.permissions import IsTester
 
 from . import google
-from .models import TesterProfile
+from .models import ProfessionCheck, TesterProfile
 from .professions import PROFESSIONS
-from .serializers import LoginSerializer, MeSerializer, RegisterSerializer, TesterProfileSerializer
-from .services import register_user
+from .serializers import (
+    CheckInputSerializer,
+    LoginSerializer,
+    MeSerializer,
+    ProfessionCheckSerializer,
+    RegisterSerializer,
+    TesterProfileSerializer,
+    document_choices,
+)
+from .services import check_status, register_user, submit_check
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -152,15 +160,36 @@ class TesterProfileView(APIView):
         return Response(serializer.data)
 
 
-class TesterProofView(APIView):
+class TesterChecksView(APIView):
+    permission_classes = [IsAuthenticated, IsTester]
+    parser_classes = [MultiPartParser]
+
     def get(self, request):
-        user_id = request.user.id
-        if request.user.is_staff and "user" in request.query_params:
-            user_id = request.query_params["user"]
-            if not user_id.isdigit():
-                raise Http404
-        profile = get_object_or_404(TesterProfile, user_id=user_id)
-        if not profile.proof:
+        profession = request.user.tester_profile.profession
+        checks = request.user.profession_checks.all()
+        return Response(
+            {
+                "profession": profession,
+                "status": check_status(request.user, profession) if profession else None,
+                "documents": document_choices(profession) if profession else [],
+                "checks": ProfessionCheckSerializer(checks, many=True).data,
+            }
+        )
+
+    def post(self, request):
+        serializer = CheckInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        check = submit_check(request.user, **serializer.validated_data)
+        return Response(ProfessionCheckSerializer(check).data, status=status.HTTP_201_CREATED)
+
+
+class CheckDocumentView(APIView):
+    # Only the team opens the documents, and only until the decision deletes them.
+    def get(self, request, pk):
+        if not request.user.is_staff:
             raise Http404
-        ext = Path(profile.proof.name).suffix
-        return FileResponse(profile.proof.open("rb"), as_attachment=True, filename=f"justificatif{ext}")
+        check = get_object_or_404(ProfessionCheck, pk=pk)
+        if not check.document:
+            raise Http404
+        ext = Path(check.document.name).suffix
+        return FileResponse(check.document.open("rb"), as_attachment=True, filename=f"piece-{pk}{ext}")

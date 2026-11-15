@@ -3,13 +3,11 @@ from django.contrib.admin.models import LogEntry
 from django.core.files.base import ContentFile
 from django.utils import timezone
 
-from accounts.models import TesterProfile, User
+from accounts.models import ProfessionCheck, TesterProfile, User
 from campaigns.models import Invitation, Rating, TestSession
 from conftest import client_for, make_tester
 from payments.models import Withdrawal
 from tracking.models import TrackEvent
-
-PROOF_URL = "/api/tester/profile/proof/"
 
 
 @pytest.fixture(autouse=True)
@@ -26,24 +24,52 @@ def run_action(client, url, action, pk):
     return client.post(url, {"action": action, "_selected_action": [pk]})
 
 
-def test_reject_action(staff_client):
-    tester = make_tester("yao@x.ci")
-    r = run_action(staff_client, "/admin/accounts/testerprofile/", "reject", tester.tester_profile.pk)
+def pending_check(tester):
+    return ProfessionCheck.objects.create(
+        tester=tester,
+        profession="Comptable",
+        document_type=ProfessionCheck.Document.WORK_CERTIFICATE,
+        document=ContentFile(b"%PDF-1.7\n", name="attestation.pdf"),
+        consent_at=timezone.now(),
+    )
+
+
+def decide(client, check, **data):
+    url = f"/admin/accounts/professioncheck/{check.pk}/change/"
+    return client.post(url, {"status": "pending", "reject_reason": ""} | data)
+
+
+def test_reject_needs_a_reason_and_deletes_the_document(staff_client):
+    check = pending_check(make_tester("yao@x.ci", verified=False))
+    assert decide(staff_client, check, status="rejected").status_code == 200
+    check.refresh_from_db()
+    assert check.status == ProfessionCheck.Status.PENDING
+    name = check.document.name
+    assert decide(staff_client, check, status="rejected", reject_reason="Pièce illisible").status_code == 302
+    check.refresh_from_db()
+    assert check.status == ProfessionCheck.Status.REJECTED and check.reject_reason == "Pièce illisible"
+    assert not check.document and not check.document.storage.exists(name)
+    assert check.decided_by.email == "staff@x.ci" and check.expires_at is None
+
+
+def test_approve_action_sets_a_year_of_validity(staff_client):
+    check = pending_check(make_tester("yao@x.ci", verified=False))
+    r = run_action(staff_client, "/admin/accounts/professioncheck/", "approve", check.pk)
     assert r.status_code == 302
-    profile = TesterProfile.objects.get(user=tester)
-    assert profile.verification == TesterProfile.Verification.REJECTED
-    assert profile.verified_at is None
+    check.refresh_from_db()
+    assert check.status == ProfessionCheck.Status.VERIFIED and not check.document
+    assert (check.expires_at - check.decided_at).days == 365
 
 
-def test_proof_link_staff_only(staff_client, dev_client, tester_user):
-    profile = tester_user.tester_profile
-    profile.proof.save("diplome.pdf", ContentFile(b"%PDF-1.7\n"))
-    link = f"{PROOF_URL}?user={tester_user.id}"
-    page = staff_client.get("/admin/accounts/testerprofile/").content.decode()
-    assert link in page and profile.linkedin_url in page
-    assert staff_client.get(link).status_code == 200
+def test_document_link_staff_only(staff_client, dev_client, tester_client):
+    check = pending_check(make_tester("yao@x.ci", verified=False))
+    link = f"/api/checks/{check.pk}/document/"
+    assert link in staff_client.get(f"/admin/accounts/professioncheck/{check.pk}/change/").content.decode()
+    r = staff_client.get(link)
+    assert r.status_code == 200 and r["Content-Disposition"] == f'attachment; filename="piece-{check.pk}.pdf"'
     assert dev_client.get(link).status_code == 404
-    assert dev_client.get("/admin/accounts/testerprofile/").status_code == 302
+    assert tester_client.get(link).status_code == 404
+    assert dev_client.get("/admin/accounts/professioncheck/").status_code == 302
 
 
 @pytest.fixture

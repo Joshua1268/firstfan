@@ -140,7 +140,7 @@ export function JobsMarquee() {
         </div>
       </div>
       <p className="mx-auto mt-3 max-w-[var(--grid-max)] text-center font-mono text-[12px] text-ink-muted md:text-left">
-        Métier vérifié par CV, LinkedIn ou justificatif.
+        Métier prouvé par une pièce, vérifiée par l&apos;équipe.
       </p>
     </section>
   );

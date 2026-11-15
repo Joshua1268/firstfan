@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from core.uploads import validate_upload
 
-from .models import TesterProfile, User
-from .professions import PROFESSIONS
+from .models import ProfessionCheck, TesterProfile, User
+from .professions import PROFESSIONS, documents_for
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -45,46 +45,51 @@ class LoginSerializer(serializers.Serializer):
 
 
 class TesterProfileSerializer(serializers.ModelSerializer):
-    proof = serializers.FileField(write_only=True, required=False)
-    has_proof = serializers.SerializerMethodField()
     rating_avg = serializers.DecimalField(
         max_digits=3, decimal_places=2, read_only=True, coerce_to_string=False
     )
 
     class Meta:
         model = TesterProfile
-        fields = [
-            "profession",
-            "company",
-            "city",
-            "linkedin_url",
-            "momo_number",
-            "available",
-            "verification",
-            "has_proof",
-            "rating_avg",
-            "proof",
-        ]
-        read_only_fields = ["verification"]
-
-    def get_has_proof(self, profile: TesterProfile) -> bool:
-        return bool(profile.proof)
+        fields = ["profession", "company", "city", "linkedin_url", "momo_number", "available", "rating_avg"]
 
     def validate_profession(self, value):
         if value not in PROFESSIONS:
             raise serializers.ValidationError("Choisis un métier de la liste.")
         return value
 
-    def validate_proof(self, f):
+
+class ProfessionCheckSerializer(serializers.ModelSerializer):
+    document_label = serializers.CharField(source="get_document_type_display")
+
+    class Meta:
+        model = ProfessionCheck
+        fields = [
+            "id",
+            "profession",
+            "document_type",
+            "document_label",
+            "status",
+            "reject_reason",
+            "created_at",
+            "expires_at",
+        ]
+
+
+class CheckInputSerializer(serializers.Serializer):
+    document_type = serializers.ChoiceField(choices=ProfessionCheck.Document.choices)
+    document = serializers.FileField()
+    sponsor_email = serializers.EmailField(required=False, default="")
+    consent = serializers.BooleanField(default=False)
+
+    def validate_document(self, f):
         try:
             validate_upload(f, allow_pdf=True)
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.messages) from e
         return f
 
-    def update(self, profile, validated_data):
-        old = profile.proof.name if "proof" in validated_data else None
-        profile = super().update(profile, validated_data)
-        if old and old != profile.proof.name:
-            profile.proof.storage.delete(old)
-        return profile
+
+def document_choices(profession: str) -> list[dict]:
+    labels = dict(ProfessionCheck.Document.choices)
+    return [{"value": value, "label": labels[value]} for value in documents_for(profession)]

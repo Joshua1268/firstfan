@@ -49,7 +49,7 @@ test("a tester signs up, fills the profile and waits for verification", async ({
   await page.getByRole("button", { name: "Enregistrer mon profil" }).click();
 
   await expect(page).toHaveURL(/\/testeur$/);
-  await expect(page.getByText("En attente de vérification")).toBeVisible();
+  await expect(page.getByText("Prêt à tester")).toBeVisible();
   await expect(page.getByText("Aucune invitation pour l'instant")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

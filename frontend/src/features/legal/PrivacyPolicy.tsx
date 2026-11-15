@@ -40,7 +40,12 @@ export function PrivacyPolicy() {
         </p>
         <ul>
           <li>ton métier, ton entreprise et ta ville ;</li>
-          <li>ton profil LinkedIn ou un document qui prouve ton métier ;</li>
+          <li>ton profil LinkedIn, si tu choisis de l&apos;indiquer ;</li>
+          <li>
+            quand une campagne vise ton métier : la pièce qui le prouve (carte professionnelle, attestation, registre de
+            commerce, photo sur ton lieu de travail...), son type, la date d&apos;envoi et, si tu en indiques un,
+            l&apos;e-mail de ton parrain ;
+          </li>
           <li>ton numéro mobile money, pour te rémunérer ;</li>
           <li>la date de ton accord au moment de l&apos;inscription ;</li>
           <li>
@@ -155,6 +160,11 @@ export function PrivacyPolicy() {
             Tes données sont gardées tant que ton compte existe. Pour supprimer ton compte, fais-en la demande (voir
             plus bas). Les traces de paiement (gains, retraits et numéro mobile money utilisé) peuvent être conservées
             après la suppression, pour le suivi comptable et en cas de litige.
+          </li>
+          <li>
+            La pièce qui prouve ton métier n&apos;est vue que par l&apos;équipe de vérification. Elle est supprimée dès
+            la décision : nous ne gardons que ton métier, le type de pièce, la date et la personne qui a décidé. La
+            vérification vaut 12 mois. En cas de refus, le motif t&apos;est indiqué.
           </li>
           <li>
             Les documents de preuve et les captures ne sont jamais publics : ils passent uniquement par des accès

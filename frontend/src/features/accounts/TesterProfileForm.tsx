@@ -7,7 +7,6 @@ import { useFocusFirstError } from "@/lib/use-focus-first-error";
 import { useApi } from "@/lib/use-api";
 import { Button } from "@/ui/Button";
 import { Field, controlCls } from "@/ui/Field";
-import { FileField } from "@/ui/FileField";
 import { FormAlert } from "@/ui/FormAlert";
 import { LoadFailed } from "@/ui/LoadFailed";
 import { getProfessions, getTesterProfile, updateTesterProfile } from "./api";
@@ -45,12 +44,10 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    // An unchecked box is missing from FormData, and an empty file input must not replace the saved proof.
+    // An unchecked box is missing from FormData.
     form.set("available", form.has("available") ? "true" : "false");
-    const proof = form.get("proof");
-    if (proof instanceof File && proof.size === 0) form.delete("proof");
 
-    const missing = missingProfileFields(form, profile.has_proof);
+    const missing = missingProfileFields(form);
     if (Object.keys(missing).length > 0) {
       setError(new ApiError(400, missing));
       return;
@@ -97,11 +94,7 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
           />
         )}
       </Field>
-      <Field
-        label="Profil LinkedIn"
-        error={fieldError("linkedin_url")}
-        hint="Ton profil LinkedIn ou un justificatif ci-dessous suffit pour vérifier ton métier."
-      >
+      <Field label="Profil LinkedIn" error={fieldError("linkedin_url")} hint="Facultatif.">
         {(control) => (
           <input
             {...control}
@@ -114,17 +107,6 @@ function ProfileForm({ profile, professions }: { profile: TesterProfile; profess
           />
         )}
       </Field>
-      <FileField
-        label="Justificatif"
-        name="proof"
-        accept="image/*,application/pdf"
-        error={fieldError("proof")}
-        hint={
-          profile.has_proof
-            ? "Un justificatif est déjà enregistré. Choisis un fichier seulement pour le remplacer."
-            : "Carte professionnelle, attestation ou diplôme : image ou PDF, 5 Mo maximum."
-        }
-      />
       <Field label="Numéro mobile money" error={fieldError("momo_number")} hint="Tes gains arrivent sur ce numéro.">
         {(control) => (
           <input

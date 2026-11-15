@@ -1,7 +1,8 @@
 import pytest
 from django.core.management import CommandError, call_command
 
-from accounts.models import TesterProfile, User
+from accounts.models import ProfessionCheck, User
+from accounts.services import check_status
 
 
 def test_e2e_tester_creates_verified_tester(db, settings):
@@ -14,8 +15,8 @@ def test_e2e_tester_creates_verified_tester(db, settings):
     assert user.role == User.Role.TESTER and user.check_password("Sol1de-pass!")
     profile = user.tester_profile
     assert profile.profession == "Pharmacienne" and profile.available and profile.momo_number
-    assert profile.verification == TesterProfile.Verification.VERIFIED and profile.verified_at
     assert profile.is_complete
+    assert check_status(user, "Pharmacienne") == ProfessionCheck.Status.VERIFIED
 
 
 def test_e2e_tester_rejects_unknown_profession(db, settings):
