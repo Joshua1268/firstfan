@@ -10,7 +10,7 @@ FRONTEND_CHECK = $(RUN) firstfan-frontend
 BACKEND_FIX = $(RUN) -v ./backend:/app firstfan-backend
 FRONTEND_FIX = $(RUN) -v ./frontend:/app -v /app/node_modules firstfan-frontend
 
-.PHONY: network up down logs logs-back logs-front migrate seed test test-back test-front e2e lint lint-back lint-front fmt fmt-back fmt-front check build watch licenses
+.PHONY: network up down logs logs-back logs-front migrate seed test test-back test-front lint lint-back lint-front fmt fmt-back fmt-front check build watch licenses
 
 network:
 	docker network inspect $(PROXY_NETWORK) >/dev/null 2>&1 || docker network create $(PROXY_NETWORK)
@@ -49,9 +49,6 @@ test-back: network
 
 test-front: network
 	$(FRONTEND_CHECK) pnpm test
-
-e2e:
-	cd frontend && pnpm exec playwright test
 
 lint: lint-back lint-front
 

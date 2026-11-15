@@ -70,7 +70,7 @@ services:
         - path: ./frontend
           target: /app
           action: sync
-          ignore: [node_modules/, .next/, test-results/, playwright-report/]
+          ignore: [node_modules/, .next/, test-results/]
         - path: ./frontend/pnpm-lock.yaml
           action: rebuild
 
