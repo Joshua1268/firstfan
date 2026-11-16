@@ -268,9 +268,6 @@ test("jobs marquee is a static centered list with reduced motion", async ({ brow
     expect(m.cw, `${sel} clientWidth`).toBeGreaterThan(0);
     expect(m.sw, `${sel} scrollWidth`).toBeLessThanOrEqual(m.cw);
   }
-  await page.locator("[data-jobs-marquee]").screenshot({
-    path: `../.superpowers/sdd/2026-10-23-socle-et-landing/shots/task5-reduced-${info.project.name}.png`,
-  });
   await context.close();
 });
 
