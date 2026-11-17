@@ -158,7 +158,7 @@ class Command(BaseCommand):
         confirm_payment(start_checkout(campaign))
         for tester, test in zip(testers, DEMO_TESTS, strict=True):
             self.play_test(campaign.invitations.get(tester=tester), test)
-        # Backdate the project and campaign before the first test, so the certificate date makes sense.
+        # Backdated so the certificate date makes sense.
         first_start = timezone.now() - timedelta(days=max(t["started_days_ago"] for t in DEMO_TESTS))
         created_at = first_start - timedelta(days=2)
         Project.objects.filter(pk=project.pk).update(created_at=created_at, fingerprinted_at=created_at)
