@@ -17,7 +17,7 @@ export function overlaps(a: Box, b: Box): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
-// Scrolls so the raw stage progress equals p; the smoothed progress catches up afterwards.
+// Sets the raw progress; the smoothed one catches up later.
 export async function scrollStageTo(page: Page, p: number) {
   await waitForLiveStage(page);
   await page.evaluate((target) => {
@@ -29,7 +29,7 @@ export async function scrollStageTo(page: Page, p: number) {
   }, p);
 }
 
-// The animated stage loads after hydration; never use this with reduced motion, where it never loads.
+// Not with reduced motion: the stage never loads there.
 export async function waitForLiveStage(page: Page) {
   await page.locator("[data-stage-loaded]").waitFor({ state: "attached", timeout: 15_000 });
 }
@@ -55,8 +55,7 @@ export const TINY_PNG = Buffer.from(
   "base64",
 );
 
-// Uses the e2e_tester command of the Docker backend (DEBUG only): the tester is verified and available.
-// With a password, the tester can also log in.
+// Needs the DEBUG-only e2e_tester command of the Docker backend.
 export function createVerifiedTester(email: string, profession: string, password?: string) {
   const args = ["compose", "exec", "-T", "firstfan-backend", "python", "manage.py", "e2e_tester"];
   args.push("--email", email, "--profession", profession);
@@ -89,7 +88,7 @@ async function postAs(
   return res.status() === 204 ? null : res.json();
 }
 
-// A verified tester (who can log in with PASSWORD) and a dev whose paid campaign invites them.
+// A verified tester invited by a dev's paid campaign.
 export async function seedOpenCampaign(request: APIRequestContext, testerEmail: string) {
   createVerifiedTester(testerEmail, "Comptable", PASSWORD);
   await request.get("/api/auth/csrf/");
@@ -111,7 +110,7 @@ export async function seedOpenCampaign(request: APIRequestContext, testerEmail: 
   return { campaignId: campaign.id as number };
 }
 
-// The tester of seedOpenCampaign accepts, sends a proof for the first `steps` steps and, when all are done, the test.
+// Proves the first `steps` steps, then submits once all are done.
 export async function playSeededTest(request: APIRequestContext, testerEmail: string, steps = SCENARIO.length) {
   await postAs(request, "/api/auth/login/", { data: { email: testerEmail, password: PASSWORD } });
   const [invitation] = await (await request.get("/api/tester/invitations/")).json();
@@ -137,7 +136,6 @@ export async function playSeededTest(request: APIRequestContext, testerEmail: st
   });
 }
 
-// The dev of seedOpenCampaign validates the test sent by playSeededTest: the tester is credited.
 export async function validateSeededTest(request: APIRequestContext, testerEmail: string) {
   const [invitation] = await (await request.get("/api/tester/invitations/")).json();
   await postAs(request, "/api/auth/login/", { data: { email: `dev-${testerEmail}`, password: PASSWORD } });

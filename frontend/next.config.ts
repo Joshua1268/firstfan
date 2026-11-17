@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   // The dev server is opened at 127.0.0.1, the origin Django trusts for CSRF.
   allowedDevOrigins: ["127.0.0.1"],
   images: { unoptimized: true },
-  // The proxy buffers request bodies (10 MB by default): a project can carry three 5 MB captures.
+  // Room for three 5 MB captures (default 10 MB).
   experimental: { proxyClientMaxBodySize: "20mb" },
-  // Django wants the trailing slash and Next strips it: both redirects would loop on proxied API URLs.
+  // Django wants the trailing slash: avoids a redirect loop.
   skipTrailingSlashRedirect: true,
 };
 

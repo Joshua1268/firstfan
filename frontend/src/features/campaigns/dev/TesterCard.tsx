@@ -39,7 +39,7 @@ export function TesterCard({
   if (judged && row.status !== "submitted") setJudged(false);
   const canJudge = row.status === "submitted" && !judged;
 
-  // When the dialog closes on a card without the button that opened it, the focus goes to the title.
+  // If the opening button is gone, focus the title.
   const wasOpen = useRef(false);
   useEffect(() => {
     if (wasOpen.current && !dialogOpen && !canJudge) titleRef.current?.focus();

@@ -8,7 +8,7 @@ import { getMe } from "./api";
 import { homeFor } from "./redirect";
 import type { Role } from "./types";
 
-// Like @login_required for a whole space: anonymous visitors go to the login page, other roles to their own space.
+// Like @login_required, for a whole space.
 export function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();

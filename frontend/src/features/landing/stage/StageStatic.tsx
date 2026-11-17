@@ -14,7 +14,7 @@ import { SceneContent, STATIC_BOX, TextBox } from "./SceneText";
 import { Ratings, Testers } from "./Steps";
 import { StoryCard } from "./StoryCard";
 
-// Seven stacked blocks in their final state. On low-end devices each block replays its scene on enter.
+// On low-end devices each block replays its scene on enter.
 
 type FrameDef = { id: SceneId; p: number; ring?: number; final?: boolean };
 

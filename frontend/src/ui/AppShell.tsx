@@ -4,7 +4,6 @@ import { Logo } from "@/ui/Logo";
 
 const containerCls = "mx-auto w-full max-w-[calc(960px+2*var(--grid-margin))] px-[var(--grid-margin)]";
 
-// Frame of the logged-in spaces: logo, link to the space home, extra links, and a slot for the logout button.
 export function AppShell({
   spaceHref,
   spaceLabel,

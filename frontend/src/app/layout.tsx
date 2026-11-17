@@ -5,7 +5,7 @@ import { PRODUCT_NAME } from "@/lib/brand";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
-// Only latin is preloaded (latin-ext slowed LCP). Archivo stays preloaded: its condensed fallback would shift the H1.
+// latin-ext slowed LCP; Archivo is preloaded so the H1 does not shift.
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],

@@ -12,7 +12,7 @@ import { LiveBadge } from "./LiveBadge";
 
 export type Camp = "dev" | "pro";
 
-// Client only; its slots already exist in the HTML, so loading it never shifts the layout.
+// Client only; its slots are in the HTML, so no layout shift.
 const loadStickers = () => import("./Stickers").then((m) => m.Stickers);
 const Stickers = dynamic(loadStickers, { ssr: false });
 // Stamping starts at 800ms: fetch the chunk now instead of waiting for hydration.
@@ -88,7 +88,7 @@ export function Hero({ stats }: { stats: PublicStats | null }) {
           Pour les devs qui ont un MVP et zéro vrai utilisateur
         </p>
 
-        {/* The H1 uses container units and title stickers use % of this block, so both follow every width. */}
+        {/* Container units and % keep the H1 and stickers fluid. */}
         <div className="relative mt-3 [container-type:inline-size] md:mt-6">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
             <Stickers placement="title" camp={camp} progress={scrollYProgress} />

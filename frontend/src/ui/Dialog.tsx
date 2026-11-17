@@ -3,8 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { CloseIcon } from "@/ui/icons";
 
-// Render it only while open. The native modal <dialog> keeps Tab inside it, closes on Escape
-// and hides the rest of the page from screen readers; on close the focus goes back where it was.
+// Native <dialog>: keeps focus inside, closes on Escape, restores focus.
 export function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -18,7 +17,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
     const dialog = ref.current;
     if (!dialog) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    // The close event comes later: skip it when the dialog was opened again meanwhile (React dev remounts).
+    // Skip a late close if reopened meanwhile (React dev remounts).
     const close = () => !dialog.open && onCloseRef.current();
     // Escape asks the owner, which may keep the dialog open while it saves.
     const cancel = (e: Event) => {
@@ -41,8 +40,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
       ref={ref}
       aria-labelledby={titleId}
       aria-modal="true"
-      // A click on the dimmed backdrop lands on the dialog element itself. A text selection
-      // dragged out of a field ends there too, so the press must also start on the backdrop.
+      // Backdrop clicks hit the dialog; the press must start there too.
       onMouseDown={(e) => (pressedOnBackdrop.current = e.target === e.currentTarget)}
       onClick={(e) => e.target === e.currentTarget && pressedOnBackdrop.current && onClose()}
       className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-[560px] rounded-[var(--radius-card)] border border-line bg-surface p-0 text-ink backdrop:bg-black/60"

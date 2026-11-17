@@ -1,4 +1,4 @@
-// Nav and footer links. Off the home page, section anchors become "/#..." and the main action follows the audience.
+// Off the home page, anchors become "/#...".
 export type SitePage = "home" | "testeurs";
 
 export type SiteLink = { href: string; label: string };

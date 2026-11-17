@@ -5,7 +5,6 @@ import { formatDateTime } from "@/lib/dates";
 import { Dialog } from "@/ui/Dialog";
 import type { LiveStep } from "../live";
 
-// One line per scenario step: the tester's answer, when it was sent, and the capture to enlarge.
 export function ProofList({ steps }: { steps: LiveStep[] }) {
   const [enlarged, setEnlarged] = useState<LiveStep | null>(null);
 

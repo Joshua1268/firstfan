@@ -9,7 +9,7 @@ import { liveCounters, liveSummary } from "@/lib/live-counters";
 import type { PublicStats } from "@/lib/stats";
 import { containerCls, kickerCls, riseVariants, usePageVisible, useReveal, useReduce } from "./reveal";
 
-// Server-rendered counters, polled every 15s while visible. They count up once, then roll like an odometer.
+// Polled every 15 s while visible.
 
 const POLL_MS = 15_000;
 const SUMMARY_EVERY_MS = 60_000;
@@ -83,7 +83,7 @@ function Counter({
     if (!countUp || reduce || odo) return;
     const controls = startCountUp(count, value, { delay: index * 0.12, onComplete: () => setOdo(true) });
     return () => controls.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- count up once from the server value, not on every poll
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- count up once
   }, [countUp, reduce]);
 
   // Text mode (reduced motion, or before the odometer) follows the polled value.
@@ -114,7 +114,7 @@ function Counter({
   );
 }
 
-// TODO: replace these static cards with the anonymized campaign event feed once it exists.
+// TODO: use the campaign event feed once it exists.
 const STEPS = [
   { n: "01", title: "Une app est déposée", text: "Elle est horodatée dès le dépôt." },
   { n: "02", title: "Des pros vérifiés la testent", text: "Parcours guidé, preuves à l'appui." },
@@ -133,7 +133,7 @@ export function LiveSection({ stats }: { stats: PublicStats | null }) {
   const lastAnnounce = useRef(0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the clock is only known on the client
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client clock
     setLastUpdate(new Date());
   }, []);
 

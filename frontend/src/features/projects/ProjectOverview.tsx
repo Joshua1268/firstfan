@@ -11,7 +11,7 @@ import { getProject } from "./api";
 import { CertificateCard } from "./CertificateCard";
 import { ScriptCard } from "./ScriptCard";
 
-// children: the campaign blocks, given by the page and shown once the project is known to exist.
+// children show once the project is known to exist.
 export function ProjectOverview({ projectId, children }: { projectId: number; children: ReactNode }) {
   const { data: project, error, reload } = useApi(() => getProject(projectId));
   if (error?.status === 404) {

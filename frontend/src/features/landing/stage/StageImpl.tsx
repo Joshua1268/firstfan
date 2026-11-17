@@ -60,7 +60,7 @@ function LiveStage({ hydrated }: { hydrated: boolean }) {
     >
       <StageAnchors />
       <div ref={frame} className="stage-frame sticky top-0 h-svh overflow-clip">
-        {/* Skip link first, then the transcript, mounted after hydration to keep one heading outline. */}
+        {/* Mounted after hydration to keep one heading outline. */}
         <SkipStory />
         {hydrated && <StageTranscript />}
         <StageProvider value={ctx}>
@@ -96,7 +96,7 @@ export function Stage() {
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
     const weak =
       (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency < 4) || nav.connection?.saveData === true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- device capability is only known on the client
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client only
     if (weak) setLowEnd(true);
   }, []);
   const fallback = reduce || short || lowEnd;

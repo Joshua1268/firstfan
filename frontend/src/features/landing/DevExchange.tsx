@@ -8,7 +8,7 @@ import { ArrowIcon, ChatIcon, CheckIcon, CopyIcon } from "@/ui/icons";
 import { containerCls, h2Cls, Kicker, useReduce } from "./reveal";
 import { CodeAvatar } from "./stage/avatars";
 
-// The snippet text stays in the DOM while a cover reveals it; with reduced motion or no JS, all is shown.
+// The text stays in the DOM; a cover reveals it.
 
 const fr = (t: string) => t.replace(/ (?=[?:!])/g, " ");
 
@@ -57,7 +57,7 @@ function Snippet() {
 
   useEffect(() => {
     if (reduce) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the typing state only exists with JS, off screen
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- JS only, off screen
     setPhase((p) => (p === "idle" ? (inView ? "done" : "armed") : p === "armed" && inView ? "typing" : p));
   }, [reduce, inView]);
 
@@ -194,7 +194,7 @@ function Threads() {
 
   useEffect(() => {
     if (reduce || inView) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hidden threads only exist with JS, off screen
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- JS only, off screen
     setArmed(true);
     setShown(0);
   }, [reduce, inView]);

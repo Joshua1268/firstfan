@@ -26,7 +26,7 @@ import { TwoVoices } from "./TwoVoices";
 
 // Changes once per scene range, so nothing moves while it is read.
 
-// In the animated stage, screen readers read StageTranscript, so visible text is aria-hidden except links.
+// Screen readers use StageTranscript instead.
 export const HideText = createContext(false);
 export function useTextHidden(): true | undefined {
   return useContext(HideText) || undefined;

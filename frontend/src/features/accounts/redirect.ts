@@ -3,8 +3,7 @@ import type { Me } from "./types";
 // Any base works: it only tells whether next stays on the same site.
 const SITE = "http://site.local";
 
-// Parse next the way the browser will (it drops tabs and newlines, reads "\" as "/"),
-// then keep it only if it stays on the site.
+// Parse next like the browser (drops tabs and newlines, reads "\" as "/").
 function localPath(next: string): string | null {
   if (!next.startsWith("/")) return null;
   const url = new URL(next, SITE);

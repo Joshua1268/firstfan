@@ -6,7 +6,7 @@ test.beforeEach(({}, testInfo) => {
   test.skip(!["desktop", "mobile"].includes(testInfo.project.name));
 });
 
-// The board asks the API again every 5 seconds: a change made elsewhere shows within one refresh.
+// The board polls every 5 s.
 const NEXT_REFRESH = { timeout: 10_000 };
 
 async function noHorizontalScroll(page: Page) {

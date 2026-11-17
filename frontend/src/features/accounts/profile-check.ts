@@ -1,4 +1,4 @@
-// Same rule as the API's "profile complete": checked before sending so each field gets its message.
+// Same rule as the API's "profile complete".
 export function missingProfileFields(form: FormData): Record<string, string[]> {
   const text = (name: string) => String(form.get(name) ?? "").trim();
   const errors: Record<string, string[]> = {};

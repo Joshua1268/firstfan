@@ -9,7 +9,6 @@ import type { TesterInvitationDetail } from "../types";
 const linkCls =
   "inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline";
 
-// Where a finished invitation stands: sent and waiting, paid, refused by the dev, or declined.
 export function TestSummary({ invitation, focusTitle }: { invitation: TesterInvitationDetail; focusTitle: boolean }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {

@@ -16,14 +16,14 @@ export class ApiError extends Error {
   }
 }
 
-// fetch rejects with a TypeError when the network fails: give it the same shape as an API error.
+// Network failures get the same shape as API errors.
 export function asApiError(e: unknown): ApiError {
   return e instanceof ApiError
     ? e
     : new ApiError(0, { detail: "Connexion impossible. Vérifie ton réseau et réessaie." });
 }
 
-// Message shown above a form: the API's reason, or a generic one when no field explains the error.
+// The API's reason, or a generic message.
 export function formMessage(error: ApiError | undefined): string | null {
   if (!error) return null;
   if (error.detail) return error.detail;

@@ -1,6 +1,6 @@
 import { PRODUCT_NAME } from "@/lib/brand";
 
-// Plain statement of the service right under the hero. Same classes as reveal.tsx (client constants).
+// Same classes as reveal.tsx (client constants).
 const containerCls = "mx-auto w-full max-w-[calc(var(--grid-max)+2*var(--grid-margin))] px-[var(--grid-margin)]";
 const kickerCls =
   "font-mono text-[length:var(--text-kicker)] uppercase leading-[var(--leading-kicker)] tracking-[var(--tracking-kicker)] text-ink-muted";
