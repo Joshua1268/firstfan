@@ -75,7 +75,7 @@ function Title() {
   const [state, setState] = useState<"idle" | "armed" | "play">("idle");
   useEffect(() => {
     if (reduce) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the mask only exists with JS, off screen
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- JS only, off screen
     setState((s) => (s === "idle" ? (inView ? "idle" : "armed") : s === "armed" && inView ? "play" : s));
   }, [reduce, inView]);
   return (

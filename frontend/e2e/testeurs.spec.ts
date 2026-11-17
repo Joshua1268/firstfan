@@ -52,7 +52,7 @@ test("testers page never scrolls sideways", async ({ page }) => {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), id).toBe(true);
-    // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
+    // Mobile Chrome widens the viewport on overflow; innerWidth shows it.
     expect(await page.evaluate(() => window.innerWidth), id).toBe(width);
   }
 });

@@ -68,7 +68,7 @@ export function FinalFeedback({
       const apiError = asApiError(err);
       showError(apiError);
       setBusy(false);
-      // The invitation changed elsewhere, in another tab for instance: show where it stands now.
+      // Changed elsewhere (another tab): show the current state.
       if (apiError.status === 409) onConflict();
     }
   }

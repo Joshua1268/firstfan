@@ -1,4 +1,4 @@
-// Stage geometry in px, relative to the center of the sticky viewport. Pure: no DOM reads.
+// Pixels from the sticky viewport center. No DOM reads.
 
 export const CARD_W = 440;
 export const CARD_H = 300;
@@ -28,7 +28,7 @@ export type StageLayout = {
   // Card scale in scene C, to fit between the quotes.
   voicesScale: number;
   voicesY: number;
-  // After the break the ring moves by drift/driftY and scales to recessScale, staying whole next to the card.
+  // After the break the ring drifts and shrinks, staying whole.
   ring: { cx: number; cy: number; r: number; drift: number; driftY: number; recessScale: number };
   // Pass through the gap, relative to the ring center.
   pass: { c1: Pt; c2: Pt; breach: Pt; c3: Pt; end: Pt };

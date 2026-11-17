@@ -2,7 +2,7 @@
 
 import { useEffect, type RefObject } from "react";
 
-// The submit button is disabled while busy, so focus is lost: bring it to the first wrong field.
+// The disabled button loses focus: move it to the first wrong field.
 export function useFocusFirstError(form: RefObject<HTMLFormElement | null>, error: unknown) {
   useEffect(() => {
     if (!error) return;

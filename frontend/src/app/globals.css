@@ -111,7 +111,7 @@ body {
   line-height: var(--leading-body);
 }
 
-/* No horizontal scroll. Clipped on main and footer, not body: on body, mobile Chrome would still zoom out. */
+/* Clipped on main and footer: on body, mobile Chrome still zooms out. */
 main,
 footer {
   overflow-x: clip;
@@ -142,7 +142,7 @@ body::before {
   overflow: clip;
   overflow-clip-margin: 0;
   vertical-align: top;
-  /* Archivo capitals overflow the 0.86 line height: grow the box without moving the line. */
+  /* Archivo capitals overflow the 0.86 line height. */
   padding-block: 0.08em 0.02em;
   margin-block: -0.08em -0.02em;
 }
@@ -218,7 +218,7 @@ body::before {
   user-select: none;
   -webkit-user-select: none;
 }
-/* Sheen: a gradient layer moved with translateX, never an animated background-position. */
+/* Moves a gradient layer, never background-position. */
 .sticker-sheen {
   position: absolute;
   inset: 0;
@@ -457,7 +457,7 @@ body::before {
   -webkit-text-stroke: 1.5px rgb(242 237 227 / 0.08);
 }
 
-/* Paper: white page. A zero page margin also removes the browser's own header and footer lines. */
+/* No page margin also drops the browser's print header and footer. */
 @media print {
   @page {
     margin: 0;

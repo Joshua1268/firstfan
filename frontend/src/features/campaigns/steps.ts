@@ -1,4 +1,4 @@
-// The scenario is a list of instructions; these functions return a new list and never change the given one.
+// Each function returns a new list.
 export const MAX_STEPS = 10;
 export const MAX_STEP_LENGTH = 500;
 

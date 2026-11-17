@@ -11,7 +11,7 @@ import { CARD_H, CARD_W, type StageLayout } from "./layout";
 import { stepCenter } from "./pose";
 import { CodeAvatar, JobAvatar } from "./avatars";
 
-// Layers outside the card for steps 01 (tester cards) and 03 (two-way ratings). Step 02 lives in the card.
+// Step 02 lives in the card.
 
 const SETTLE = { type: "spring", ...spring.settle } as const;
 const STAMP = { type: "spring", ...spring.stamp } as const;

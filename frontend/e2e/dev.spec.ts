@@ -121,8 +121,7 @@ async function createDraftCampaign(page: Page, testersWanted: number) {
   await expect(page).toHaveURL(/\/dev\/campagnes\/\d+$/);
 }
 
-// The dev backend ranks testers with Groq then Mistral, each capped at 8 s (MATCHING_TIMEOUT_S): wait for both plus a margin.
-// A test can load the list twice, so it gets more than the default 30 s.
+// Groq then Mistral, 8 s each, and the list can load twice.
 const RANKING = { timeout: 20_000 };
 const RANKING_TEST_TIMEOUT = 60_000;
 

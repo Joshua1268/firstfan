@@ -76,7 +76,7 @@ export function getRecruitingCampaigns(): Promise<RecruitingCampaign[]> {
   return apiFetch("/api/tester/campaigns/");
 }
 
-// form is empty, or holds the piece (document_type, document, consent, sponsor_email) when one is asked.
+// form holds the piece when the campaign asks for one.
 export function applyToCampaign(id: number, form: FormData): Promise<void> {
   return apiFetch(`/api/tester/campaigns/${id}/apply/`, { method: "POST", body: form });
 }

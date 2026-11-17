@@ -12,7 +12,7 @@ import {
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { DEFAULT_LAYOUT, type StageLayout } from "./layout";
 
-// Shared stage state. `p` is passed as a prop; `instant` makes animations jump to their end in the fallback.
+// `instant` jumps animations to their end in the fallback.
 export type StageCtx = {
   layout: MotionValue<StageLayout>;
   pass: MotionValue<number>;
@@ -126,7 +126,7 @@ export function useLayoutValue<T extends number | boolean | string>(pick: (l: St
   );
 }
 
-// Recomputed only while p is in [lo, hi]. `track` lists the other values read by fn, which Motion could miss.
+// `track` lists values fn reads that Motion could miss.
 export function useGatedTransform<T>(
   p: MotionValue<number>,
   lo: number,

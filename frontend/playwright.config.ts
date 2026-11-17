@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Django comes from Docker on 8010 (run make up first); Next runs as a production build on 3100 and 3101.
+// Django from Docker on 8010 (make up); Next builds on 3100 and 3101.
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -11,7 +11,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",
   },
-  // Tests tagged @api-down only run in the api-down project, against a Next server with no reachable API.
+  // @api-down tests run against a Next server with no API.
   projects: [
     {
       name: "desktop",
@@ -52,7 +52,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 768 } },
     },
     {
-      // Separate build pointed at a closed port: the home page is prerendered, so the build must see the API down too.
+      // Home is prerendered, so the build must see the API down too.
       name: "api-down",
       grep: /@api-down/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: "http://127.0.0.1:3101" },

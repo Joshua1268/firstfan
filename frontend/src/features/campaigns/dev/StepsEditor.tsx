@@ -18,7 +18,7 @@ export function StepsEditor({
 }) {
   const id = useId();
   const errorId = `${id}-error`;
-  // Index of the step to focus after the next change: removing or moving a step can drop the focused button.
+  // Removing or moving a step can drop the focused button.
   const focusNext = useRef<number | null>(null);
   useEffect(() => {
     if (focusNext.current === null) return;

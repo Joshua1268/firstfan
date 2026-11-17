@@ -1,6 +1,6 @@
 import { fetchPublicStats } from "@/lib/stats";
 
-// Wins over the API rewrite: one cached Django call every 15s for all visitors, and a 503 when Django is down.
+// One cached Django call per 15 s; 503 when Django is down.
 export const dynamic = "force-dynamic";
 
 export async function GET() {

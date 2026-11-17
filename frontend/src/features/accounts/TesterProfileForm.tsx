@@ -32,7 +32,7 @@ export function TesterProfileForm() {
   return <ProfileForm profile={data.profile} professions={data.professions} />;
 }
 
-// Fields keep their own value (defaultValue); the form element gives them all to FormData on submit.
+// Uncontrolled fields, read with FormData on submit.
 function ProfileForm({ profile, professions }: { profile: TesterProfile; professions: string[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);

@@ -15,7 +15,7 @@ import { LOOP } from "./copy";
 import { BREACH_DEG } from "./layout";
 import { useRecess } from "./Loop";
 
-// The ring breaks and the card goes through the gap. Also drives `pass`, `colorOn` and `shake`, read by the card.
+// Also drives `pass`, `colorOn` and `shake`, read by the card.
 
 const CUT_DEG = 18;
 const SEPARATION = 7; // per half, so 14px in total

@@ -1,6 +1,6 @@
 import { CARD_H, CARD_W, GRAPH_VIEW, passPoint, type StageLayout } from "./layout";
 
-// Card pose from `p` (scroll) and `pass` (real time). On mobile the card stays centered with half the tilt.
+// On mobile the card stays centered with half the tilt.
 export type Pose = { x: number; y: number; scale: number; rotateY: number; opacity: number; color: number };
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));

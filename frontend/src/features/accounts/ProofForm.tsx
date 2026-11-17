@@ -10,7 +10,6 @@ import { FormAlert } from "@/ui/FormAlert";
 import { LockIcon } from "@/ui/icons";
 import type { ChecksOverview } from "./types";
 
-// The piece that proves the profession. onSubmit receives document_type, document, consent and sponsor_email.
 export function ProofForm({
   overview,
   submitLabel,

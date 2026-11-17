@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import { PASSWORD, scan, uniqueEmail } from "./helpers";
 
-// Auth does not depend on the layout: two viewports are enough, and they stay under the login throttle.
+// Two viewports stay under the login throttle.
 test.beforeEach(({}, testInfo) => {
   test.skip(!["desktop", "mobile"].includes(testInfo.project.name));
 });

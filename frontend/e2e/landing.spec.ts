@@ -65,7 +65,7 @@ test("mobile layout", async ({ page }, info) => {
   await page.goto("/");
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
+  // Mobile Chrome widens the viewport on overflow; innerWidth shows it.
   expect(await page.evaluate(() => window.innerWidth)).toBe(375);
   const h1 = await page.getByRole("heading", { level: 1 }).boundingBox();
   for (const s of await page.locator("[data-sticker]").all()) expect(overlaps(await s.boundingBox(), h1)).toBe(false);
@@ -113,7 +113,7 @@ test("stickers never cover the hero text or the CTAs, and the page never scrolls
   await expect(page.locator("[data-sticker][data-accent='true']")).toHaveCount(smallScreen(info.project.name) ? 0 : 1);
   await page.waitForTimeout(1600);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  // Mobile Chrome widens the layout viewport when something overflows, which innerWidth reveals.
+  // Mobile Chrome widens the viewport on overflow; innerWidth shows it.
   expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize()!.width);
   for (const s of await page.locator("[data-sticker]").all()) {
     const box = (await s.boundingBox())!;
@@ -629,7 +629,7 @@ test("live section shows only the non-zero server counters and the demo mention"
   await expect(live.locator("[aria-live='polite']")).toHaveCount(1);
 });
 
-// Count-up and counter selection have unit tests; here, only the final value and no animation with reduced motion.
+// Count-up is unit tested: only the final value here.
 for (const reducedMotion of ["reduce", "no-preference"] as const) {
   test(`live counters show the server value (reduced motion: ${reducedMotion})`, async ({ browser }, info) => {
     const context = await browser.newContext({ ...info.project.use, reducedMotion });

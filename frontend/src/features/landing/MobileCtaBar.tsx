@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { spring } from "@/lib/motion-tokens";
 
-// Mobile only: shown once the hero is mostly gone, hidden over the final CTA and while the keyboard is open.
+// Hidden over the final CTA and while the keyboard is open.
 export function MobileCtaBar({
   href = "/inscription?role=dev",
   label = "Je suis développeur",

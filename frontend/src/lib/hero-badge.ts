@@ -2,7 +2,7 @@ import type { PublicStats } from "./stats";
 
 export type HeroBadge = { value: number; label: string };
 
-// Running tests, else verified testers, else nothing: the badge never shows a made-up or zero number.
+// Never a made-up or zero number.
 export function heroBadge(stats: PublicStats | null): HeroBadge | null {
   if (!stats) return null;
   const n = stats.tests_in_progress;

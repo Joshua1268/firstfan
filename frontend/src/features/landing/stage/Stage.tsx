@@ -2,8 +2,7 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 
-// The server renders the whole stage; the client keeps that HTML and swaps in the animated chunk once loaded.
-// No Suspense: React 19 would stream it out of flow, hiding the stage without JS.
+// No Suspense: React 19 would stream it out of flow, hidden without JS.
 
 type StageComponent = ComponentType;
 

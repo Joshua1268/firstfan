@@ -10,7 +10,7 @@ import { Loading } from "@/ui/Loading";
 import { NotFoundNotice } from "@/ui/NotFoundNotice";
 import { getCertificate } from "./api";
 
-// Same text as the downloaded file, laid out for paper: dark ink on white, no space header when printed.
+// Dark ink on white, no header when printed.
 export function CertificatePrint({ projectId }: { projectId: number }) {
   const { data: text, error, reload } = useApi(() => getCertificate(projectId));
   if (error?.status === 404) {
