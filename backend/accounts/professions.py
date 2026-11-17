@@ -41,7 +41,7 @@ SPECIFIC_DOCUMENTS: dict[str, list[str]] = {
     "Transitaire": [Document.PRO_CARD, Document.BUSINESS_REGISTRY],
 }
 
-# Many workers of the informal sector have no official paper: the photo at work keeps them in.
+# Many informal workers have no official paper.
 ANY_PROFESSION = [Document.WORK_CERTIFICATE, Document.PAYSLIP, Document.WORKPLACE_PHOTO]
 
 

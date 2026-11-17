@@ -9,7 +9,7 @@ from projects.models import Project
 
 from .models import TrackEvent
 
-# A return counts for the first window it falls in: J1 is days 1 to 6, J7 days 7 to 29, J30 day 30 on.
+# J1: days 1 to 6, J7: days 7 to 29, J30: day 30 on.
 WINDOWS = {"d1": (1, 7), "d7": (7, 30), "d30": (30, None)}
 
 
